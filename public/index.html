@@ -340,8 +340,27 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             <div class="hint">متغيرات: <span class="code-pill">{company_name}</span> <span class="code-pill">{field}</span> <span class="code-pill">{location}</span> <span class="code-pill">{your_name}</span></div>
           </div>
           <div class="field">
-            <div class="label">أسلوب الإيميل (تعليمات للذكاء الاصطناعي)</div>
-            <textarea class="textarea" id="tpl-instructions" rows="4" placeholder="مثال: اكتب إيميل تقديم احترافي باللغة العربية، مختصر لا يتجاوز 3 فقرات...">اكتب إيميل تقديم احترافي باللغة العربية (أو الإنجليزية إذا اسم الشركة أجنبي) للتقدم لوظيفة في شركة {company_name} المتخصصة في مجال {field}. الإيميل يجب أن يكون مختصراً (3 فقرات) ويبرز أبرز نقاط السيرة الذاتية ذات الصلة بمجال الشركة. اختم بطلب مقابلة عمل.</textarea>
+            <div class="label" style="display:flex;justify-content:space-between;align-items:center">
+              <span>تفضيلات الذكاء الاصطناعي</span>
+              <button class="btn btn-secondary" style="padding:4px 8px;font-size:10px" onclick="updateAIPrompt()">♻️ توليد التعليمات</button>
+            </div>
+            <div class="row" style="margin-bottom:12px">
+              <select class="select" id="ai-lang" style="width:auto;flex:1" onchange="updateAIPrompt()">
+                <option value="arabic">اللغة: عربية</option>
+                <option value="english">اللغة: English</option>
+              </select>
+              <select class="select" id="ai-tone" style="width:auto;flex:1" onchange="updateAIPrompt()">
+                <option value="professional" selected>الأسلوب: احترافي ورسمي</option>
+                <option value="friendly">الأسلوب: ودّي ومباشر</option>
+                <option value="creative">الأسلوب: مبتكر</option>
+              </select>
+              <select class="select" id="ai-len" style="width:auto;flex:1" onchange="updateAIPrompt()">
+                <option value="short">الطول: قصير جداً (فقرة)</option>
+                <option value="medium" selected>الطول: متوسط (3 فقرات)</option>
+              </select>
+            </div>
+            <div class="label">التعليمات النهائية الموجهة للذكاء الاصطناعي (يمكنك التعديل اليدوي)</div>
+            <textarea class="textarea" id="tpl-instructions" rows="5" placeholder="مثال: اكتب إيميل تقديم احترافي..."></textarea>
           </div>
         </div>
         <button class="btn btn-secondary" onclick="saveTemplate()">💾 حفظ القالب</button>
@@ -531,6 +550,23 @@ let sendQueue = [];
 let stopFlag = false;
 let excelFile = null;
 
+function updateAIPrompt() {
+  const lang = document.getElementById('ai-lang').value;
+  const tone = document.getElementById('ai-tone').value;
+  const len = document.getElementById('ai-len').value;
+  
+  const langTxt = lang === 'arabic' ? 'باللغة العربية' : 'باللغة الإنجليزية (English)';
+  const toneTxt = tone === 'professional' ? 'رسمي واحترافي' : (tone === 'friendly' ? 'ودّي ومباشر بدون تكلف' : 'مبتكر وجذاب يلفت الانتباه');
+  const lenTxt = len === 'short' ? 'قصير جداً ومباشر (فقرة واحدة)' : 'متوسط الطول (3 فقرات)';
+  
+  const prompt = `اكتب إرسال تقديم وظيفي ${langTxt} للتقدم لتخصص {field} بطلب من شركة {company_name}.
+الأسلوب: ${toneTxt}.
+الطول: ${lenTxt}.
+ابرز أهم المهارات والخبرات المذكورة في السيرة الذاتية بما يتناسب مع مجال الشركة.`;
+  
+  document.getElementById('tpl-instructions').value = prompt;
+}
+
 // ── Init
 checkAuth();
 
@@ -597,6 +633,7 @@ function setGmail(on, label, sub) {
 // ── CV
 async function uploadCV(e) {
   const file = e.target.files[0]; if (!file) return;
+  document.getElementById('cv-status').innerHTML = '<div style="margin-top:10px;font-size:13px;color:var(--text2);display:flex;align-items:center;gap:8px"><div class="spin" style="width:14px;height:14px;border-width:2px;border-top-color:var(--accent)"></div> جاري التحليل واستخراج النص...</div>';
   const fd = new FormData(); fd.append('cv', file);
   try {
     const r = await apiForm('/api/cv/upload', fd);
@@ -644,6 +681,7 @@ async function loadTemplate() {
 // ── Excel upload
 async function uploadExcel(e) {
   const file = e.target.files[0]; if (!file) return;
+  document.getElementById('xl-status').innerHTML = '<div style="margin-top:10px;font-size:13px;color:var(--text2);display:flex;align-items:center;gap:8px"><div class="spin" style="width:14px;height:14px;border-width:2px;border-top-color:var(--accent)"></div> جاري قراءة الملف...</div>';
   excelFile = file;
   const fd = new FormData(); fd.append('file', file);
   try {
@@ -1060,6 +1098,13 @@ let waStatus = 'disconnected';
 async function checkWAStatus() {
   try {
     const r = await api('/api/whatsapp/status');
+    
+    // Popup notification if newly connected
+    if (r.status === 'ready' && waStatus !== 'ready' && waStatus !== 'disconnected') {
+      toast('واتساب متصل وجاهز للإرسال ✅', 'success');
+      closeWAModal();
+    }
+    
     waStatus = r.status;
     const dot = document.getElementById('wadot');
     const lbl = document.getElementById('wa-label');
