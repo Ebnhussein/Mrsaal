@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const db = require('./db');
 const { generateEmail } = require('./ai');
 const { sendEmail } = require('./gmail');
+const { syncReplies } = require('./replyTracker');
 
 const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
 
@@ -23,7 +24,7 @@ function startScheduler() {
     for (const job of jobs) {
       try {
         const user = db.prepare('SELECT * FROM users WHERE id=?').get(job.user_id);
-        const cv = db.prepare('SELECT content FROM cv_profiles WHERE user_id=? ORDER BY created_at DESC LIMIT 1').get(job.user_id);
+        const cv = db.prepare('SELECT * FROM cv_profiles WHERE user_id=? ORDER BY created_at DESC LIMIT 1').get(job.user_id);
         const tpl = db.prepare('SELECT * FROM templates WHERE user_id=? ORDER BY created_at DESC LIMIT 1').get(job.user_id);
 
         if (!user || !cv) {
@@ -36,14 +37,19 @@ function startScheduler() {
 
         const logId = uuidv4();
         const trackingUrl = `${BASE_URL}/track/open/${logId}.gif`;
+        const attachment = cv?.pdf_data ? {
+          data: cv.pdf_data,
+          filename: cv.filename || 'CV.pdf',
+          mimeType: 'application/pdf'
+        } : null;
 
-        await sendEmail({ user, to: company.email, subject: email.subject, body: email.body, trackingPixelUrl: trackingUrl });
+        const result = await sendEmail({ user, to: company.email, subject: email.subject, body: email.body, trackingPixelUrl: trackingUrl, attachment });
 
         db.prepare("UPDATE scheduled_jobs SET status='sent' WHERE id=?").run(job.id);
         db.prepare("UPDATE companies SET status='sent' WHERE id=?").run(job.company_id);
-        db.prepare(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,subject,body,status)
-          VALUES(?,?,?,?,?,?,?,?)`)
-          .run(logId, job.user_id, job.company_id, job.company_name, job.company_email, email.subject, email.body, 'sent');
+        db.prepare(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,subject,body,status,message_id,thread_id)
+          VALUES(?,?,?,?,?,?,?,?,?,?)`)
+          .run(logId, job.user_id, job.company_id, job.company_name, job.company_email, email.subject, email.body, 'sent', result.messageId, result.threadId);
 
         console.log(`✅ Scheduled email sent to ${job.company_email}`);
       } catch (err) {
@@ -55,6 +61,12 @@ function startScheduler() {
   });
 
   console.log('⏰ Scheduler started — checking every minute for scheduled emails');
+
+  // Check for replies every 5 minutes
+  cron.schedule('*/5 * * * *', async () => {
+    console.log('🔄 Background: Syncing Gmail replies...');
+    await syncReplies();
+  });
 }
 
 module.exports = { startScheduler };

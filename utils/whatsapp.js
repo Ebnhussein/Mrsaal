@@ -1,5 +1,5 @@
 // utils/whatsapp.js — WhatsApp client via whatsapp-web.js
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
 const path = require('path');
 const fs = require('fs');
@@ -102,7 +102,7 @@ function getQR() {
  * @param {string} phone - international format e.g. 201012345678 (no + or spaces)
  * @param {string} text  - message body
  */
-async function sendWhatsAppMessage(phone, text) {
+async function sendWhatsAppMessage(phone, text, attachment) {
   if (status !== 'ready' || !client) {
     throw new Error('واتساب غير متصل. امسح الـ QR أولاً من إعدادات التطبيق.');
   }
@@ -111,8 +111,22 @@ async function sendWhatsAppMessage(phone, text) {
   const normalised = String(phone).replace(/\D/g, '');
   const chatId = `${normalised}@c.us`;
 
+  let media = null;
+  if (attachment && attachment.data) {
+    media = new MessageMedia(
+      attachment.mimeType || 'application/pdf',
+      attachment.data.toString('base64'),
+      attachment.filename
+    );
+  }
+
   try {
-    await client.sendMessage(chatId, text);
+    if (media) {
+      // Send as media with caption
+      await client.sendMessage(chatId, media, { caption: text });
+    } else {
+      await client.sendMessage(chatId, text);
+    }
     return { chatId };
   } catch (err) {
     if (err.message.includes('detached Frame') || err.message.includes('Target closed') || err.message.includes('Session closed')) {

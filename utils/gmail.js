@@ -48,34 +48,55 @@ function buildAuthClient(user) {
 }
 
 // Build RFC 2822 MIME message
-function buildMimeMessage({ from, to, subject, body, trackingPixelUrl }) {
+// Build RFC 2822 MIME message with optional attachment
+function buildMimeMessage({ from, to, subject, body, trackingPixelUrl, attachment }) {
+  const boundary = `__mrsaal_boundary_${Date.now()}__`;
   const trackingPixel = trackingPixelUrl
-    ? `<br><img src="${trackingPixelUrl}" width="1" height="1" style="display:none" alt="">`
+    ? `<br><div style="display:none"><img src="${trackingPixelUrl}" width="1" height="1" border="0" alt=""></div>`
     : '';
 
-  const htmlBody = body
-    .replace(/\n/g, '<br>')
-    + trackingPixel;
+  const htmlBody = `<html><body style="font-family: sans-serif; line-height: 1.5; color: #333;">
+    ${body.replace(/\n/g, '<br>')}
+    ${trackingPixel}
+  </body></html>`;
 
-  const messageParts = [
+  let message = [
     `From: ${from}`,
     `To: ${to}`,
     `Subject: =?UTF-8?B?${Buffer.from(subject).toString('base64')}?=`,
     'MIME-Version: 1.0',
+    `Content-Type: multipart/mixed; boundary="${boundary}"`,
+    '',
+    `--${boundary}`,
     'Content-Type: text/html; charset=utf-8',
     'Content-Transfer-Encoding: base64',
     '',
-    Buffer.from(htmlBody).toString('base64')
+    Buffer.from(htmlBody).toString('base64'),
+    ''
   ];
 
-  return Buffer.from(messageParts.join('\n'))
+  if (attachment && attachment.data) {
+    message.push(
+      `--${boundary}`,
+      `Content-Type: ${attachment.mimeType || 'application/pdf'}; name="${attachment.filename}"`,
+      `Content-Disposition: attachment; filename="${attachment.filename}"`,
+      'Content-Transfer-Encoding: base64',
+      '',
+      attachment.data.toString('base64'),
+      ''
+    );
+  }
+
+  message.push(`--${boundary}--`);
+
+  return Buffer.from(message.join('\r\n'))
     .toString('base64')
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');
 }
 
-async function sendEmail({ user, to, subject, body, trackingPixelUrl }) {
+async function sendEmail({ user, to, subject, body, trackingPixelUrl, attachment }) {
   const auth = buildAuthClient(user);
   const gmail = google.gmail({ version: 'v1', auth });
 
@@ -83,14 +104,18 @@ async function sendEmail({ user, to, subject, body, trackingPixelUrl }) {
   const profile = await gmail.users.getProfile({ userId: 'me' });
   const from = profile.data.emailAddress;
 
-  const raw = buildMimeMessage({ from, to, subject, body, trackingPixelUrl });
+  const raw = buildMimeMessage({ from, to, subject, body, trackingPixelUrl, attachment });
 
   const result = await gmail.users.messages.send({
     userId: 'me',
     requestBody: { raw }
   });
 
-  return { messageId: result.data.id, from };
+  return { 
+    messageId: result.data.id, 
+    threadId: result.data.threadId,
+    from 
+  };
 }
 
 module.exports = { getAuthUrl, getTokensFromCode, getUserInfo, sendEmail, buildAuthClient };

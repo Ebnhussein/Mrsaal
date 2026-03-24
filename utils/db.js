@@ -33,6 +33,7 @@ db.exec(`
     name TEXT,
     content TEXT,
     filename TEXT,
+    pdf_data BLOB,
     created_at INTEGER DEFAULT (unixepoch()),
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
@@ -64,8 +65,11 @@ db.exec(`
     channel TEXT DEFAULT 'email',
     reason TEXT,
     message_id TEXT,
+    thread_id TEXT,
     open_count INTEGER DEFAULT 0,
     last_opened_at INTEGER,
+    replied INTEGER DEFAULT 0,
+    reply_text TEXT,
     sent_at INTEGER DEFAULT (unixepoch()),
     FOREIGN KEY (user_id) REFERENCES users(id)
   );

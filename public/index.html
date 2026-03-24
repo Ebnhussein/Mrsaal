@@ -39,7 +39,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 /* ── Sidebar */
 .sidebar{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
 .logo{padding:26px 22px 18px;border-bottom:1px solid var(--border)}
-.logo-mark{font-size:24px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
+.logo-mark{font-size:24px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:900;letter-spacing:-1px}
 .logo-sub{font-size:10px;color:var(--text3);margin-top:3px;font-weight:500;letter-spacing:0.4px}
 .nav{padding:14px 10px;flex:1}
 .nav-item{display:flex;align-items:center;gap:11px;padding:10px 13px;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--text2);transition:all .2s;margin-bottom:3px;border:1px solid transparent;user-select:none}
@@ -187,12 +187,22 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 /* ── Login screen */
 #login-screen{position:fixed;inset:0;background:var(--bg);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column;gap:0}
 .login-card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:48px 40px;text-align:center;max-width:420px;width:90%}
-.login-logo{font-size:40px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.login-logo{font-size:40px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
 .login-title{font-size:22px;font-weight:700;margin-bottom:8px}
 .login-sub{font-size:13px;color:var(--text2);margin-bottom:32px;line-height:1.6}
 .btn-google{background:#fff;color:#1a1a1a;font-size:14px;font-weight:700;padding:14px 28px;border-radius:12px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:10px;transition:all .2s;width:100%;justify-content:center}
 .btn-google:hover{background:#f0f0f0;transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,0,0,.3)}
 .login-note{font-size:11px;color:var(--text3);margin-top:20px;line-height:1.7}
+
+/* ── Reply Styles */
+.row-replied td { background: rgba(34,197,94,0.05) !important; }
+.log-status { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; }
+.log-status.sent { background: rgba(255,255,255,0.05); color: var(--text2); }
+.log-status.opened { background: rgba(245,158,11,0.1); color: var(--orange); border: 1px solid rgba(245,158,11,0.2); }
+.log-status.replied { background: rgba(34,197,94,0.2); color: var(--green); border: 1px solid rgba(34,197,94,0.4); box-shadow: 0 0 10px rgba(34,197,94,0.1); }
+.log-status.failed { background: rgba(239,68,68,0.1); color: var(--red); }
+.reply-preview { font-size: 10.5px; color: var(--green); margin-top: 4px; font-style: italic; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-right: 2px solid var(--green); padding-right: 6px; }
+.opened-badge { font-size: 10px; color: var(--orange); margin-top: 2px; }
 
 /* ── Column map table */
 .col-map-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
@@ -475,6 +485,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="ph">
         <div class="ph-title">التقرير</div>
         <div class="row">
+          <button class="btn btn-secondary" id="btn-sync" onclick="syncNow()">🔄 تزامن الردود</button>
           <button class="btn btn-secondary" onclick="exportCSV()">⬇️ تصدير CSV</button>
           <button class="btn btn-danger" onclick="clearLog()">🗑️ مسح السجل</button>
         </div>
@@ -1049,9 +1060,11 @@ async function loadLog() {
 }
 
 function renderLog() {
+  const container = document.getElementById('log-container');
   const total=log.length, sent=log.filter(l=>l.status==='sent').length,
         failed=log.filter(l=>l.status==='failed').length,
         opens=log.filter(l=>l.open_count>0).length;
+  
   document.getElementById('r-total').textContent=total;
   document.getElementById('r-sent').textContent=sent;
   document.getElementById('r-failed').textContent=failed;
@@ -1059,31 +1072,50 @@ function renderLog() {
   document.getElementById('nb-report').textContent=total;
 
   if (!log.length) {
-    document.getElementById('log-container').innerHTML = `
+    container.innerHTML = `
       <div class="empty"><div class="empty-ico">📭</div>
       <div class="empty-t">السجل فارغ</div>
       <div class="empty-s">ستظهر هنا نتائج الإرسال</div></div>`;
     return;
   }
 
-  const icons={sent:'✅',failed:'❌',scheduled:'🕐',skipped:'⏭️'};
-  const items = log.map(l => `
-    <div class="log-item">
-      <div class="log-ico">${icons[l.status]||'📧'}</div>
-      <div class="log-body">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span class="log-company">${esc(l.company_name)}</span>
-          <span class="tag ${l.status}">${stLabel(l.status)}</span>
-        </div>
-        <div class="log-email">${esc(l.company_email)}</div>
-        ${l.subject?`<div class="log-subject">${esc(l.subject)}</div>`:''}
-        ${l.open_count>0?`<div class="log-opens">👁 فُتح ${l.open_count} مرة${l.last_opened_at?' — آخرها '+new Date(l.last_opened_at*1000).toLocaleString('ar-EG'):''}</div>`:''}
-        ${l.reason?`<div class="log-reason">❌ ${esc(l.reason)}</div>`:''}
-      </div>
-      <div class="log-time">${new Date(l.sent_at*1000).toLocaleString('ar-EG')}</div>
-    </div>`).join('');
+  const rows = log.map(l => {
+    const isWA = l.channel === 'whatsapp';
+    const statusClass = l.replied ? 'replied' : (l.open_count > 0 ? 'opened' : l.status);
+    const statusText = l.replied ? 'تم الرد 💬' : (l.open_count > 0 ? `فُتح ${l.open_count} مرة` : stLabel(l.status));
+    
+    return `
+    <tr class="${l.replied ? 'row-replied' : ''}">
+      <td><div style="font-weight:700">${esc(l.company_name)}</div><div style="font-size:10px;color:var(--text3)">${new Date(l.sent_at*1000).toLocaleString('ar')}</div></td>
+      <td class="mono" style="font-size:11px">${esc(l.company_email)}</td>
+      <td><span class="tag ${isWA?'wa':'email'}">${isWA?'💬 واتساب':'📧 إيميل'}</span></td>
+      <td>
+        <span class="log-status ${statusClass}">${statusText}</span>
+        ${l.replied && l.reply_text ? `<div class="reply-preview">${esc(l.reply_text)}</div>` : ''}
+      </td>
+      <td><button class="btn btn-secondary" style="padding:4px 8px;font-size:10px" onclick="viewLogDetail('${l.id}')">تفاصيل</button></td>
+    </tr>`;
+  }).join('');
 
-  document.getElementById('log-container').innerHTML = `<div class="log-list">${items}</div>`;
+  container.innerHTML = `
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>الشركة</th><th>الجهة</th><th>القناة</th><th>الحالة</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+
+async function viewLogDetail(id) {
+  const l = log.find(x=>x.id===id);
+  if (!l) return;
+  alert(`
+الشركة: ${l.company_name}
+الحالة: ${stLabel(l.status)}
+القناة: ${l.channel}
+عدد مرات الفتح: ${l.open_count}
+تم الرد: ${l.replied ? 'نعم' : 'لا'}
+${l.reply_text ? '\nالرد:\n' + l.reply_text : ''}
+${l.reason ? '\nالسبب: ' + l.reason : ''}
+  `);
 }
 
 async function clearLog() {

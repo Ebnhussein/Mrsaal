@@ -29,10 +29,9 @@ router.post('/upload', requireAuth, upload.single('cv'), async (req, res) => {
     }
 
     const id = uuidv4();
-    // Delete old CVs for user
     db.prepare('DELETE FROM cv_profiles WHERE user_id = ?').run(req.session.userId);
-    db.prepare('INSERT INTO cv_profiles (id, user_id, content, filename) VALUES (?,?,?,?)')
-      .run(id, req.session.userId, text, req.file.originalname);
+    db.prepare('INSERT INTO cv_profiles (id, user_id, content, filename, pdf_data) VALUES (?,?,?,?,?)')
+      .run(id, req.session.userId, text, req.file.originalname, req.file.mimetype === 'application/pdf' ? req.file.buffer : null);
 
     res.json({ id, content: text, filename: req.file.originalname });
   } catch (err) {

@@ -7,6 +7,7 @@ const db = require('../utils/db');
 const { generateEmail, generateWhatsAppMessage } = require('../utils/ai');
 const { sendEmail } = require('../utils/gmail');
 const { sendWhatsAppMessage } = require('../utils/whatsapp');
+const { syncReplies } = require('../utils/replyTracker');
 
 const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
 
@@ -54,8 +55,12 @@ router.post('/send', requireAuth, async (req, res) => {
   const company = db.prepare('SELECT * FROM companies WHERE id=? AND user_id=?').get(companyId, req.session.userId);
   if (!company) return res.status(404).json({ error: 'الشركة غير موجودة' });
 
-  const user = db.prepare('SELECT * FROM users WHERE id=?').get(req.session.userId);
-  if (!user) return res.status(401).json({ error: 'غير مصرح' });
+  const cv = db.prepare('SELECT * FROM cv_profiles WHERE user_id=? ORDER BY created_at DESC LIMIT 1').get(req.session.userId);
+  const attachment = cv?.pdf_data ? {
+    data: cv.pdf_data,
+    filename: cv.filename || 'CV.pdf',
+    mimeType: 'application/pdf'
+  } : null;
 
   // ── Scheduled ────────────────────────────────────────────────────────────
   if (scheduledAt) {
@@ -80,7 +85,7 @@ router.post('/send', requireAuth, async (req, res) => {
   // WhatsApp path
   if (!hasEmail(company) && hasPhone(company)) {
     try {
-      await sendWhatsAppMessage(company.phone, body);
+      await sendWhatsAppMessage(company.phone, body, attachment);
       db.prepare('UPDATE companies SET status=? WHERE id=?').run('sent', companyId);
       db.prepare(`INSERT INTO email_log (id, user_id, company_id, company_name, company_email, subject, body, status, channel)
         VALUES (?,?,?,?,?,?,?,?,?)`)
@@ -98,11 +103,11 @@ router.post('/send', requireAuth, async (req, res) => {
   // Email path
   const trackingUrl = `${BASE_URL}/track/open/${logId}.gif`;
   try {
-    const result = await sendEmail({ user, to: company.email, subject, body, trackingPixelUrl: trackingUrl });
+    const result = await sendEmail({ user, to: company.email, subject, body, trackingPixelUrl: trackingUrl, attachment });
     db.prepare('UPDATE companies SET status=? WHERE id=?').run('sent', companyId);
-    db.prepare(`INSERT INTO email_log (id, user_id, company_id, company_name, company_email, subject, body, status, message_id, channel)
-      VALUES (?,?,?,?,?,?,?,?,?,?)`)
-      .run(logId, req.session.userId, companyId, company.name, company.email, subject, body, 'sent', result.messageId, 'email');
+    db.prepare(`INSERT INTO email_log (id, user_id, company_id, company_name, company_email, subject, body, status, message_id, thread_id, channel)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?)`)
+      .run(logId, req.session.userId, companyId, company.name, company.email, subject, body, 'sent', result.messageId, result.threadId, 'email');
     res.json({ ok: true, status: 'sent', channel: 'email', logId });
   } catch (err) {
     db.prepare('UPDATE companies SET status=? WHERE id=?').run('failed', companyId);
@@ -118,10 +123,16 @@ router.post('/send-bulk', requireAuth, async (req, res) => {
   const { companyIds, scheduleType, scheduledAt, batchSize, delaySeconds } = req.body;
 
   const user = db.prepare('SELECT * FROM users WHERE id=?').get(req.session.userId);
-  const cv = db.prepare('SELECT content FROM cv_profiles WHERE user_id=? ORDER BY created_at DESC LIMIT 1').get(req.session.userId);
+  const cv = db.prepare('SELECT * FROM cv_profiles WHERE user_id=? ORDER BY created_at DESC LIMIT 1').get(req.session.userId);
   const tpl = db.prepare('SELECT * FROM templates WHERE user_id=? ORDER BY created_at DESC LIMIT 1').get(req.session.userId);
 
   if (!cv) return res.status(400).json({ error: 'لا توجد سيرة ذاتية' });
+
+  const attachment = cv.pdf_data ? {
+    data: cv.pdf_data,
+    filename: cv.filename || 'CV.pdf',
+    mimeType: 'application/pdf'
+  } : null;
 
   const companies = companyIds.map(id =>
     db.prepare('SELECT * FROM companies WHERE id=? AND user_id=?').get(id, req.session.userId)
@@ -170,7 +181,7 @@ router.post('/send-bulk', requireAuth, async (req, res) => {
     try {
       if (channel === 'whatsapp') {
         const message = await generateWhatsAppMessage({ cv: cv.content, company, instructions: tpl?.instructions });
-        await sendWhatsAppMessage(company.phone, message);
+        await sendWhatsAppMessage(company.phone, message, attachment);
         db.prepare('UPDATE companies SET status=? WHERE id=?').run('sent', company.id);
         db.prepare(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,body,status,channel)
           VALUES(?,?,?,?,?,?,?,?)`)
@@ -178,11 +189,11 @@ router.post('/send-bulk', requireAuth, async (req, res) => {
       } else {
         const email = await generateEmail({ cv: cv.content, company, instructions: tpl?.instructions, subjectTemplate: tpl?.subject_template });
         const trackingUrl = `${BASE_URL}/track/open/${logId}.gif`;
-        await sendEmail({ user, to: company.email, subject: email.subject, body: email.body, trackingPixelUrl: trackingUrl });
+        const result = await sendEmail({ user, to: company.email, subject: email.subject, body: email.body, trackingPixelUrl: trackingUrl, attachment });
         db.prepare('UPDATE companies SET status=? WHERE id=?').run('sent', company.id);
-        db.prepare(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,subject,body,status,message_id,channel)
-          VALUES(?,?,?,?,?,?,?,?,?,?)`)
-          .run(logId, req.session.userId, company.id, company.name, company.email, email.subject, email.body, 'sent', '', 'email');
+        db.prepare(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,subject,body,status,message_id,thread_id,channel)
+          VALUES(?,?,?,?,?,?,?,?,?,?,?)`)
+          .run(logId, req.session.userId, company.id, company.name, company.email, email.subject, email.body, 'sent', result.messageId, result.threadId, 'email');
       }
 
       sent++;
@@ -213,6 +224,16 @@ router.get('/log', requireAuth, (req, res) => {
 router.delete('/log', requireAuth, (req, res) => {
   db.prepare('DELETE FROM email_log WHERE user_id=?').run(req.session.userId);
   res.json({ ok: true });
+});
+
+// GET sync replies manually
+router.get('/sync-replies', requireAuth, async (req, res) => {
+  try {
+    await syncReplies();
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;
