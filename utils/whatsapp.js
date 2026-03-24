@@ -32,6 +32,8 @@ function initWhatsApp() {
         '--no-zygote',
         '--single-process',
         '--disable-accelerated-2d-canvas',
+        '--disable-site-isolation-trials',
+        '--disable-features=IsolateOrigins,site-per-process',
         '--js-flags="--max-old-space-size=250"'
       ]
     }

@@ -346,7 +346,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             </div>
             <div class="row" style="margin-bottom:12px">
               <select class="select" id="ai-lang" style="width:auto;flex:1" onchange="updateAIPrompt()">
-                <option value="arabic">اللغة: عربية</option>
+                <option value="arabic">اللغة: فصحى (العربية الأصلية)</option>
+                <option value="arabic_eg">اللغة: مصرية (عامية)</option>
+                <option value="arabic_sa">اللغة: سعودية/خليجية</option>
                 <option value="english">اللغة: English</option>
               </select>
               <select class="select" id="ai-tone" style="width:auto;flex:1" onchange="updateAIPrompt()">
@@ -555,7 +557,11 @@ function updateAIPrompt() {
   const tone = document.getElementById('ai-tone').value;
   const len = document.getElementById('ai-len').value;
   
-  const langTxt = lang === 'arabic' ? 'باللغة العربية' : 'باللغة الإنجليزية (English)';
+  let langTxt = 'باللغة العربية الفصحى';
+  if (lang === 'arabic_eg') langTxt = 'باللهجة المصرية (عامية مع الحفاظ على الاحترافية)';
+  if (lang === 'arabic_sa') langTxt = 'باللهجة السعودية/الخليجية (عامية مع الحفاظ على الاحترافية)';
+  if (lang === 'english') langTxt = 'باللغة الإنجليزية (English)';
+  
   const toneTxt = tone === 'professional' ? 'رسمي واحترافي' : (tone === 'friendly' ? 'ودّي ومباشر بدون تكلف' : 'مبتكر وجذاب يلفت الانتباه');
   const lenTxt = len === 'short' ? 'قصير جداً ومباشر (فقرة واحدة)' : 'متوسط الطول (3 فقرات)';
   
