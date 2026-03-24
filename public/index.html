@@ -1149,12 +1149,19 @@ async function checkWAStatus() {
   } catch { }
 }
 
+let waPollInt = null;
+
 function openWAModal() {
   document.getElementById('wa-overlay').classList.add('open');
   refreshQR();
+  waPollInt = setInterval(refreshQR, 3000);
 }
-function closeWAModal() { document.getElementById('wa-overlay').classList.remove('open'); }
+function closeWAModal() { 
+  document.getElementById('wa-overlay').classList.remove('open'); 
+  if (waPollInt) clearInterval(waPollInt);
+}
 
+let lastQR = null;
 async function refreshQR() {
   const content = document.getElementById('wa-modal-content');
   try {
@@ -1162,29 +1169,49 @@ async function refreshQR() {
     waStatus = r.status;
     if (r.status === 'ready') {
       content.innerHTML = `
-        <div style="text-align:center;padding:20px">
-          <div style="font-size:48px;margin-bottom:12px">✅</div>
-          <div style="font-size:16px;font-weight:700;color:#25d366">واتساب متصل!</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:8px">يمكنك الآن إرسال رسائل للشركات بدون إيميل</div>
-          <button class="btn btn-danger" style="margin-top:20px" onclick="logoutWA()">🔌 قطع الاتصال</button>
+        <div style="text-align:center;padding:30px">
+          <div style="font-size:52px;margin-bottom:16px">✅</div>
+          <div style="font-size:18px;font-weight:700;color:#25d366">واتساب متصل!</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:8px">يمكنك الآن إرسال رسائل للشركات بسهولة.</div>
+          <button class="btn btn-danger" style="margin-top:24px" onclick="logoutWA()">🔌 قطع الاتصال</button>
+        </div>`;
+    } else if (r.status === 'connecting') {
+      content.innerHTML = `
+        <div style="text-align:center;padding:40px 20px">
+          <div style="margin-bottom:20px"><div class="spin" style="width:48px;height:48px;border-width:4px;border-top-color:#25d366;margin:auto"></div></div>
+          <div style="font-size:18px;font-weight:bold;color:var(--text);margin-top:10px">جاري ربط جهازك...</div>
+          <div style="font-size:14px;color:var(--text2);margin-top:8px">تم التقاط الكود بنجاح! نُزامن البيانات الآن ⏳</div>
         </div>`;
     } else if (r.qr) {
-      content.innerHTML = `
-        <div class="qr-wrap">
-          <img src="${r.qr}" alt="QR Code">
-          <div class="qr-hint">افتح واتساب على موبايلك<br>⋮ → الأجهزة المرتبطة → ربط جهاز<br>ثم امسح هذا QR</div>
-        </div>
-        <button class="btn btn-secondary" style="width:100%;margin-top:12px" onclick="refreshQR()">🔄 تحديث</button>`;
+      if (!document.getElementById('live-qr-img')) {
+        content.innerHTML = `
+          <div class="qr-wrap">
+            <img src="${r.qr}" id="live-qr-img" alt="QR Code" style="transition: opacity 0.3s ease; width:264px; height:264px">
+            <div class="qr-hint">افتح واتساب على موبايلك<br>⋮ → الأجهزة المرتبطة → ربط جهاز<br>ثم امسح هذا QR</div>
+          </div>
+          <div style="text-align:center;font-size:11px;color:var(--text2);margin-top:10px">يتم تحديث الرمز برمجياً بشكل تلقائي 🔄</div>`;
+        lastQR = r.qr;
+      } else if (lastQR !== r.qr) {
+        // QR Changed
+        const img = document.getElementById('live-qr-img');
+        img.style.opacity = '0.1';
+        setTimeout(() => {
+          img.src = r.qr;
+          img.style.opacity = '1';
+          lastQR = r.qr;
+        }, 300);
+      }
     } else {
       content.innerHTML = `
-        <div style="text-align:center;padding:20px">
-          <div style="font-size:32px;margin-bottom:12px"><div class="spin" style="width:32px;height:32px;margin:auto"></div></div>
-          <div style="font-size:13px;color:var(--text2);margin-top:10px">الحالة: ${r.status}<br>انتظر لحين ظهور QR أو تحديث الصفحة...</div>
-          <button class="btn btn-secondary" style="margin-top:16px" onclick="refreshQR()">🔄 تحديث</button>
+        <div style="text-align:center;padding:40px 20px">
+          <div style="margin-bottom:12px"><div class="spin" style="width:32px;height:32px;margin:auto;border-top-color:var(--accent)"></div></div>
+          <div style="font-size:14px;color:var(--text2);margin-top:10px">جاري توليد كود جديد...</div>
         </div>`;
     }
   } catch(err) {
-    content.innerHTML = `<div style="color:var(--red);text-align:center;padding:20px">خطأ: ${err.message}</div>`;
+    if (err.message.includes('انتهت الجلسة')) {
+       closeWAModal();
+    }
   }
 }
 
