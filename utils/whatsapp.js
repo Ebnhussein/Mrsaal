@@ -20,11 +20,14 @@ function initWhatsApp() {
     }),
     puppeteer: {
       headless: true,
+      timeout: 0,
+      protocolTimeout: 0,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-gpu'
+        '--disable-gpu',
+        '--disable-extensions'
       ]
     }
   });

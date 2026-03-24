@@ -33,7 +33,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 900px 700px at 15% 5%,rgba(79,142,247,0.05),transparent 65%),radial-gradient(ellipse 700px 600px at 85% 90%,rgba(124,58,237,0.04),transparent 65%);pointer-events:none;z-index:0}
 
 /* ── Layout */
-.app{position:relative;z-index:1;display:grid;grid-template-columns:var(--sidebar) 1fr;min-height:100vh}
+.app{position:relative;z-index:1;display:none;grid-template-columns:var(--sidebar) 1fr;min-height:100vh}
+.app.active{display:grid}
 
 /* ── Sidebar */
 .sidebar{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
@@ -184,7 +185,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .open-badge::before{content:'👁';font-size:12px}
 
 /* ── Login screen */
-#login-screen{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0}
+#login-screen{position:fixed;inset:0;background:var(--bg);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column;gap:0}
 .login-card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:48px 40px;text-align:center;max-width:420px;width:90%}
 .login-logo{font-size:40px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
 .login-title{font-size:22px;font-weight:700;margin-bottom:8px}
@@ -219,12 +220,18 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </head>
 <body>
 
+<!-- Initial Loading Screen -->
+<div id="app-loading" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px">
+  <div class="spin" style="width:40px;height:40px;border-width:3px"></div>
+  <div style="font-size:14px;color:var(--text2);font-weight:600">جاري التحميل...</div>
+</div>
+
 <!-- Login Screen -->
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">✉ مرسال</div>
     <div class="login-title">أداة التقدم الذكي للوظائف</div>
-    <div class="login-sub">ارفع سيرتك الذاتية، استورد قائمة الشركات،<br>واترك Claude يكتب الإيميل المثالي لكل شركة</div>
+    <div class="login-sub">ارفع سيرتك الذاتية، استورد قائمة الشركات،<br>واترك الذكاء الاصطناعي يكتب الإيميل المثالي لكل شركة</div>
     <a href="/auth/google">
       <button class="btn-google">
         <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
@@ -333,7 +340,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             <div class="hint">متغيرات: <span class="code-pill">{company_name}</span> <span class="code-pill">{field}</span> <span class="code-pill">{location}</span> <span class="code-pill">{your_name}</span></div>
           </div>
           <div class="field">
-            <div class="label">أسلوب الإيميل (تعليمات لـ Claude)</div>
+            <div class="label">أسلوب الإيميل (تعليمات للذكاء الاصطناعي)</div>
             <textarea class="textarea" id="tpl-instructions" rows="4" placeholder="مثال: اكتب إيميل تقديم احترافي باللغة العربية، مختصر لا يتجاوز 3 فقرات...">اكتب إيميل تقديم احترافي باللغة العربية (أو الإنجليزية إذا اسم الشركة أجنبي) للتقدم لوظيفة في شركة {company_name} المتخصصة في مجال {field}. الإيميل يجب أن يكون مختصراً (3 فقرات) ويبرز أبرز نقاط السيرة الذاتية ذات الصلة بمجال الشركة. اختم بطلب مقابلة عمل.</textarea>
           </div>
         </div>
@@ -480,7 +487,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
     <div id="prev-loading" style="text-align:center;padding:40px;display:none">
       <div class="spin" style="width:28px;height:28px;margin:0 auto 12px"></div>
-      <div style="font-size:13px;color:var(--text2)">Claude يكتب الإيميل...</div>
+      <div style="font-size:13px;color:var(--text2)">الذكاء الاصطناعي يكتب الإيميل...</div>
     </div>
     <div id="prev-form">
       <div class="field"><div class="label" id="prev-email-label">📧 إلى</div><input class="input" id="prev-email" readonly style="direction:ltr;text-align:left"></div>
@@ -530,15 +537,17 @@ checkAuth();
 async function checkAuth() {
   try {
     const r = await api('/auth/status');
+    document.getElementById('app-loading').style.display = 'none';
     if (!r.loggedIn) {
       document.getElementById('login-screen').style.display = 'flex';
       setGmail(false, 'غير متصل', 'سجّل دخولك أولاً');
     } else {
-      document.getElementById('login-screen').style.display = 'none';
+      document.querySelector('.app').classList.add('active');
       setGmail(true, r.name || 'Gmail متصل', r.email);
       loadAll();
     }
   } catch {
+    document.getElementById('app-loading').style.display = 'none';
     document.getElementById('login-screen').style.display = 'flex';
   }
 }

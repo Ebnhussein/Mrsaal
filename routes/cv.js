@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
-const pdfParse = require('pdf-parse');
+const { extractPdfText } = require('../utils/ai');
 const { requireAuth } = require('../middleware/auth');
 const db = require('../utils/db');
 
@@ -23,8 +23,7 @@ router.post('/upload', requireAuth, upload.single('cv'), async (req, res) => {
     let text = '';
 
     if (req.file.mimetype === 'application/pdf') {
-      const parsed = await pdfParse(req.file.buffer);
-      text = parsed.text;
+      text = await extractPdfText(req.file.buffer);
     } else {
       text = req.file.buffer.toString('utf-8');
     }
