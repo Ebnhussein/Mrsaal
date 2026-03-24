@@ -27,7 +27,12 @@ function initWhatsApp() {
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
         '--disable-gpu',
-        '--disable-extensions'
+        '--disable-extensions',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-accelerated-2d-canvas',
+        '--js-flags="--max-old-space-size=250"'
       ]
     }
   });
