@@ -21,7 +21,8 @@
     "better-sqlite3": "^9.4.3",
     "whatsapp-web.js": "^1.23.0",
     "qrcode": "^1.5.3",
-    "@google/genai": "latest"
+    "@google/genai": "latest",
+    "puppeteer": "latest"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
