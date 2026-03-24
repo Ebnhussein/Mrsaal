@@ -914,7 +914,9 @@ async function confirmSend() {
     toast('فشل الإرسال: '+err.message,'error');
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '✉️ إرسال';
+    const co = companies.find(c=>c.id===prevCompanyId);
+    const isWA = co && (!co.email || document.getElementById('prev-email-label').textContent.includes('واتساب'));
+    btn.innerHTML = isWA ? '💬 إرسال واتساب' : '✉️ إرسال';
   }
 }
 
