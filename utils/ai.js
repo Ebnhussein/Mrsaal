@@ -6,7 +6,7 @@ const ai = new GoogleGenAI({}); // Automatically picks up GEMINI_API_KEY from pr
 async function callGemini(prompt, maxTokens = 1200) {
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       contents: prompt,
       config: {
         maxOutputTokens: maxTokens,
@@ -91,7 +91,7 @@ async function extractPdfText(pdfBuffer) {
   try {
     const prompt = 'أنت خبير في استخراج النصوص. استخرج كل النص الموجود في هذه السيرة الذاتية (CV) بدقة تامة. حافظ على اللغة الأصلية (سواء كانت عربية أو إنجليزية أو مزيج). أعد النص المستخرج فقط ولا تضف أي تعليقات أو مقدمات.';
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       contents: [
         { inlineData: { data: pdfBuffer.toString('base64'), mimeType: 'application/pdf' } },
         prompt
