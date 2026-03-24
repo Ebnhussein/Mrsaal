@@ -30,7 +30,6 @@ function initWhatsApp() {
         '--disable-extensions',
         '--no-first-run',
         '--no-zygote',
-        '--single-process',
         '--disable-accelerated-2d-canvas',
         '--disable-site-isolation-trials',
         '--disable-features=IsolateOrigins,site-per-process',
@@ -112,8 +111,17 @@ async function sendWhatsAppMessage(phone, text) {
   const normalised = String(phone).replace(/\D/g, '');
   const chatId = `${normalised}@c.us`;
 
-  await client.sendMessage(chatId, text);
-  return { chatId };
+  try {
+    await client.sendMessage(chatId, text);
+    return { chatId };
+  } catch (err) {
+    if (err.message.includes('detached Frame') || err.message.includes('Target closed') || err.message.includes('Session closed')) {
+      console.error('Fatal WhatsApp Error:', err.message, '--> Restarting client in background.');
+      logoutWhatsApp().then(() => initWhatsApp()).catch(()=>{});
+      throw new Error('انهار المتصفح المخفي بسبب مساحة السيرفر. جاري إعادة تشغيله التلقائي في الخلفية... انتظر ثوانٍ وحاول مجدداً.');
+    }
+    throw err;
+  }
 }
 
 async function logoutWhatsApp() {
