@@ -597,13 +597,27 @@ async function api(path, method='GET', body=null) {
   const opts = { method, headers: { 'Content-Type': 'application/json' } };
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(path, opts);
-  if (!r.ok) { const e = await r.json().catch(()=>({error:r.statusText})); throw new Error(e.error||r.statusText); }
+  if (!r.ok) { 
+    const e = await r.json().catch(()=>({error:r.statusText})); 
+    if (r.status === 401) {
+      document.getElementById('login-screen').style.display = 'flex';
+      throw new Error('انتهت الجلسة، يرجى تسجيل الدخول مجدداً');
+    }
+    throw new Error(e.error||r.statusText); 
+  }
   return r.json();
 }
 
 async function apiForm(path, formData) {
   const r = await fetch(path, { method:'POST', body: formData });
-  if (!r.ok) { const e = await r.json().catch(()=>({error:r.statusText})); throw new Error(e.error||r.statusText); }
+  if (!r.ok) { 
+    const e = await r.json().catch(()=>({error:r.statusText})); 
+    if (r.status === 401) {
+      document.getElementById('login-screen').style.display = 'flex';
+      throw new Error('انتهت الجلسة، يرجى تسجيل الدخول مجدداً');
+    }
+    throw new Error(e.error||r.statusText); 
+  }
   return r.json();
 }
 
