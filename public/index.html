@@ -660,7 +660,10 @@ async function uploadCV(e) {
     document.getElementById('cv-text').value = r.content;
     document.getElementById('cv-status').innerHTML = pill(file.name, (file.size/1024).toFixed(0)+' KB');
     toast('تم رفع وتحليل السيرة ✅','success');
-  } catch(err) { toast('خطأ: '+err.message,'error'); }
+  } catch(err) { 
+    document.getElementById('cv-status').innerHTML = `<div style="margin-top:10px;font-size:13px;color:var(--red);">❌ فشل التحليل: يرجى المحاولة مرة أخرى لاحقاً.</div>`;
+    toast('خطأ: '+err.message,'error'); 
+  }
 }
 
 async function saveCV() {
@@ -1156,7 +1159,7 @@ let waPollInt = null;
 function openWAModal() {
   document.getElementById('wa-overlay').classList.add('open');
   refreshQR();
-  waPollInt = setInterval(refreshQR, 3000);
+  waPollInt = setInterval(refreshQR, 1000);
 }
 function closeWAModal() { 
   document.getElementById('wa-overlay').classList.remove('open'); 
