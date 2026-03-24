@@ -1,6 +1,6 @@
 # ✉️ مرسال — أداة التقدم الذكي للوظائف
 
-أداة ويب متعددة المستخدمين لإرسال إيميلات تقديم مخصصة لكل شركة تلقائياً عبر Gmail، مدعومة بـ Claude AI.
+أداة ويب متعددة المستخدمين لإرسال إيميلات ورسائل تقديم مخصصة لكل شركة تلقائياً عبر Gmail وواتساب، مدعومة بـ **Google Gemini AI**.
 
 ---
 
@@ -56,7 +56,7 @@
 في لوحة Railway → مشروعك → **Variables** → أضف هذه المتغيرات:
 
 ```
-ANTHROPIC_API_KEY     = sk-ant-xxxxxxxxxx
+GEMINI_API_KEY        = AIzaSyxxxxxxxxx
 GOOGLE_CLIENT_ID      = xxxxxxxxx.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET  = GOCSPX-xxxxxxxxx
 GOOGLE_REDIRECT_URI   = https://mrsaal.yourdomain.com/auth/google/callback
@@ -64,6 +64,7 @@ BASE_URL              = https://mrsaal.yourdomain.com
 SESSION_SECRET        = نص_عشوائي_طويل_جداً
 NODE_ENV              = production
 PORT                  = 3000
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = true
 ```
 
 > 💡 لتوليد SESSION_SECRET آمن:
@@ -118,7 +119,7 @@ TTL:   3600
 |--------|-------------|
 | Railway | $5/شهر رصيد ≈ 500 ساعة تشغيل |
 | Gmail API | 100 إيميل/يوم |
-| Anthropic API | مدفوع ≈ $0.01-0.03 لكل إيميل |
+| Gemini API | مجاني (حتى 15 طلب/دقيقة) |
 | Open Tracking | مجاني (مدمج) |
 
 ---
@@ -149,12 +150,12 @@ mrsaal/
 │   ├── auth.js            # Google OAuth
 │   ├── companies.js       # إدارة الشركات
 │   ├── cv.js              # السيرة الذاتية والقوالب
-│   ├── email.js           # Claude + Gmail إرسال
+│   ├── email.js           # Email & WhatsApp Logic
 │   └── tracking.js        # Open tracking pixel
 ├── utils/
 │   ├── db.js              # SQLite
 │   ├── gmail.js           # Gmail API
-│   ├── ai.js              # Claude API
+│   ├── ai.js              # Google Gemini API
 │   └── scheduler.js       # Cron جدولة
 └── middleware/
     └── auth.js
