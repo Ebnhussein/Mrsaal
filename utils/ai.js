@@ -21,6 +21,9 @@ async function callGemini(prompt, maxTokens = 1200) {
     return response.text;
   } catch (error) {
     console.error('Gemini API Error:', error.message);
+    if (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429')) {
+      throw new Error('تم استهلاك الحد الأقصى المجاني لطلبات الذكاء الاصطناعي حالياً. يرجى الانتظار دقيقة والمحاولة مرة أخرى.');
+    }
     throw new Error('مشكلة في استدعاء الذكاء الاصطناعي: ' + error.message);
   }
 }
@@ -98,7 +101,10 @@ async function extractPdfText(pdfBuffer) {
     return response.text;
   } catch (error) {
     console.error('Gemini PDF Parse Error:', error.message);
-    throw new Error('فشل قراءة الـ PDF بواسطة الذكاء الاصطناعي: ' + error.message);
+    if (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429')) {
+      throw new Error('حجم ملف الـ PDF كبير جداً أو تم استهلاك الحد المجاني للذكاء الاصطناعي. يرجى الانتظار دقيقة واحدة والمحاولة ثانية.');
+    }
+    throw new Error('فشل قراءة الـ PDF: ' + error.message);
   }
 }
 
