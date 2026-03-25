@@ -9,15 +9,9 @@ async function callGemini(prompt, maxTokens = 1200, apiKey = null) {
     const ai = getAI(apiKey);
     const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
-    const response = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
-        maxOutputTokens: maxTokens,
-        temperature: 0.7,
-      }
-    });
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
 
-    const text = response.response.text();
     if (!text) throw new Error('لم يتم استلام نص من Gemini');
     return text;
   } catch (error) {
@@ -94,12 +88,12 @@ async function extractPdfText(pdfBuffer, apiKey = null) {
     const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const prompt = 'أنت خبير في استخراج النصوص. استخرج كل النص الموجود في هذه السيرة الذاتية (CV) بدقة تامة. حافظ على اللغة الأصلية (سواء كانت عربية أو إنجليزية أو مزيج). أعد النص المستخرج فقط ولا تضف أي تعليقات أو مقدمات.';
     
-    const response = await model.generateContent([
+    const result = await model.generateContent([
       { inlineData: { data: pdfBuffer.toString('base64'), mimeType: 'application/pdf' } },
       prompt
     ]);
     
-    const text = response.response.text();
+    const text = result.response.text();
     if (!text) throw new Error('لا يوجد نص مستخرج');
     return text;
   } catch (error) {
