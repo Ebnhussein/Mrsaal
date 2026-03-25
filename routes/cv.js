@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
-const { extractPdfText } = require('../utils/ai');
+const pdf = require('pdf-parse');
 const { requireAuth } = require('../middleware/auth');
 const db = require('../utils/db');
 
@@ -22,15 +22,13 @@ router.post('/upload', requireAuth, upload.single('cv'), async (req, res) => {
   try {
     let text = '';
 
-    const user = db.prepare('SELECT gemini_key FROM users WHERE id = ?').get(req.session.userId);
-    const apiKey = user?.gemini_key || null;
-
     if (req.file.mimetype === 'application/pdf') {
       try {
-        text = await extractPdfText(req.file.buffer, apiKey);
+        const data = await pdf(req.file.buffer);
+        text = data.text;
       } catch (err) {
         console.error('PDF Parse Error:', err);
-        // Fallback or error handled by the AI utility
+        throw new Error('فشل قراءة ملف الـ PDF محلياً. تأكد من سلامة الملف.');
       }
     } else {
       text = req.file.buffer.toString('utf-8');
