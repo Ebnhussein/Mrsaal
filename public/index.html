@@ -711,6 +711,10 @@ function setGmail(on, label, sub) {
   document.getElementById('gmail-sub').textContent = sub || '—';
 }
 
+function pill(name, size) {
+  return `<div class="file-pill"><div class="fname">📄 ${name}</div><div class="fsize">${size}</div></div>`;
+}
+
 // ── CV
 async function uploadCV(e) {
   const file = e.target.files[0]; if (!file) return;
