@@ -25,6 +25,7 @@ db.exec(`
     refresh_token TEXT,
     token_expiry INTEGER,
     gemini_key TEXT,
+    gemini_model TEXT DEFAULT 'gemini-1.5-flash',
     created_at INTEGER DEFAULT (unixepoch())
   );
 

@@ -29,16 +29,18 @@ router.post('/generate', requireAuth, async (req, res) => {
 
   try {
     if (hasEmail(company)) {
-      // Fetch user settings for API key
-      const user = db.prepare('SELECT gemini_key FROM users WHERE id = ?').get(req.session.userId);
+      // Fetch user settings for API key & Model
+      const user = db.prepare('SELECT gemini_key, gemini_model FROM users WHERE id = ?').get(req.session.userId);
       const apiKey = user?.gemini_key || null;
+      const modelName = user?.gemini_model || 'gemini-1.5-flash';
 
       const email = await generateEmail({
         cv: cv.content,
         company,
         instructions: tpl?.instructions,
         subjectTemplate: tpl?.subject_template,
-        apiKey
+        apiKey,
+        modelName
       });
       return res.json({ channel: 'email', ...email });
     }
@@ -171,8 +173,9 @@ router.post('/send-bulk', requireAuth, async (req, res) => {
 
   let sent = 0, failed = 0;
 
-  const userSettings = db.prepare('SELECT gemini_key FROM users WHERE id=?').get(req.session.userId);
+  const userSettings = db.prepare('SELECT gemini_key, gemini_model FROM users WHERE id=?').get(req.session.userId);
   const apiKey = userSettings?.gemini_key || null;
+  const modelName = userSettings?.gemini_model || 'gemini-1.5-flash';
 
   for (let i = 0; i < companies.length; i++) {
     const company = companies[i];
@@ -193,7 +196,8 @@ router.post('/send-bulk', requireAuth, async (req, res) => {
           cv: cv.content, 
           company, 
           instructions: tpl?.instructions,
-          apiKey
+          apiKey,
+          modelName
         });
         await sendWhatsAppMessage(company.phone, message, attachment);
         db.prepare('UPDATE companies SET status=? WHERE id=?').run('sent', company.id);
@@ -206,7 +210,8 @@ router.post('/send-bulk', requireAuth, async (req, res) => {
           company, 
           instructions: tpl?.instructions, 
           subjectTemplate: tpl?.subject_template,
-          apiKey
+          apiKey,
+          modelName
         });
         const trackingUrl = `${BASE_URL}/track/open/${logId}.gif`;
         const result = await sendEmail({ user, to: company.email, subject: email.subject, body: email.body, trackingPixelUrl: trackingUrl, attachment });

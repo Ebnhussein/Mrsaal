@@ -271,7 +271,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="nav-item" onclick="nav('companies')"><span class="nav-icon">🏢</span> الشركات <span class="nav-badge" id="nb-companies">0</span></div>
       <div class="nav-item" onclick="nav('send')"><span class="nav-icon">🚀</span> الإرسال</div>
       <div class="nav-item" onclick="nav('report')"><span class="nav-icon">📊</span> التقرير <span class="nav-badge red" id="nb-report">0</span></div>
-      <div class="nav-item" onclick="nav('settings')"><span class="nav-icon">⚙️</span> الإعدادات</div>
+      <div class="nav-item" id="nav-settings" onclick="nav('settings')"><span class="nav-icon">⚙️</span> الإعدادات</div>
     </nav>
     <div class="sidebar-footer">
       <div class="gmail-box">
@@ -312,8 +312,16 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div class="field">
       <div class="label">Gemini API Key (بريميوم)</div>
       <input type="text" id="set-api-key" class="input" placeholder="اضف مفتاحك هنا لزيادة سرعة الإرسال...">
-      <div class="hint">إضافة مفتاحك الخاص تعني حلاً جذرياً لمشكلة حدود الاستخدام المجانية. لن يتم مشاركة هذا المفتاح مع أحد.</div>
       <div class="hint">يمكنك الحصول عليه مجاناً من <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--accent)">Google AI Studio</a>.</div>
+    </div>
+    
+    <div class="field" style="margin-top:15px">
+      <div class="label">موديل الذكاء الاصطناعي (Model)</div>
+      <select id="set-api-model" class="input">
+        <option value="gemini-1.5-flash">Gemini 1.5 Flash (سريع واقتصادي - افتراضي)</option>
+        <option value="gemini-1.5-pro">Gemini 1.5 Pro (أذكى وأدق - أبطأ)</option>
+      </select>
+      <div class="hint">استخدم Flash للسرعة، و Pro إذا كنت تريد جودة كتابة أعلى جداً.</div>
     </div>
     
     <div style="margin-top:20px; display:flex; justify-content:flex-end">
@@ -1184,17 +1192,19 @@ async function loadSettings() {
   try {
     const s = await api('/api/settings');
     if (s.gemini_key) document.getElementById('set-api-key').value = s.gemini_key;
+    if (s.gemini_model) document.getElementById('set-api-model').value = s.gemini_model;
   } catch {}
 }
 
 async function saveSettings() {
   const key = document.getElementById('set-api-key').value.trim();
+  const model = document.getElementById('set-api-model').value;
   const btn = document.getElementById('btn-save-settings');
   btn.disabled = true;
   btn.innerHTML = '<div class="spin"></div> جاري الحفظ...';
   
   try {
-    await api('/api/settings', 'POST', { gemini_key: key });
+    await api('/api/settings', 'POST', { gemini_key: key, gemini_model: model });
     toast('تم حفظ الإعدادات بنجاح ✅', 'success');
   } catch(err) {
     toast(err.message, 'error');

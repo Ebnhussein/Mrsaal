@@ -34,12 +34,14 @@ function startScheduler() {
 
         const company = { name: job.company_name, email: job.company_email, field: job.field, location: job.location };
         const apiKey = user?.gemini_key || null;
+        const modelName = user?.gemini_model || 'gemini-1.5-flash';
         const email = await generateEmail({ 
           cv: cv.content, 
           company, 
           instructions: tpl?.instructions, 
           subjectTemplate: tpl?.subject_template,
-          apiKey
+          apiKey,
+          modelName
         });
 
         const logId = uuidv4();
