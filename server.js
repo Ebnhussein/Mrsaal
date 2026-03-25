@@ -34,7 +34,9 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // ── Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ── Routes
+// ── Roots
+app.get('/health', (req, res) => res.status(200).send('OK'));
+
 app.use('/auth', require('./routes/auth'));
 app.use('/api/companies', require('./routes/companies'));
 app.use('/api/cv', require('./routes/cv'));
@@ -48,16 +50,22 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ── Start scheduler
-const { startScheduler } = require('./utils/scheduler');
-startScheduler();
-
-// ── Start WhatsApp client
-const { initWhatsApp } = require('./utils/whatsapp');
-initWhatsApp();
-
-// ── Start server
+// ── START SERVER IMMEDIATELY (Crucial for Railway Healthcheck)
 app.listen(PORT, () => {
-  console.log(`\n🚀 مرسال يعمل على: http://localhost:${PORT}`);
-  console.log(`📋 افتح المتصفح على: http://localhost:${PORT}\n`);
+  console.log(`\n🚀 مرسال يعمل على منفذ: ${PORT}`);
+  
+  // ── Delayed initializations
+  setTimeout(() => {
+    try {
+      // ── Start scheduler
+      const { startScheduler } = require('./utils/scheduler');
+      startScheduler();
+
+      // ── Start WhatsApp client
+      const { initWhatsApp } = require('./utils/whatsapp');
+      initWhatsApp();
+    } catch (err) {
+      console.error('Delayed startup error:', err);
+    }
+  }, 1000);
 });
