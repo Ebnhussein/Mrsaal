@@ -95,4 +95,25 @@ db.exec(`
   );
 `);
 
+// --- Migrations for existing databases ---
+const migrations = [
+  { table: 'users', col: 'gemini_key', type: 'TEXT' },
+  { table: 'users', col: 'gemini_model', type: "TEXT DEFAULT 'gemini-1.5-flash'" },
+  { table: 'cv_profiles', col: 'pdf_data', type: 'BLOB' },
+  { table: 'email_log', col: 'open_count', type: 'INTEGER DEFAULT 0' },
+  { table: 'email_log', col: 'last_opened_at', type: 'INTEGER' },
+  { table: 'email_log', col: 'replied', type: 'INTEGER DEFAULT 0' },
+  { table: 'email_log', col: 'reply_text', type: 'TEXT' },
+  { table: 'email_log', col: 'channel', type: "TEXT DEFAULT 'email'" }
+];
+
+migrations.forEach(m => {
+  try {
+    db.prepare(`ALTER TABLE ${m.table} ADD COLUMN ${m.col} ${m.type}`).run();
+    console.log(`✅ Migration: Added ${m.col} to ${m.table}`);
+  } catch (err) {
+    // Column likely already exists
+  }
+});
+
 module.exports = db;
