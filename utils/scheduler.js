@@ -33,7 +33,14 @@ function startScheduler() {
         }
 
         const company = { name: job.company_name, email: job.company_email, field: job.field, location: job.location };
-        const email = await generateEmail({ cv: cv.content, company, instructions: tpl?.instructions, subjectTemplate: tpl?.subject_template });
+        const apiKey = user?.gemini_key || null;
+        const email = await generateEmail({ 
+          cv: cv.content, 
+          company, 
+          instructions: tpl?.instructions, 
+          subjectTemplate: tpl?.subject_template,
+          apiKey
+        });
 
         const logId = uuidv4();
         const trackingUrl = `${BASE_URL}/track/open/${logId}.gif`;

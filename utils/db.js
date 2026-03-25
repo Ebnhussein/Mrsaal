@@ -24,6 +24,7 @@ db.exec(`
     access_token TEXT,
     refresh_token TEXT,
     token_expiry INTEGER,
+    gemini_key TEXT,
     created_at INTEGER DEFAULT (unixepoch())
   );
 

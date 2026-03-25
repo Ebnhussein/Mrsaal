@@ -29,10 +29,16 @@ router.post('/generate', requireAuth, async (req, res) => {
 
   try {
     if (hasEmail(company)) {
+      // Fetch user settings for API key
+      const user = db.prepare('SELECT gemini_key FROM users WHERE id = ?').get(req.session.userId);
+      const apiKey = user?.gemini_key || null;
+
       const email = await generateEmail({
-        cv: cv.content, company,
+        cv: cv.content,
+        company,
         instructions: tpl?.instructions,
-        subjectTemplate: tpl?.subject_template
+        subjectTemplate: tpl?.subject_template,
+        apiKey
       });
       return res.json({ channel: 'email', ...email });
     }
@@ -165,6 +171,9 @@ router.post('/send-bulk', requireAuth, async (req, res) => {
 
   let sent = 0, failed = 0;
 
+  const userSettings = db.prepare('SELECT gemini_key FROM users WHERE id=?').get(req.session.userId);
+  const apiKey = userSettings?.gemini_key || null;
+
   for (let i = 0; i < companies.length; i++) {
     const company = companies[i];
     const channel = hasEmail(company) ? 'email' : (hasPhone(company) ? 'whatsapp' : null);
@@ -180,14 +189,25 @@ router.post('/send-bulk', requireAuth, async (req, res) => {
 
     try {
       if (channel === 'whatsapp') {
-        const message = await generateWhatsAppMessage({ cv: cv.content, company, instructions: tpl?.instructions });
+        const message = await generateWhatsAppMessage({ 
+          cv: cv.content, 
+          company, 
+          instructions: tpl?.instructions,
+          apiKey
+        });
         await sendWhatsAppMessage(company.phone, message, attachment);
         db.prepare('UPDATE companies SET status=? WHERE id=?').run('sent', company.id);
         db.prepare(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,body,status,channel)
           VALUES(?,?,?,?,?,?,?,?)`)
           .run(logId, req.session.userId, company.id, company.name, company.phone, message, 'sent', 'whatsapp');
       } else {
-        const email = await generateEmail({ cv: cv.content, company, instructions: tpl?.instructions, subjectTemplate: tpl?.subject_template });
+        const email = await generateEmail({ 
+          cv: cv.content, 
+          company, 
+          instructions: tpl?.instructions, 
+          subjectTemplate: tpl?.subject_template,
+          apiKey
+        });
         const trackingUrl = `${BASE_URL}/track/open/${logId}.gif`;
         const result = await sendEmail({ user, to: company.email, subject: email.subject, body: email.body, trackingPixelUrl: trackingUrl, attachment });
         db.prepare('UPDATE companies SET status=? WHERE id=?').run('sent', company.id);

@@ -22,8 +22,16 @@ router.post('/upload', requireAuth, upload.single('cv'), async (req, res) => {
   try {
     let text = '';
 
+    const user = db.prepare('SELECT gemini_key FROM users WHERE id = ?').get(req.session.userId);
+    const apiKey = user?.gemini_key || null;
+
     if (req.file.mimetype === 'application/pdf') {
-      text = await extractPdfText(req.file.buffer);
+      try {
+        text = await extractPdfText(req.file.buffer, apiKey);
+      } catch (err) {
+        console.error('PDF Parse Error:', err);
+        // Fallback or error handled by the AI utility
+      }
     } else {
       text = req.file.buffer.toString('utf-8');
     }

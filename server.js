@@ -39,6 +39,7 @@ app.use('/auth', require('./routes/auth'));
 app.use('/api/companies', require('./routes/companies'));
 app.use('/api/cv', require('./routes/cv'));
 app.use('/api/email', require('./routes/email'));
+app.use('/api/settings', require('./routes/settings'));
 app.use('/api/whatsapp', require('./routes/whatsapp'));
 app.use('/track', require('./routes/tracking'));
 
