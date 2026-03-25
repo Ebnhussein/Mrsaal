@@ -10,13 +10,14 @@ const PORT = process.env.PORT || 3000;
 
 // ── Session store (file-based, no DB dependency)
 const SQLiteStore = require('connect-sqlite3')(session);
-fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+const DATA_DIR = path.join(__dirname, 'data');
+fs.mkdirSync(DATA_DIR, { recursive: true });
 
 // Trust proxy is required when hosting on Railway/Heroku so secure cookies work
 app.set('trust proxy', 1);
 
 app.use(session({
-  store: new SQLiteStore({ db: 'sessions.db', dir: './data' }),
+  store: new SQLiteStore({ db: 'sessions.db', dir: DATA_DIR }),
   secret: process.env.SESSION_SECRET || 'mrsaal-dev-secret-change-me',
   resave: false,
   saveUninitialized: false,
