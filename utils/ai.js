@@ -30,7 +30,30 @@ async function callGemini(prompt, maxTokens = 1200, apiKey = null) {
 }
 
 async function generateEmail({ cv, company, instructions, subjectTemplate, apiKey }) {
-  const prompt = `...`; // (Keeping the prompt same as before)
+  const prompt = `أنت متخصص في كتابة إيميلات تقديم وظيفي احترافية.
+
+===== السيرة الذاتية =====
+${cv}
+=========================
+
+===== الشركة المستهدفة =====
+الاسم: ${company.name}
+البريد: ${company.email}
+المجال: ${company.field || 'غير محدد'}
+الموقع: ${company.location || 'غير محدد'}
+===========================
+
+===== تعليمات الأسلوب =====
+${instructions || 'اكتب إيميل تقديم احترافي ومختصر يبرز أهم المهارات ذات الصلة بمجال الشركة.'}
+===========================
+
+${subjectTemplate ? `قالب الموضوع المقترح: ${subjectTemplate}` : ''}
+
+اكتب الإيميل الآن. أعطني النتيجة **بهذا التنسيق الحرفي بالضبط** وبدون أي نص إضافي (لا نصوص قبلها ولا بعدها ولا تنسيق MarkDown):
+SUBJECT: [الموضوع]
+BODY:
+[نص الإيميل كامل]`;
+
   const text = await callGemini(prompt, 1200, apiKey);
 
   const subjectMatch = text.match(/SUBJECT:\s*(.+)/i);
@@ -43,7 +66,24 @@ async function generateEmail({ cv, company, instructions, subjectTemplate, apiKe
 }
 
 async function generateWhatsAppMessage({ cv, company, instructions, apiKey }) {
-  const prompt = `...`; // (Keeping same)
+  const prompt = `أنت متخصص في كتابة رسائل تقديم وظيفي احترافية ومختصرة لتُرسل عبر واتساب.
+
+===== السيرة الذاتية =====
+${cv}
+=========================
+
+===== الشركة المستهدفة =====
+الاسم: ${company.name}
+المجال: ${company.field || 'غير محدد'}
+الموقع: ${company.location || 'غير محدد'}
+===========================
+
+===== تعليمات =====
+${instructions || 'اتب رسالة واتساب مختصرة واحترافية (3-5 أسطر فقط) تبرز أهم المهارات ذات الصلة بمجال الشركة. لا تستخدم تنسيق HTML. استخدم إيموجي مناسب بشكل خفيف.'}
+====================
+
+اكتب الرسالة الآن مباشرة بدون أي مقدمات أو تفسيرات.`;
+
   const text = await callGemini(prompt, 1800, apiKey);
   return text.trim();
 }
