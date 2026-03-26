@@ -45,7 +45,7 @@ async function initDB() {
       refresh_token TEXT,
       token_expiry BIGINT,
       gemini_key TEXT,
-      gemini_model TEXT DEFAULT 'gemini-1.5-flash',
+      gemini_model TEXT DEFAULT 'gemini-2.0-flash',
       created_at BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())
     );
 
@@ -116,6 +116,12 @@ async function initDB() {
     );
 
     CREATE INDEX IF NOT EXISTS IDX_session_expire ON session (expire);
+  `);
+
+  -- Update existing users to new model
+  await query(`
+    UPDATE users SET gemini_model = 'gemini-2.0-flash'
+    WHERE gemini_model = 'gemini-1.5-flash' OR gemini_model IS NULL
   `);
 
   console.log('✅ Database tables ready');
