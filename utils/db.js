@@ -118,12 +118,11 @@ async function initDB() {
     CREATE INDEX IF NOT EXISTS IDX_session_expire ON session (expire);
   `);
 
-  -- Update existing users to new model
-  await query(`
+await query(`
     UPDATE users SET gemini_model = 'gemini-2.0-flash'
     WHERE gemini_model = 'gemini-1.5-flash' OR gemini_model IS NULL
   `);
-
+  
   console.log('✅ Database tables ready');
 }
 
