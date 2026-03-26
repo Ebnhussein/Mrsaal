@@ -8,7 +8,7 @@ async function callGemini(prompt, maxTokens = 1200, apiKey = null, modelName = '
   try {
     const ai = getAI(apiKey);
     const response = await ai.models.generateContent({
-      model: modelName || 'gemini-1.5-flash',
+      model: modelName || 'gemini-2.0-flash',
       contents: prompt,
     });
     const text = response.text;
