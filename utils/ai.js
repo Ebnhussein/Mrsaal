@@ -4,11 +4,11 @@ function getAI(apiKey) {
   return new GoogleGenAI({ apiKey: apiKey || process.env.GEMINI_API_KEY });
 }
 
-async function callGemini(prompt, maxTokens = 1200, apiKey = null, modelName = 'gemini-1.5-flash-latest') {
+async function callGemini(prompt, maxTokens = 1200, apiKey = null, modelName = 'gemini-2.5-flash-lite') {
   try {
     const ai = getAI(apiKey);
     const response = await ai.models.generateContent({
-      model: modelName || 'gemini-1.5-flash-latest',
+      model: modelName || 'gemini-2.5-flash-lite',
       contents: prompt,
     });
     const text = response.text;
@@ -25,24 +25,19 @@ async function callGemini(prompt, maxTokens = 1200, apiKey = null, modelName = '
 
 async function generateEmail({ cv, company, instructions, subjectTemplate, apiKey, modelName }) {
   const prompt = `أنت متخصص في كتابة إيميلات تقديم وظيفي احترافية.
-
 ===== السيرة الذاتية =====
 ${cv}
 =========================
-
 ===== الشركة المستهدفة =====
 الاسم: ${company.name}
 البريد: ${company.email}
 المجال: ${company.field || 'غير محدد'}
 الموقع: ${company.location || 'غير محدد'}
 ===========================
-
 ===== تعليمات الأسلوب =====
 ${instructions || 'اكتب إيميل تقديم احترافي ومختصر يبرز أهم المهارات ذات الصلة بمجال الشركة.'}
 ===========================
-
 ${subjectTemplate ? `قالب الموضوع المقترح: ${subjectTemplate}` : ''}
-
 اكتب الإيميل الآن بهذا التنسيق الحرفي بالضبط وبدون أي نص إضافي:
 SUBJECT: [الموضوع]
 BODY:
@@ -59,20 +54,16 @@ BODY:
 
 async function generateWhatsAppMessage({ cv, company, instructions, apiKey, modelName }) {
   const prompt = `أنت متخصص في كتابة رسائل تقديم وظيفي للواتساب.
-
 ===== السيرة الذاتية =====
 ${cv}
 =========================
-
 ===== الشركة المستهدفة =====
 الاسم: ${company.name}
 المجال: ${company.field || 'غير محدد'}
 ===========================
-
 ===== تعليمات =====
 ${instructions || 'اكتب رسالة واتساب مختصرة واحترافية (3-5 أسطر فقط). لا تستخدم HTML.'}
 ====================
-
 اكتب الرسالة مباشرة بدون مقدمات.`;
 
   return (await callGemini(prompt, 800, apiKey, modelName)).trim();
