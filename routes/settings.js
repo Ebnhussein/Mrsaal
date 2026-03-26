@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../utils/db');
-const { requireAuth } = require('../utils/auth');
+const { requireAuth } = require('../middleware/auth');
 
 // GET settings
 router.get('/', requireAuth, (req, res) => {
