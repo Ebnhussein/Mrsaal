@@ -24,25 +24,25 @@ async function lazyInit() {
   try {
     console.log('⏳ Initialising database...');
 
-    const { initDB, pool } = require('./utils/db');
-    await initDB();
+const { initDB, pool } = require('./utils/db');
+await initDB();
 
-    const pgSession = require('connect-pg-simple')(session);
-    app.use(session({
-      store: new pgSession({
-        pool,
-        tableName: 'session',
-        createTableIfMissing: false
-      }),
-      secret: process.env.SESSION_SECRET || 'mrsaal-dev-secret',
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        maxAge: 30 * 24 * 60 * 60 * 1000
-      }
-    }));
+const pgSession = require('connect-pg-simple')(session);
+app.use(session({
+  store: new pgSession({
+    pool,
+    tableName: 'session',
+    createTableIfMissing: false
+  }),
+  secret: process.env.SESSION_SECRET || 'mrsaal-dev-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 90 * 24 * 60 * 60 * 1000  // 90 يوم
+  }
+}));
 
     app.use('/auth',          require('./routes/auth'));
     app.use('/api/companies', require('./routes/companies'));
