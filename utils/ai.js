@@ -1,4 +1,4 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenerativeAI } = require('@google/genai');
 
 function getAI(apiKey) {
   return new GoogleGenerativeAI(apiKey || process.env.GEMINI_API_KEY);
