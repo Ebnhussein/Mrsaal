@@ -4,11 +4,11 @@ function getAI(apiKey) {
   return new GoogleGenAI({ apiKey: apiKey || process.env.GEMINI_API_KEY });
 }
 
-async function callGemini(prompt, maxTokens = 1200, apiKey = null, modelName = 'gemini-1.5-flash') {
+async function callGemini(prompt, maxTokens = 1200, apiKey = null, modelName = 'gemini-1.5-flash-latest') {
   try {
     const ai = getAI(apiKey);
     const response = await ai.models.generateContent({
-      model: modelName || 'gemini-2.0-flash',
+      model: modelName || 'gemini-1.5-flash-latest',
       contents: prompt,
     });
     const text = response.text;
@@ -17,7 +17,7 @@ async function callGemini(prompt, maxTokens = 1200, apiKey = null, modelName = '
   } catch (error) {
     console.error('Gemini API Error:', error.message);
     if (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('429')) {
-      throw new Error('تم استهلاك الحد الأقصى المجاني. يرجى الانتظار دقيقة.');
+      throw new Error('تم استهلاك الحد الأقصى المجاني. يرجى الانتظار دقيقة والمحاولة مرة أخرى.');
     }
     throw new Error('مشكلة في الذكاء الاصطناعي: ' + error.message);
   }
