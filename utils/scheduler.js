@@ -1,7 +1,7 @@
-// utils/scheduler.js — Runs scheduled emails
+// utils/scheduler.js
 const cron = require('node-cron');
 const { v4: uuidv4 } = require('uuid');
-const db = require('./db');
+const { all, get, run } = require('./db');
 const { generateEmail } = require('./ai');
 const { sendEmail } = require('./gmail');
 const { syncReplies } = require('./replyTracker');
@@ -9,69 +9,63 @@ const { syncReplies } = require('./replyTracker');
 const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
 
 function startScheduler() {
-  // Check every minute
   cron.schedule('* * * * *', async () => {
     const now = Date.now();
-
-    const jobs = db.prepare(`
-      SELECT sj.*, c.name as company_name, c.email as company_email,
-             c.field, c.location
-      FROM scheduled_jobs sj
-      JOIN companies c ON c.id = sj.company_id
-      WHERE sj.status = 'pending' AND sj.scheduled_at <= ?
-    `).all(now);
+    const jobs = await all(
+      `SELECT sj.*, c.name as company_name, c.email as company_email, c.field, c.location
+       FROM scheduled_jobs sj
+       JOIN companies c ON c.id = sj.company_id
+       WHERE sj.status = 'pending' AND sj.scheduled_at <= $1`,
+      [now]
+    );
 
     for (const job of jobs) {
       try {
-        const user = db.prepare('SELECT * FROM users WHERE id=?').get(job.user_id);
-        const cv = db.prepare('SELECT * FROM cv_profiles WHERE user_id=? ORDER BY created_at DESC LIMIT 1').get(job.user_id);
-        const tpl = db.prepare('SELECT * FROM templates WHERE user_id=? ORDER BY created_at DESC LIMIT 1').get(job.user_id);
+        const user = await get('SELECT * FROM users WHERE id=$1', [job.user_id]);
+        const cv   = await get('SELECT * FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1', [job.user_id]);
+        const tpl  = await get('SELECT * FROM templates WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1', [job.user_id]);
 
         if (!user || !cv) {
-          db.prepare("UPDATE scheduled_jobs SET status='failed' WHERE id=?").run(job.id);
+          await run("UPDATE scheduled_jobs SET status='failed' WHERE id=$1", [job.id]);
           continue;
         }
 
-        const company = { name: job.company_name, email: job.company_email, field: job.field, location: job.location };
-        const apiKey = user?.gemini_key || null;
-        const modelName = user?.gemini_model || 'gemini-1.5-flash';
-        const email = await generateEmail({ 
-          cv: cv.content, 
-          company, 
-          instructions: tpl?.instructions, 
+        const company   = { name: job.company_name, email: job.company_email, field: job.field, location: job.location };
+        const apiKey    = user?.gemini_key   || null;
+        const modelName = user?.gemini_model || 'gemini-2.0-flash';
+
+        const email = await generateEmail({
+          cv: cv.content, company,
+          instructions: tpl?.instructions,
           subjectTemplate: tpl?.subject_template,
-          apiKey,
-          modelName
+          apiKey, modelName
         });
 
-        const logId = uuidv4();
+        const logId      = uuidv4();
         const trackingUrl = `${BASE_URL}/track/open/${logId}.gif`;
-        const attachment = cv?.pdf_data ? {
-          data: cv.pdf_data,
-          filename: cv.filename || 'CV.pdf',
-          mimeType: 'application/pdf'
-        } : null;
+        const attachment  = cv?.pdf_data ? { data: cv.pdf_data, filename: cv.filename || 'CV.pdf', mimeType: 'application/pdf' } : null;
 
         const result = await sendEmail({ user, to: company.email, subject: email.subject, body: email.body, trackingPixelUrl: trackingUrl, attachment });
 
-        db.prepare("UPDATE scheduled_jobs SET status='sent' WHERE id=?").run(job.id);
-        db.prepare("UPDATE companies SET status='sent' WHERE id=?").run(job.company_id);
-        db.prepare(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,subject,body,status,message_id,thread_id)
-          VALUES(?,?,?,?,?,?,?,?,?,?)`)
-          .run(logId, job.user_id, job.company_id, job.company_name, job.company_email, email.subject, email.body, 'sent', result.messageId, result.threadId);
-
+        await run("UPDATE scheduled_jobs SET status='sent' WHERE id=$1", [job.id]);
+        await run("UPDATE companies SET status='sent' WHERE id=$1", [job.company_id]);
+        await run(
+          `INSERT INTO email_log (id,user_id,company_id,company_name,company_email,subject,body,status,message_id,thread_id,channel)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+          [logId, job.user_id, job.company_id, job.company_name, job.company_email,
+           email.subject, email.body, 'sent', result.messageId, result.threadId, 'email']
+        );
         console.log(`✅ Scheduled email sent to ${job.company_email}`);
       } catch (err) {
-        db.prepare("UPDATE scheduled_jobs SET status='failed' WHERE id=?").run(job.id);
-        db.prepare("UPDATE companies SET status='failed' WHERE id=?").run(job.company_id);
-        console.error(`❌ Scheduled email failed for ${job.company_email}:`, err.message);
+        await run("UPDATE scheduled_jobs SET status='failed' WHERE id=$1", [job.id]);
+        await run("UPDATE companies SET status='failed' WHERE id=$1", [job.company_id]);
+        console.error(`❌ Scheduled email failed:`, err.message);
       }
     }
   });
 
-  console.log('⏰ Scheduler started — checking every minute for scheduled emails');
+  console.log('⏰ Scheduler started');
 
-  // Check for replies every 5 minutes
   cron.schedule('*/5 * * * *', async () => {
     console.log('🔄 Background: Syncing Gmail replies...');
     await syncReplies();
