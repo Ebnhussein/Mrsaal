@@ -61,8 +61,6 @@ app.use(session({
     const { startScheduler } = require('./utils/scheduler');
     startScheduler();
 
-    const { initWhatsApp } = require('./utils/whatsapp');
-    initWhatsApp();
 
     console.log('✨ All systems initialised.');
   } catch (err) {
