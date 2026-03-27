@@ -4,7 +4,7 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { requireAuth } = require('../middleware/auth');
 const { get, all, run } = require('../utils/db');
-const { generateEmail, generateWhatsAppMessage } = require('../utils/ai');
+const { generateEmail } = require('../utils/ai');
 const { sendEmail } = require('../utils/gmail');
 const { syncReplies } = require('../utils/replyTracker');
 
@@ -28,7 +28,7 @@ router.post('/generate', requireAuth, async (req, res) => {
         instructions: tpl?.instructions,
         subjectTemplate: tpl?.subject_template,
         apiKey: userSettings?.gemini_key || null,
-        modelName: userSettings?.gemini_model || 'gemini-1.5-flash'
+        modelName: userSettings?.gemini_model || 'gemini-2.0-flash'
       });
       return res.json({ channel: 'email', ...email });
     }
@@ -108,7 +108,7 @@ router.post('/send-bulk', requireAuth, async (req, res) => {
   const attachment = cv.pdf_data ? { data: cv.pdf_data, filename: cv.filename||'CV.pdf', mimeType: 'application/pdf' } : null;
   const companies = (await Promise.all(companyIds.map(id => get('SELECT * FROM companies WHERE id=$1 AND user_id=$2', [id, req.session.userId])))).filter(Boolean);
   const apiKey = user?.gemini_key || null;
-  const modelName = user?.gemini_model || 'gemini-1.5-flash';
+  const modelName = user?.gemini_model || 'gemini-2.0-flash';
 
   if (scheduleType === 'scheduled' && scheduledAt) {
     const tsMs = new Date(scheduledAt).getTime();
