@@ -6,7 +6,6 @@ const { requireAuth } = require('../middleware/auth');
 const { get, all, run } = require('../utils/db');
 const { generateEmail, generateWhatsAppMessage } = require('../utils/ai');
 const { sendEmail } = require('../utils/gmail');
-const { sendWhatsAppMessage } = require('../utils/whatsapp');
 const { syncReplies } = require('../utils/replyTracker');
 
 const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
