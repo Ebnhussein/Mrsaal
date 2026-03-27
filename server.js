@@ -8,7 +8,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.set('trust proxy', 1);
-
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -23,33 +22,27 @@ const server = app.listen(PORT, () => {
 async function lazyInit() {
   try {
     console.log('⏳ Initialising database...');
+    const { initDB, pool } = require('./utils/db');
+    await initDB();
 
-const { initDB, pool } = require('./utils/db');
-await initDB();
-
-const pgSession = require('connect-pg-simple')(session);
-app.use(session({
-  store: new pgSession({
-    pool,
-    tableName: 'session',
-    createTableIfMissing: false
-  }),
-  secret: process.env.SESSION_SECRET || 'mrsaal-dev-secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 90 * 24 * 60 * 60 * 1000  // 90 يوم
-  }
-}));
+    const pgSession = require('connect-pg-simple')(session);
+    app.use(session({
+      store: new pgSession({ pool, tableName: 'session', createTableIfMissing: false }),
+      secret: process.env.SESSION_SECRET || 'mrsaal-dev-secret',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        maxAge: 90 * 24 * 60 * 60 * 1000
+      }
+    }));
 
     app.use('/auth',          require('./routes/auth'));
     app.use('/api/companies', require('./routes/companies'));
     app.use('/api/cv',        require('./routes/cv'));
     app.use('/api/email',     require('./routes/email'));
     app.use('/api/settings',  require('./routes/settings'));
-    app.use('/api/whatsapp',  require('./routes/whatsapp'));
     app.use('/track',         require('./routes/tracking'));
 
     app.get('*', (req, res) =>
@@ -60,7 +53,6 @@ app.use(session({
 
     const { startScheduler } = require('./utils/scheduler');
     startScheduler();
-
 
     console.log('✨ All systems initialised.');
   } catch (err) {
