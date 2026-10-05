@@ -4,9 +4,10 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { requireAuth } = require('../middleware/auth');
 const { get, all, run } = require('../utils/db');
-const {   generateEmail,   generateWhatsAppMessage } = require('../utils/ai');
+const { generateEmail, generateWhatsAppMessage } = require('../utils/ai');
 const { sendEmail } = require('../utils/gmail');
 const { syncReplies } = require('../utils/replyTracker');
+const { sendWhatsAppMessage, requireConnected } = require('../utils/whatsapp');
 
 const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
 
@@ -28,7 +29,7 @@ router.post('/generate', requireAuth, async (req, res) => {
         instructions: tpl?.instructions,
         subjectTemplate: tpl?.subject_template,
         apiKey: userSettings?.gemini_key || null,
-        modelName: userSettings?.gemini_model || 'gemini-2.0-flash'
+        modelName: userSettings?.gemini_model || 'gemini-2.5-flash-lite'
       });
       return res.json({ channel: 'email', ...email });
     }
@@ -37,7 +38,7 @@ router.post('/generate', requireAuth, async (req, res) => {
         cv: cv.content, company,
         instructions: tpl?.instructions,
         apiKey: userSettings?.gemini_key || null,
-        modelName: userSettings?.gemini_model || 'gemini-1.5-flash'
+        modelName: userSettings?.gemini_model || 'gemini-2.5-flash-lite'
       });
       return res.json({ channel: 'whatsapp', body: message });
     }
@@ -56,11 +57,19 @@ router.post('/send', requireAuth, async (req, res) => {
   const cv = await get('SELECT * FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1', [req.session.userId]);
   const attachment = cv?.pdf_data ? { data: cv.pdf_data, filename: cv.filename || 'CV.pdf', mimeType: 'application/pdf' } : null;
 
+  if (!hasEmail(company) && !hasPhone(company)) return res.status(400).json({ error: 'لا توجد وسيلة تواصل صالحة' });
+  if (typeof body !== 'string' || !body.trim()) return res.status(400).json({ error: 'نص الرسالة مطلوب' });
+  if (scheduledAt && (!Number.isFinite(new Date(scheduledAt).getTime()) || new Date(scheduledAt).getTime() <= Date.now())) return res.status(400).json({ error: 'اختار موعدًا صحيحًا في المستقبل' });
+  if (!hasEmail(company) && hasPhone(company)) {
+    try { await requireConnected(req.session.userId); }
+    catch (err) { return res.status(409).json({ error: err.message }); }
+  }
+
   if (scheduledAt) {
     const tsMs = new Date(scheduledAt).getTime();
     const logId = uuidv4();
     const channel = hasEmail(company) ? 'email' : 'whatsapp';
-    await run('INSERT INTO scheduled_jobs (id,user_id,company_id,scheduled_at) VALUES ($1,$2,$3,$4)', [uuidv4(), req.session.userId, companyId, tsMs]);
+    await run('INSERT INTO scheduled_jobs (id,user_id,company_id,scheduled_at,log_id) VALUES ($1,$2,$3,$4,$5)', [uuidv4(), req.session.userId, companyId, tsMs, logId]);
     await run('UPDATE companies SET status=$1, scheduled_at=$2 WHERE id=$3', ['scheduled', tsMs, companyId]);
     await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,subject,body,status,channel) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
       [logId, req.session.userId, companyId, company.name, company.email || company.phone, subject, body, 'scheduled', channel]);
@@ -71,7 +80,7 @@ router.post('/send', requireAuth, async (req, res) => {
 
   if (!hasEmail(company) && hasPhone(company)) {
     try {
-      await sendWhatsAppMessage(company.phone, body, attachment);
+      await sendWhatsAppMessage(req.session.userId, company.phone, body, attachment);
       await run('UPDATE companies SET status=$1 WHERE id=$2', ['sent', companyId]);
       await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,subject,body,status,channel) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
         [logId, req.session.userId, companyId, company.name, company.phone, subject||'', body, 'sent', 'whatsapp']);
@@ -101,26 +110,36 @@ router.post('/send', requireAuth, async (req, res) => {
 
 router.post('/send-bulk', requireAuth, async (req, res) => {
   const { companyIds, scheduleType, scheduledAt, delaySeconds } = req.body;
+  if(!Array.isArray(companyIds) || !companyIds.length || companyIds.length > 500 || companyIds.some(id=>typeof id!=='string')) return res.status(400).json({error:'اختار من 1 إلى 500 شركة'});
+  if(scheduleType === 'scheduled' && (!scheduledAt || !Number.isFinite(new Date(scheduledAt).getTime()) || new Date(scheduledAt).getTime() <= Date.now())) return res.status(400).json({error:'اختار موعدًا صحيحًا في المستقبل'});
   const user = await get('SELECT * FROM users WHERE id=$1', [req.session.userId]);
   const cv = await get('SELECT * FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1', [req.session.userId]);
   const tpl = await get('SELECT * FROM templates WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1', [req.session.userId]);
   if (!cv) return res.status(400).json({ error: 'لا توجد سيرة ذاتية' });
   const attachment = cv.pdf_data ? { data: cv.pdf_data, filename: cv.filename||'CV.pdf', mimeType: 'application/pdf' } : null;
-  const companies = (await Promise.all(companyIds.map(id => get('SELECT * FROM companies WHERE id=$1 AND user_id=$2', [id, req.session.userId])))).filter(Boolean);
+  const companies = (await Promise.all([...new Set(companyIds)].map(id => get('SELECT * FROM companies WHERE id=$1 AND user_id=$2', [id, req.session.userId])))).filter(Boolean);
+  if(companies.some(c=>!hasEmail(c) && hasPhone(c))) {
+    try {await requireConnected(req.session.userId);}
+    catch(err){return res.status(409).json({error:err.message});}
+  }
   const apiKey = user?.gemini_key || null;
-  const modelName = user?.gemini_model || 'gemini-2.0-flash';
+  const modelName = user?.gemini_model || 'gemini-2.5-flash-lite';
 
   if (scheduleType === 'scheduled' && scheduledAt) {
     const tsMs = new Date(scheduledAt).getTime();
+    let scheduledCount=0;
     for (const c of companies) {
+      if(!hasEmail(c) && !hasPhone(c)) continue;
+      const logId = uuidv4();
       const channel = hasEmail(c) ? 'email' : 'whatsapp';
       await run('UPDATE companies SET status=$1, scheduled_at=$2 WHERE id=$3', ['scheduled', tsMs, c.id]);
       await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,status,channel) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-        [uuidv4(), req.session.userId, c.id, c.name, c.email||c.phone, 'scheduled', channel]);
-      await run('INSERT INTO scheduled_jobs (id,user_id,company_id,scheduled_at) VALUES ($1,$2,$3,$4)',
-        [uuidv4(), req.session.userId, c.id, tsMs]);
+        [logId, req.session.userId, c.id, c.name, c.email||c.phone, 'scheduled', channel]);
+      await run('INSERT INTO scheduled_jobs (id,user_id,company_id,scheduled_at,log_id) VALUES ($1,$2,$3,$4,$5)',
+        [uuidv4(), req.session.userId, c.id, tsMs, logId]);
+      scheduledCount++;
     }
-    return res.json({ ok: true, scheduled: companies.length });
+    return res.json({ ok: true, scheduled: scheduledCount });
   }
 
   res.setHeader('Content-Type', 'text/event-stream');
@@ -128,12 +147,15 @@ router.post('/send-bulk', requireAuth, async (req, res) => {
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
-  const send = data => res.write(`data: ${JSON.stringify(data)}\n\n`);
+  let disconnected=false;
+  res.on('close',()=>{disconnected=true;});
+  const send = data => !disconnected && res.write(`data: ${JSON.stringify(data)}\n\n`);
   const delay = ms => new Promise(r => setTimeout(r, ms));
-  const delayMs = (delaySeconds || 3) * 1000;
+  const delayMs = Math.min(300,Math.max(3,Number(delaySeconds)||3)) * 1000;
   let sent = 0, failed = 0;
 
   for (let i = 0; i < companies.length; i++) {
+    if(disconnected) break;
     const company = companies[i];
     const channel = hasEmail(company) ? 'email' : (hasPhone(company) ? 'whatsapp' : null);
     send({ type: 'progress', i: i+1, total: companies.length, company: company.name, channel });
@@ -142,7 +164,7 @@ router.post('/send-bulk', requireAuth, async (req, res) => {
     try {
       if (channel === 'whatsapp') {
         const message = await generateWhatsAppMessage({ cv: cv.content, company, instructions: tpl?.instructions, apiKey, modelName });
-        await sendWhatsAppMessage(company.phone, message, attachment);
+        await sendWhatsAppMessage(req.session.userId, company.phone, message, attachment);
         await run('UPDATE companies SET status=$1 WHERE id=$2', ['sent', company.id]);
         await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,body,status,channel) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
           [logId, req.session.userId, company.id, company.name, company.phone, message, 'sent', 'whatsapp']);
