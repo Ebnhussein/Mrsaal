@@ -30,6 +30,12 @@ const server = app.listen(PORT, () => {
   lazyInit();
 });
 
+// API clients get a JSON response while services are initialising.
+app.use(['/api','/auth','/track'], (req,res,next)=>{
+  if(!ready)return res.status(503).json({error:'مرسال بيبدأ التشغيل. جرّب بعد لحظات.'});
+  next();
+});
+
 async function lazyInit() {
   try {
     const { initDB, pool } = require('./utils/db');
@@ -88,6 +94,14 @@ async function lazyInit() {
 
     app.get('*', (req, res) => {
       res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    });
+
+    app.use((error,req,res,next)=>{
+      if(res.headersSent)return next(error);
+      const status=error.code==='LIMIT_FILE_SIZE'?413:(Number(error.status)||500);
+      const message=status===413?'الملف أكبر من الحجم المسموح.':status<500?error.message:'حصلت مشكلة أثناء تنفيذ الطلب. حاول مرة تانية.';
+      console.error('Request failed:',req.method,req.path,error.code||error.name);
+      res.status(status).json({error:message});
     });
 
     await require('./utils/whatsapp').restoreSessions();

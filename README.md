@@ -1,162 +1,49 @@
-# ✉️ مرسال — أداة التقدم الذكي للوظائف
+# مرسال — النسخة المراجعة من المشروع
 
-أداة ويب متعددة المستخدمين لإرسال إيميلات ورسائل تقديم مخصصة لكل شركة تلقائياً عبر Gmail وواتساب، مدعومة بـ **Google Gemini AI**.
+هذه النسخة مبنية على ملفات المشروع المرفوعة، وليست واجهة منفصلة. تشمل الإيميل وواتساب، إعدادات أسلوب الكتابة، الجولة التعريفية، والمساعد داخل التطبيق.
 
----
+## رفع التحديث على مشروعك الحالي
 
-## 🚀 الرفع على Railway + Hostinger
+1. فك ضغط الملف وافتح مجلد `Mrsaal`.
+2. ارفع محتويات هذا المجلد إلى جذر مستودع `Ebnhussein/Mrsaal` على GitHub، في نفس أماكن الملفات الحالية. يجب أن يكون `package.json` و`server.js` في الجذر، وليس داخل مجلد جديد اسمه `Mrsaal`.
+3. ارفع المجلدات أيضًا: `public` و`routes` و`utils` و`middleware` و`scripts` و`tests` و`brand`. ملفاتها جزء من التحديث، وليست ملفات اختيارية منفصلة.
+4. اعمل Commit، ثم افتح تطبيق مرسال في Coolify واضغط Redeploy إن لم يبدأ النشر تلقائيًا.
+5. استخدم التطبيق الحالي وقاعدة البيانات الحالية. احتفظ بقيم Environment Variables الحالية. ملف `.env.example` مرجع فقط، وليس ملف أسرارك الفعلية.
+6. لا تشغّل `install-writing.js`؛ الإضافات موجودة بالفعل في هذه النسخة.
 
-### لماذا Railway؟
-- ✅ مجاني (رصيد $5/شهر — كافي للاستخدام العادي)
-- ✅ يدعم Node.js بشكل مثالي
-- ✅ يتربط بـ subdomain على Hostinger بسهولة
-- ✅ لا يحتاج خبرة في السيرفرات
+إعدادات التطبيق: منفذ `3000`، أمر التشغيل `npm start`، ومسار فحص الصحة `/health`. يحتاج Node.js 22 أو أحدث بحسب إعداد المشروع. أثناء التهيئة يعيد فحص الصحة 503، وبعد اكتمالها يعيد 200.
 
----
+لا تغيّر `WHATSAPP_AUTH_SECRET` عند تحديث الكود: الجلسات المحفوظة تعتمد على نفس القيمة لفك تشفيرها. كذلك احتفظ بـ `SESSION_SECRET` الحالي للحفاظ على جلسات المستخدمين.
 
-## الخطوة 1: إعداد Google OAuth
+## الإعدادات
 
-1. اذهب إلى [console.cloud.google.com](https://console.cloud.google.com)
-2. اضغط **New Project** → سمّيه `mrsaal`
-3. من القائمة → **APIs & Services** → **Library** → ابحث عن **Gmail API** → **Enable**
-4. اذهب إلى **Credentials** → **Create Credentials** → **OAuth 2.0 Client ID**
-5. Application type: **Web application**
-6. في **Authorized redirect URIs** أضف:
-   ```
-   https://mrsaal.yourdomain.com/auth/google/callback
-   ```
-7. احفظ الـ **Client ID** و **Client Secret**
+المتغيرات المطلوبة موضحة في `.env.example`. اتصال PostgreSQL يستخدم العنوان الداخلي في شبكة Docker، مع إعداد الاتصال الموجود في `utils/db.js`. التطبيق الحالي لا يفعّل SSL لقاعدة البيانات؛ الاتصال بقاعدة خارجية يحتاج مراجعة إعداداتها.
 
-> ⚠️ في **OAuth consent screen**: أضف بريد كل مستخدم كـ **Test User** أو اطلب **Publish** للوصول العام
+المفاتيح تبقى في Coolify، ولا توضع في ملفات الواجهة أو GitHub. يمكن استخدام Gemini وOpenRouter معًا. قائمة الموديلات في `utils/ai-legacy.js`، أو متغير `AI_MODEL_CHAIN` إذا كان مضبوطًا. `utils/ai.js` يضيف منطق أسلوب الكتابة ويستخدم الملف القديم؛ كلا الملفين مطلوب.
 
----
+خانة موديل Gemini في إعدادات المستخدم اختيارية. تركها فارغة يستخدم قائمة السيرفر. اختيار محفوظ قديم يظل محفوظًا؛ إذا كان يفشل بـ404، امسحه من إعدادات المستخدم واحفظ، أو اختر موديلًا صالحًا في حسابك.
 
-## الخطوة 2: رفع المشروع على Railway
+## ما تم إصلاحه
 
-### أ) عبر GitHub (الأسهل):
+- إضافة `routes/support.js` الذي كان مطلوبًا في السيرفر وغير موجود في النسخة المرفوعة.
+- توحيد حفظ السيرة الذاتية وقالب الكتابة داخل معاملة PostgreSQL؛ فشل الإدخال لا يمسح النسخة القديمة.
+- منع مسار القالب القديم من الكتابة فوق ملف أسلوب الكتابة الجديد.
+- منع تهيئة قاعدة البيانات من إعادة فرض موديل Gemini قديم كل مرة.
+- الحفاظ على التعديلات غير المحفوظة أثناء إضافة مثال للكتابة، وقفل حقول المعاينة مؤقتًا أثناء التوليد.
+- إرجاع استجابة واضحة أثناء بدء التشغيل، وتحسين معالجة أخطاء المسارات المعدّلة.
+- إضافة فحص قبل التشغيل لاكتشاف ملفات JavaScript أو المسارات المحلية الناقصة.
 
-1. اعمل **repository جديد** اسمه `mrsaal` على GitHub
-2. ارفع ملفات المشروع:
-   ```bash
-   cd mrsaal
-   git init
-   git add .
-   git commit -m "first commit"
-   git remote add origin https://github.com/USERNAME/mrsaal.git
-   git push -u origin main
-   ```
-3. اذهب إلى [railway.app](https://railway.app) → سجّل دخول بـ GitHub
-4. اضغط **New Project** → **Deploy from GitHub repo** → اختر `mrsaal`
-5. Railway سيكتشف Node.js تلقائياً ويبدأ البناء ✅
+كتابة السيرة الذاتية يدويًا بدل رفع PDF تستبدل السيرة الحالية ولا تحتفظ بمرفق PDF السابق؛ هذا هو سلوك المسار الموجود في المشروع.
 
----
+## التحقق
 
-## الخطوة 3: إضافة Environment Variables على Railway
-
-في لوحة Railway → مشروعك → **Variables** → أضف هذه المتغيرات:
-
-```
-GEMINI_API_KEY        = AIzaSyxxxxxxxxx
-GOOGLE_CLIENT_ID      = xxxxxxxxx.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET  = GOCSPX-xxxxxxxxx
-GOOGLE_REDIRECT_URI   = https://mrsaal.yourdomain.com/auth/google/callback
-BASE_URL              = https://mrsaal.yourdomain.com
-SESSION_SECRET        = نص_عشوائي_طويل_جداً
-NODE_ENV              = production
-PORT                  = 3000
-PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = true
+```bash
+npm run check
+npm test
 ```
 
-> 💡 لتوليد SESSION_SECRET آمن:
-> ```bash
-> node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-> ```
+نجح فحص الملفات والأصول، ونجح 27 اختبارًا محليًا. تشمل الاختبارات حفظ البيانات والتراجع عند الفشل، صلاحيات المستخدم، المساعد المحدود بالمشروع، الجولة، وتأثير الكتابة وإعدادات الأسلوب.
 
----
+هذه اختبارات محلية بمحاكاة الخدمات. لم يُجرَ نشر على سيرفرك أو اختبار فعلي لاتصال PostgreSQL أو Google OAuth أو مزودي AI أو تسليم رسائل واتساب. بعد النشر تأكد من ظهور `All systems initialised.`، ثم جرّب الدخول، عرض الشركات، حفظ إعدادات الكتابة، فتح المساعد والجولة، وتوليد معاينة قبل إرسال رسالة اختبار إلى رقمك.
 
-## الخطوة 4: ربط Subdomain من Hostinger
-
-### أ) احصل على Railway CNAME:
-1. Railway → مشروعك → **Settings** → **Domains**
-2. اضغط **Add Custom Domain** → اكتب: `mrsaal.yourdomain.com`
-3. Railway سيعطيك CNAME مثل: `mrsaal-production.up.railway.app`
-
-### ب) أضف DNS Record على Hostinger:
-1. اذهب إلى [hpanel.hostinger.com](https://hpanel.hostinger.com)
-2. دومينك → **DNS / Nameservers** → **DNS Records** → **Add Record**
-
-```
-Type:  CNAME
-Name:  mrsaal
-Value: mrsaal-production.up.railway.app.
-TTL:   3600
-```
-
-3. احفظ — انتظر 5-30 دقيقة لانتشار الـ DNS
-4. Railway سيفعّل SSL تلقائياً (Let's Encrypt مجاني) ✅
-
----
-
-## الخطوة 5: تحديث Google OAuth
-
-ارجع إلى Google Cloud Console → **Credentials** → OAuth Client:
-- تأكد وجود: `https://mrsaal.yourdomain.com/auth/google/callback` ✅
-
----
-
-## ✅ اختبار التثبيت
-
-1. افتح `https://mrsaal.yourdomain.com`
-2. يجب أن تظهر شاشة تسجيل الدخول بـ Google
-3. سجّل دخولك → يجب أن تنتقل للأداة مباشرة
-4. جرّب رفع CV وإيميل تجريبي
-
----
-
-## 📊 حدود الاستخدام المجاني
-
-| الخدمة | الحد المجاني |
-|--------|-------------|
-| Railway | $5/شهر رصيد ≈ 500 ساعة تشغيل |
-| Gmail API | 100 إيميل/يوم |
-| Gemini API | مجاني (حتى 15 طلب/دقيقة) |
-| Open Tracking | مجاني (مدمج) |
-
----
-
-## ❓ مشاكل شائعة
-
-**"redirect_uri_mismatch"** → تأكد أن الـ URI في Google Console مطابق حرفياً لـ `GOOGLE_REDIRECT_URI` في Railway
-
-**"Application not verified"** → أضف بريد المستخدم كـ Test User في Google OAuth consent screen
-
-**الـ subdomain مش شغال** → انتظر 30 دقيقة لانتشار DNS، تحقق من CNAME في Hostinger
-
-**الإيميلات مش بتتبعت** → تأكد أن `BASE_URL` = `https://mrsaal.yourdomain.com` (بدون / في النهاية)
-
----
-
-## 📁 هيكل المشروع
-
-```
-mrsaal/
-├── server.js              # نقطة الدخول
-├── railway.json           # إعدادات Railway
-├── Procfile               # أمر التشغيل
-├── .gitignore
-├── public/
-│   └── index.html         # الواجهة الكاملة
-├── routes/
-│   ├── auth.js            # Google OAuth
-│   ├── companies.js       # إدارة الشركات
-│   ├── cv.js              # السيرة الذاتية والقوالب
-│   ├── email.js           # Email & WhatsApp Logic
-│   └── tracking.js        # Open tracking pixel
-├── utils/
-│   ├── db.js              # SQLite
-│   ├── gmail.js           # Gmail API
-│   ├── ai.js              # Google Gemini API
-│   └── scheduler.js       # Cron جدولة
-└── middleware/
-    └── auth.js
-```
+راجع `REVIEW_CHANGES.md` لقائمة الملفات المعدّلة والمضافة. بقية ملفات المشروع مأخوذة من النسخة المرفوعة.
