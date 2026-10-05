@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head>
+<head><script>(function(){let t='light';try{t=localStorage.getItem('mrsaal-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}catch{}document.documentElement.dataset.theme=t==='dark'?'dark':'light';})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>مرسال — أداة التقدم الذكي للوظائف</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>مرسال — مساحتك لفرصتك الجاية</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #080b12;
@@ -150,8 +150,99 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
+
+/* تفاصيل الرسالة */
+.report-modal{width:720px;padding:0;box-shadow:0 28px 100px rgba(0,0,0,.5);border-color:rgba(79,142,247,.22)}
+.report-top{padding:25px 26px 22px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(79,142,247,.09),rgba(124,58,237,.035));border-radius:18px 18px 0 0}
+.report-head{display:flex;align-items:flex-start;gap:14px}
+.report-symbol{width:46px;height:46px;display:grid;place-items:center;background:var(--accent-soft);border:1px solid var(--border2);border-radius:14px;font-size:21px;flex-shrink:0}
+.report-heading{min-width:0;flex:1}
+.report-eyebrow{font-size:10px;color:var(--accent);font-weight:700;margin-bottom:4px}
+.report-heading h2{font-size:19px;line-height:1.6;overflow-wrap:anywhere}
+.report-heading p{font-size:11px;color:var(--text2);margin-top:3px;overflow-wrap:anywhere}
+.report-close{width:38px;height:38px;border-radius:11px}
+.report-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.report-chip{display:inline-flex;align-items:center;gap:6px;border-radius:30px;padding:5px 11px;font-size:11px;font-weight:700;background:var(--surface2);border:1px solid var(--border);color:var(--text2)}
+.report-chip.good{background:rgba(34,197,94,.09);border-color:rgba(34,197,94,.2);color:var(--green)}
+.report-chip.bad{background:rgba(239,68,68,.09);border-color:rgba(239,68,68,.2);color:var(--red)}
+.report-content{padding:22px 26px}
+.report-section-title{font-size:12px;color:var(--text2);font-weight:700;margin-bottom:12px}
+.report-progress{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:23px}
+.report-step{padding:16px 13px;border:1px solid var(--border);border-radius:13px;background:var(--surface2);min-width:0}
+.report-step.done{border-color:rgba(34,197,94,.22);background:rgba(34,197,94,.045)}
+.report-step-icon{color:var(--text2);font-size:18px;margin-bottom:9px}
+.report-step.done .report-step-icon{color:var(--green)}
+.report-step strong{display:block;font-size:12px;margin-bottom:5px}
+.report-step small{display:block;font-size:10px;color:var(--text2);line-height:1.8;overflow-wrap:anywhere}
+.report-message{margin-top:16px}
+.report-message-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.report-message-head h3{font-size:12px;font-weight:700}
+.report-text{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;font-size:13px;line-height:1.95;white-space:pre-wrap;overflow-wrap:anywhere;max-height:260px;overflow-y:auto}
+.report-reply{background:rgba(34,197,94,.045);border-color:rgba(34,197,94,.22)}
+.report-reply-title{color:var(--green)}
+.report-note{font-size:11px;line-height:1.8;color:var(--text2);padding:11px 13px;background:var(--surface2);border-radius:10px;margin-top:15px}
+.report-error{color:var(--red);background:rgba(239,68,68,.06)}
+.report-subject{font-size:12px;color:var(--text2);margin-bottom:9px;overflow-wrap:anywhere}
+.report-footer{padding:15px 26px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.report-footer span{font-size:10px;color:var(--text2)}
+.report-modal [hidden]{display:none!important}
+.report-modal button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:540px){
+ #report-detail-overlay{padding:10px}
+ .report-modal{max-height:calc(100dvh - 20px);border-radius:16px}
+ .report-top,.report-content{padding:18px}
+ .report-heading h2{font-size:16px}
+ .report-progress{grid-template-columns:1fr;gap:8px}
+ .report-step{display:grid;grid-template-columns:24px 1fr;gap:0 10px;padding:12px}
+ .report-step-icon{grid-row:1/3;margin:0;align-self:center}
+ .report-step small{grid-column:2}
+ .report-footer{padding:14px 18px}
+}
+
+.report-heading h2{font-size:21px}.report-heading p,.report-chip{font-size:12px}.report-section-title,.report-message-head h3{font-size:13px}.report-step strong{font-size:13px}.report-step small,.report-note{font-size:12px}.report-footer span{font-size:11px}.report-modal button{min-height:42px}.report-modal .report-text{font-size:14px}
+@media(max-width:540px){.report-modal button{min-height:44px}.report-heading h2{font-size:18px}.report-modal{width:100%}.report-text{max-height:210px}}
+
+.report-modal{width:880px;border-color:#384265}
+.report-top{background:#121627;padding:24px 28px}.report-symbol{border-radius:50%;background:#222745;border-color:#39436b}.report-eyebrow{color:#a7b5ee}
+.timeline-layout{display:grid;grid-template-columns:220px minmax(0,1fr)}
+.timeline-side{padding:24px 20px;background:#101421;border-left:1px solid #252a3a}
+.timeline-main{padding:24px;background:#0f1219;min-width:0}
+.timeline-side .report-progress{display:flex;flex-direction:column;gap:0;margin:0}
+.timeline-side .report-step{position:relative;display:grid;grid-template-columns:26px 1fr;gap:0 10px;border:none;border-radius:0;padding:12px 0 25px;background:transparent}
+.timeline-side .report-step:not(:last-child):after{content:'';position:absolute;right:11px;top:40px;bottom:2px;width:1px;background:#38425f}
+.timeline-side .report-step-icon{grid-row:1/3;margin:0;font-size:17px;align-self:start;color:#7584b1}.timeline-side .report-step small{grid-column:2}
+.timeline-side .report-step.done{background:transparent}.timeline-main .report-message:first-child{margin-top:0}
+.timeline-main .report-text{background:#171c2b;border-color:#293149}.timeline-main .report-reply{border-right:3px solid #46c894;background:#14201f}
+.timeline-side .report-note{margin-top:0;background:transparent;padding:12px 0;border-top:1px solid #252e44}
+@media(max-width:650px){.timeline-layout{grid-template-columns:1fr}.timeline-side{border-left:0;border-bottom:1px solid #252a3a;padding:18px}.timeline-main{padding:18px}.timeline-side .report-progress{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.timeline-side .report-step{display:block;padding:4px 0 10px}.timeline-side .report-step:after{display:none}.timeline-side .report-step-icon{margin-bottom:8px}.timeline-side .report-step strong{font-size:12px}.timeline-side .report-step small{font-size:11px}.timeline-side .report-note{padding:10px 0 0;font-size:11px}}
+
+:root{--sidebar:250px;--radius:16px;--font:'Cairo',sans-serif}
+html[data-theme=light]{color-scheme:light;--bg:#f4f6fb;--surface:#ffffff;--surface2:#f0f3f9;--surface3:#e4e9f3;--text:#17243b;--text2:#52617b;--text3:#60718c;--border:#dce3ef;--green:#13744c;--red:#bc3341;--yellow:#986500;--orange:#a45312;--shadow:0 8px 30px rgba(25,46,86,.045)}
+html[data-theme=dark]{color-scheme:dark;--bg:#0b101b;--surface:#111a2a;--surface2:#182337;--surface3:#25324a;--text:#eef2fb;--text2:#adbad0;--text3:#95a7c3;--border:#29374e;--green:#6de0ad;--red:#ff8992;--yellow:#eacb70;--orange:#ffbd86;--shadow:0 10px 35px rgba(0,0,0,.12)}
+body:before{display:none}.main{min-width:0;padding:26px 32px;max-width:1600px;width:100%;margin:auto}.sidebar{border-color:var(--border)}
+.brand-lockup{display:flex;align-items:center;gap:11px}.brand-lockup svg{width:42px;height:42px;flex-shrink:0}.brand-word{font-size:25px;font-weight:900;line-height:1.2;color:var(--text)}.brand-caption{font-size:11px;color:var(--text2);margin-top:5px}.logo{padding:25px 20px}.logo-mark,.login-logo{-webkit-text-fill-color:var(--text);background:none;color:var(--text)}.logo-sub{display:none}.login-logo .brand-lockup{justify-content:center}.login-card{box-shadow:var(--shadow);max-width:470px}.login-note{color:var(--text2)}
+.workspace-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:20px;margin-bottom:22px;border-bottom:1px solid var(--border)}.workspace-label{font-size:12px;color:var(--text2)}.workspace-title{font-size:18px;font-weight:700;margin-top:3px}.workspace-actions{display:flex;align-items:center;gap:9px}.theme-button{font-family:var(--font);font-size:12px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:10px 14px;min-height:44px;cursor:pointer}.demo-badge{font-size:11px;border-radius:8px;padding:7px 10px;background:var(--accent-soft);color:var(--accent)}
+.nav-item{font-size:13px;min-height:46px}.nav-item.active{background:var(--accent-soft);color:var(--accent);border-color:var(--border2)}.nav-badge{background:var(--accent);color:var(--on-accent)}.nav-badge.red{background:var(--surface3);color:var(--text2)}.gmail-sub{overflow-wrap:anywhere;max-width:180px}.gmail-box{align-items:flex-start}.gmail-label{font-size:12px}.sidebar-footer{padding:16px}.ph-title{font-size:24px;letter-spacing:-.5px}.ph-sub{color:var(--text2);font-size:12px}.card{box-shadow:var(--shadow);border-color:var(--border);padding:24px}.card:hover{border-color:var(--border2)}.card-title{font-size:13px;color:var(--text2);letter-spacing:0}.label{font-size:12px;color:var(--text2);letter-spacing:0}.hint{font-size:12px;color:var(--text2)}.upload-zone{background:var(--accent-soft);border-color:var(--border2);padding:26px 18px}.upload-zone:hover{background:var(--surface2)}.upload-sub{font-size:12px}.input,.textarea,.select{border-color:var(--border);font-size:14px;min-height:44px}.input:focus,.select:focus,.textarea:focus{outline:2px solid var(--border2);outline-offset:2px}.btn{min-height:44px;font-size:13px;border-radius:11px}.btn-primary{background:var(--accent);color:var(--on-accent)}.btn-primary:hover{background:var(--accent2);box-shadow:none}.btn-secondary:hover{border-color:var(--border2)}.stat-card{text-align:right;padding:22px}.stat-num{font-size:29px}.stat-lbl{font-size:12px}.tbl th{font-size:12px;color:var(--text2);text-transform:none;letter-spacing:0;padding:14px}.tbl td{padding:15px 14px}.tbl tr:hover td{background:var(--surface2)}.tbl{font-size:13px}.tbl .mono{font-size:12px}.chk{width:18px;height:18px}.log-status.sent{background:var(--surface2)}.reply-preview{font-size:12px}.tag{font-size:12px}.empty-s{font-size:13px}.toast{white-space:normal;max-width:calc(100vw - 24px);width:max-content;background:var(--surface);box-shadow:var(--shadow)}.spin{border-color:var(--border);border-top-color:var(--accent)}
+.report-modal{background:var(--surface);border-color:var(--border2);box-shadow:var(--shadow)}.report-top{background:var(--surface2);border-color:var(--border)}.report-symbol{background:var(--accent-soft);color:var(--accent);border-color:var(--border2)}.report-eyebrow{color:var(--accent)}.timeline-side{background:var(--surface2);border-color:var(--border)}.timeline-main{background:var(--surface)}.timeline-side .report-step:not(:last-child):after{background:var(--border2)}.timeline-side .report-step-icon{color:var(--accent)}.timeline-main .report-text{background:var(--surface2);border-color:var(--border)}.timeline-main .report-reply{background:var(--surface2);border-right-color:var(--green)}.timeline-side .report-note{border-color:var(--border)}.report-text{color:var(--text)}.report-note,.report-footer span{color:var(--text2)}.report-chip.good{color:var(--green)}
+.nav-item:focus-visible,.theme-button:focus-visible,.btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.login-theme{position:absolute;top:20px;left:20px;z-index:501}.workspace-mobile-name{display:none}
+@media(max-width:1100px){:root{--sidebar:220px}.main{padding:22px}.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g2{grid-template-columns:1fr}.ph-sub{display:block;margin:3px 0 0}.workspace-bar{margin-bottom:20px}}
+@media(max-width:700px){.app.active{display:flex;flex-direction:column}.sidebar{position:sticky;top:0;width:100%;height:auto;z-index:50;overflow:visible;border-left:0;border-bottom:1px solid var(--border)}.sidebar .logo,.sidebar-footer{display:none}.nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:7px;gap:3px;flex:none}.nav-item{justify-content:center;flex-direction:column;gap:3px;padding:7px 2px;margin:0;font-size:11px;min-height:55px;border-radius:9px;position:relative}.nav-icon{font-size:18px;width:auto}.nav-badge{position:absolute;top:2px;left:2px;font-size:9px;min-width:15px;padding:0 4px}.main{padding:18px 14px;min-height:auto}.workspace-title{font-size:16px}.workspace-label{display:none}.workspace-mobile-name{display:inline;font-weight:900;color:var(--accent)}.workspace-bar{padding-bottom:14px;margin-bottom:20px}.theme-button{padding:9px 10px}.ph-title{font-size:22px}.ph{margin-bottom:18px}.card{padding:18px}.g2{gap:0}.g4{gap:10px}.stat-card{padding:16px}.stat-num{font-size:25px}.col-map-row{grid-template-columns:1fr}.input,.select,.textarea{font-size:16px}.row{gap:8px}.btn{padding:10px 13px}.overlay{padding:10px}.modal{padding:20px;max-height:calc(100dvh - 20px)}.report-modal{padding:0}.report-heading h2{font-size:17px}.report-top,.timeline-main,.timeline-side{padding:18px}.login-card{padding:35px 24px}.report-footer{padding:14px 18px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+html[data-theme=light]{--accent:#087b65;--accent2:#056752;--accent-soft:color-mix(in srgb,var(--accent) 9%,transparent);--border2:color-mix(in srgb,var(--accent) 30%,transparent);--on-accent:#fff}html[data-theme=dark]{--accent:#75dcc3;--accent2:#a0ead8;--accent-soft:color-mix(in srgb,var(--accent) 13%,transparent);--border2:color-mix(in srgb,var(--accent) 32%,transparent);--on-accent:#102135}@media(min-width:701px){.app.active{display:block}.sidebar{position:sticky;top:0;z-index:60;height:auto;width:100%;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:0 24px;border-left:0;border-bottom:1px solid var(--border);overflow:visible}.logo{padding:15px 0;border:0}.nav{display:flex;flex:1;justify-content:center;min-width:0;gap:5px;padding:10px}.logo{flex-shrink:0}.nav-item{margin:0;padding:10px 14px}.sidebar-footer{display:none}.nav-badge{margin-right:5px}.main{max-width:1250px;padding:28px}.card{border-radius:24px}.stat-card{border-radius:20px}.g2{gap:22px}.ph-title{font-size:27px}.brand-lockup svg{border-radius:50%}}
+@media(min-width:701px) and (max-width:950px){.sidebar{flex-wrap:wrap;padding:12px 20px}.logo{padding:0}.nav{width:100%;justify-content:space-between}.nav-item{padding:8px 12px}.main{padding:22px}}.nav-item{font-family:var(--font);background:transparent;width:100%;text-align:right;cursor:pointer}.mobile-account{display:inline-flex}.workspace-actions{flex-wrap:wrap}@media(min-width:701px){.nav-item{width:100%}}@media(min-width:701px){.nav-item{width:auto;flex:0 0 auto}}@media(min-width:701px) and (max-width:950px){.nav{flex-basis:100%}}/* Mrsaal / Meem — Emerald design system */
+:root{--font:'IBM Plex Sans Arabic','Inter',sans-serif;--mono:'Inter',sans-serif;--sidebar:252px;--radius:16px}
+html[data-theme=light]{color-scheme:light;--bg:#F7FAF7;--surface:#fff;--surface2:#F1F6F3;--surface3:#E6EFEB;--text:#16342B;--text2:#526B61;--text3:#64786F;--accent:#087F6B;--accent2:#066955;--accent-soft:#E7F5EF;--border:#DBE6DF;--border2:#B0D7C8;--on-accent:#fff;--green:#087B59;--red:#B93838;--yellow:#8B650D;--orange:#A55224;--shadow:0 2px 8px #17332A04}
+html[data-theme=dark]{color-scheme:dark;--bg:#0D201D;--surface:#132A25;--surface2:#17322C;--surface3:#214339;--text:#EDF7F1;--text2:#B3C6BC;--text3:#9EB3A8;--accent:#83DDBF;--accent2:#AAEBD2;--accent-soft:#1C3D33;--border:#2A473D;--border2:#446F5F;--on-accent:#0D201D;--green:#83DDBF;--red:#FCA4A4;--yellow:#EACB83;--orange:#F0B489;--shadow:0 2px 8px #0000000D}
+body{font-size:15px;line-height:1.6}body::before{display:none}button,input,select,textarea{font:inherit}button,a,input,select,textarea{touch-action:manipulation}a{color:var(--accent);text-decoration:none}.ui-icon{width:21px;height:21px;flex-shrink:0;vertical-align:middle}.meem-mark{width:48px;height:43px;color:var(--accent);flex-shrink:0}.brand-lockup{gap:10px;display:flex;align-items:center}.brand-word{font-size:25px;line-height:1.1;font-weight:700;letter-spacing:0;color:var(--text)}.brand-caption{font:500 10px/1.4 Inter,sans-serif;letter-spacing:1px;margin-top:5px;color:var(--text2)}
+.app.active{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr)}.sidebar{position:sticky;top:0;height:100dvh;width:auto;display:flex;flex-direction:column;overflow:auto;padding:0;background:var(--surface);border-left:1px solid var(--border);border-bottom:0;z-index:60}.logo{padding:30px 24px;display:block;border:0}.sidebar-caption{padding:4px 26px 10px;font-size:11px;color:var(--text3)}.nav{padding:0 13px;display:flex;flex-direction:column;justify-content:flex-start;gap:5px;flex:1;min-width:0;width:auto}.nav-item{font-family:var(--font);width:100%;flex:0 0 auto;display:flex;flex-direction:row;justify-content:flex-start;padding:12px 14px;margin:0;min-height:48px;font-size:14px;font-weight:500;gap:12px;color:var(--text2);border-radius:10px;text-align:right;border:1px solid transparent}.nav-item.active{border-color:transparent;background:var(--accent-soft);color:var(--accent);font-weight:600}.nav-badge{position:static;font:600 11px Inter,sans-serif;margin-right:auto;background:var(--surface3);color:var(--text2);border-radius:6px;padding:4px 6px;min-width:24px}.nav-item.active .nav-badge{background:var(--accent);color:var(--on-accent)}.sidebar-footer{display:block;padding:18px 15px;border-top:1px solid var(--border)}.sidebar-tip{margin:26px 18px 18px;padding:17px;background:var(--surface2);border:1px solid var(--border);border-radius:12px}.sidebar-tip>.ui-icon{color:var(--accent);margin-bottom:8px}.sidebar-tip strong{display:block;font-size:12px}.sidebar-tip p{font-size:11px;color:var(--text2);margin-top:6px}.account-button{width:100%;display:flex;align-items:center;gap:9px;padding:0;background:none;border:0;text-align:right;color:var(--text);cursor:pointer}.avatar{width:36px;height:36px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0}.account-text{min-width:0;flex:1}.account-text strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.account-text small{display:block;font:10px Inter,sans-serif;direction:ltr;color:var(--text2);text-overflow:ellipsis;white-space:nowrap;overflow:hidden;max-width:155px}.gdot{box-shadow:none;width:6px;height:6px}.account-top{background:none;border:0;cursor:pointer}.main{padding:26px 36px 48px;max-width:1440px;width:100%;min-width:0;min-height:100vh;margin:0 auto;overflow:visible}.workspace-bar{margin-bottom:30px;padding-bottom:20px;border-bottom:1px solid var(--border);flex-wrap:nowrap}.workspace-location{color:var(--text3);font-size:12px}.workspace-location span{margin:0 12px;color:var(--text3)}.workspace-location strong{color:var(--text);font-weight:500}.workspace-actions{gap:12px;flex-wrap:nowrap}.theme-button{font-size:12px;padding:9px 12px;min-height:40px;background:var(--surface);border-radius:8px}.ph{margin-bottom:26px;align-items:center}.ph h1,h1{font-size:28px;line-height:1.4;font-weight:600;letter-spacing:-.4px}.ph-title{font-size:26px;font-weight:600}.ph-sub{font-size:13px;color:var(--text2);margin-right:8px}.eyebrow{display:block;font-size:11px;font-weight:500;color:var(--accent);margin-bottom:8px;letter-spacing:0}.page-description{font-size:14px;color:var(--text2);margin-top:8px}.wave{font-size:22px;color:var(--accent)}.btn{border-radius:9px;font-size:13px;padding:10px 16px;min-height:44px;font-weight:500;text-decoration:none;justify-content:center}.btn .ui-icon{width:18px;height:18px}.btn-primary{background:var(--accent);color:var(--on-accent)}.btn-primary:hover{background:var(--accent2);transform:none;box-shadow:none}.btn-secondary{background:var(--surface);border:1px solid var(--border);color:var(--text)}.btn-secondary:hover{background:var(--surface2);border-color:var(--border2)}.text-button{border:0;background:none;cursor:pointer;font-size:12px;color:var(--accent);padding:8px 0;font-weight:500}.card{padding:23px;box-shadow:var(--shadow);border-radius:14px;border-color:var(--border);margin-bottom:20px}.card-title{font-size:15px;font-weight:600;color:var(--text);letter-spacing:0;text-transform:none;margin-bottom:18px}.card h3{font-size:16px;font-weight:600}.section-copy{font-size:13px;color:var(--text2);line-height:1.8;margin:10px 0 18px}.section-heading{margin-bottom:22px}.section-heading h2{font-size:20px;font-weight:600}.section-heading p{font-size:13px;color:var(--text2);margin-top:5px}.inline-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.inline-heading h2{font-size:18px}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin-bottom:26px}.metric{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:20px 22px}.metric-label{display:block;font-size:13px;color:var(--text2)}.metric strong{display:block;font:600 32px/1.5 Inter,sans-serif;letter-spacing:-1px;color:var(--text);margin:9px 0 3px}.metric small{font-size:11px;color:var(--text3)}.next-step{display:flex;align-items:center;justify-content:space-between;gap:25px;padding:25px 28px;border-radius:14px;background:var(--accent-soft);border:1px solid var(--border2);margin-bottom:32px}.next-step h2{font-size:21px;font-weight:600}.next-step p{font-size:13px;color:var(--text2);margin-top:6px}.next-step .eyebrow{margin-bottom:5px}.setup-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:28px}.setup-card{padding:22px;background:var(--surface);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;min-width:0}.setup-card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:20px}.setup-icon{background:var(--surface2);border-radius:10px;color:var(--accent);width:42px;height:42px;display:flex;align-items:center;justify-content:center}.state-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:500;border-radius:6px;padding:4px 8px;white-space:nowrap;background:var(--surface2);color:var(--text2)}.state-badge.ready{background:var(--accent-soft);color:var(--accent)}.setup-card h3{font-size:17px;font-weight:600;margin-bottom:8px}.setup-card p{font-size:12px;color:var(--text2);line-height:1.8;flex:1;margin-bottom:21px}.setup-card-actions{display:flex;align-items:center;justify-content:space-between;gap:10px}.setup-card-actions .btn{font-size:12px;min-height:40px;padding:8px 13px}.setup-card-actions .text-button{font-size:11px}.dashboard-bottom{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:20px}.activity-row{display:flex;align-items:center;gap:12px;padding:15px 0;border-bottom:1px solid var(--border);text-align:right;background:none;border-top:0;border-left:0;border-right:0;width:100%;color:var(--text);cursor:pointer}.activity-row:last-child{border:0}.activity-symbol{display:flex;align-items:center;justify-content:center;background:var(--surface2);border-radius:9px;min-width:36px;height:36px;color:var(--accent)}.activity-description{flex:1;min-width:0}.activity-description strong{display:block;font-size:13px}.activity-description small{font-size:11px;color:var(--text2)}.workflow-card ol{list-style:none;counter-reset:step;display:grid;gap:24px;margin-top:23px}.workflow-card li{counter-increment:step;display:grid;grid-template-columns:28px 1fr;column-gap:12px;font-size:13px}.workflow-card li:before{content:counter(step);grid-row:span 2;width:26px;height:26px;border:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;border-radius:50%;font:500 11px Inter,sans-serif}.workflow-card li b{font-weight:500}.workflow-card li span{display:block;color:var(--text2);font-size:12px;margin-top:4px}.onboarding-heading{max-width:620px;margin:24px auto 34px;text-align:center}.onboarding-heading h1{font-size:34px;margin:10px 0}.onboarding-heading>p{font-size:14px;color:var(--text2);line-height:1.9}.onboard-progress{max-width:300px;margin:22px auto 0;font-size:12px;color:var(--text2)}.onboard-progress .prog-wrap{height:5px}.prog-bar{background:var(--accent)}.onboard-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid var(--border);padding-top:24px}.onboard-footer>p{font-size:12px;color:var(--text2)}.help-note{margin:25px 0;font-size:12px;color:var(--text3);display:flex;align-items:center;justify-content:center;gap:9px}.settings-shell{display:grid;grid-template-columns:210px minmax(0,1fr);gap:30px;align-items:start}.settings-tabs{display:flex;flex-direction:column;gap:6px;position:sticky;top:28px}.settings-tabs button{border:0;background:transparent;border-radius:9px;padding:12px;text-align:right;color:var(--text2);font-size:13px;display:flex;align-items:center;gap:10px;cursor:pointer}.settings-tabs button.active{color:var(--accent);background:var(--accent-soft);font-weight:500}.settings-content{max-width:800px;min-width:0}.settings-panel[hidden], [hidden]{display:none!important}.setup-return{padding:14px 18px;margin-bottom:25px;border:1px solid var(--border2);background:var(--accent-soft);border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px}.profile-row{display:flex;align-items:center;gap:14px}.profile-row .avatar{width:44px;height:44px;font-size:21px}.profile-row p{font:12px Inter,sans-serif;color:var(--text2);margin-top:4px;overflow-wrap:anywhere}.profile-row .state-badge{margin-right:auto}.theme-choices{display:flex;gap:10px}.theme-choice{border:1px solid var(--border);background:var(--surface);color:var(--text);padding:12px 18px;border-radius:8px;cursor:pointer;font-size:13px}.theme-choice.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}.account-footer{display:flex;justify-content:space-between;gap:20px;align-items:center}.account-footer a{font-size:12px}.connection-summary{display:flex;align-items:center;gap:15px}.connection-summary>.ui-icon{color:var(--accent);width:28px;height:28px}.connection-summary p{font-size:12px;color:var(--text2)}.connection-summary>.state-badge{margin-right:auto}.import-details{border:1px solid var(--border);border-radius:12px;background:var(--surface);margin-bottom:20px}.import-details summary{display:flex;align-items:center;gap:12px;cursor:pointer;padding:18px 22px;list-style:none;font-size:14px;font-weight:500;color:var(--accent)}.import-details summary::-webkit-details-marker{display:none}.import-details summary span{margin-right:auto;font-size:20px}.import-details[open] summary{border-bottom:1px solid var(--border)}.import-details>.card{margin:0;border:0;box-shadow:none}.company-toolbar{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:17px}.search-field{display:flex;align-items:center;gap:9px;max-width:380px;flex:1;color:var(--text3)}.search-field .input{font-size:13px;min-width:0}.selection-count{font-size:12px;color:var(--text2)}.tbl th{font-size:12px;background:var(--surface2);padding:14px;color:var(--text2);font-weight:500}.tbl td{font-size:13px;padding:17px 14px}.tbl .mono{font:11px Inter,sans-serif}.tbl td strong{font-weight:600}.tbl .btn{min-height:34px}.tag,.log-status{font-size:11px;line-height:1.6}.input,.select,.textarea{background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:14px;padding:11px 13px;min-height:44px}.input:focus,.select:focus,.textarea:focus{border-color:var(--accent);outline:2px solid var(--accent-soft);outline-offset:2px}.label{font-size:12px;letter-spacing:0;color:var(--text2);font-weight:500;text-transform:none}.hint{font-size:12px;line-height:1.8;color:var(--text2)}.upload-zone{background:var(--surface2);border:1px dashed var(--border2);padding:28px 20px}.upload-zone:hover{background:var(--accent-soft)}.upload-icon{color:var(--accent)}.g2{gap:20px}.g4{gap:15px}.stat-card{border-radius:12px;padding:20px;text-align:right}.stat-num{font:600 29px/1.2 Inter,sans-serif}.stat-lbl{font-size:12px}.report-modal{padding:0;border-radius:16px}.report-top,.timeline-side,.timeline-main{padding:25px}.report-top{background:var(--surface);border-bottom:1px solid var(--border)}.timeline-side{background:var(--surface2)}.report-symbol,.report-chip,.report-message{background:var(--surface2);border-color:var(--border);color:var(--text)}.report-progress{display:grid}.report-step.is-done .report-step-icon{background:var(--accent-soft);border-color:var(--border2);color:var(--accent)}.report-footer{font-size:11px;border-top:1px solid var(--border);padding:18px 25px}.modal-close{width:36px;height:36px}.report-heading h2{font-size:22px}.report-text{font-size:14px;line-height:1.9}.report-section-title{color:var(--text2)}.report-note{font-size:12px;color:var(--text2);border-color:var(--border)}.modal{max-height:calc(100dvh - 36px)}.toast{white-space:normal;max-width:calc(100vw - 30px);font-size:13px}.btn:focus-visible,button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+/* Auth */
+#login-screen{position:fixed;inset:0;overflow:auto;display:none;align-items:stretch;justify-content:center;background:var(--bg);padding:32px}.login-shell{width:min(1180px,100%);display:grid;grid-template-columns:1.07fr 1fr;min-height:min(800px,calc(100dvh - 64px));background:var(--surface);border:1px solid var(--border);border-radius:22px;overflow:hidden;margin:auto}.login-story{background:var(--surface2);padding:44px;display:flex;flex-direction:column;justify-content:flex-start;border-left:1px solid var(--border)}.login-brand{align-self:flex-start}.login-story-copy{margin-top:48px}.login-story-copy h1{font-size:42px;line-height:1.5;letter-spacing:-1px;font-weight:600;margin:12px 0 15px}.login-story-copy p{font-size:14px;color:var(--text2);max-width:370px;line-height:1.9}.login-journey{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:30px 0}.login-journey div{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2)}.login-journey .ui-icon{width:18px;color:var(--accent)}.login-journey i{font-style:normal;color:var(--text3)}.login-preview{border:1px solid var(--border);background:var(--surface);padding:20px;border-radius:14px}.mini-card-head{display:flex;align-items:center;gap:8px;font-size:11px}.mini-card-head strong{font-weight:500;flex:1}.mini-dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}.mini-message{display:flex;gap:10px;margin:22px 0;font-size:12px;color:var(--text2);line-height:1.8}.message-avatar{width:30px;height:30px;flex-shrink:0;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}.mini-timeline{display:flex;gap:12px;border-top:1px solid var(--border);padding-top:15px;font-size:10px;color:var(--accent)}.login-story-foot{font-size:10px;color:var(--text3);margin-top:20px}.login-form{padding:32px 42px;display:flex;flex-direction:column;justify-content:space-between}.login-form-top{display:flex;justify-content:space-between;align-items:center}.login-form-top .eyebrow{margin:0;color:var(--text3)}.login-form-body{padding:45px 0 30px;max-width:360px;width:100%;margin:auto}.login-welcome-icon{width:48px;height:48px;background:var(--accent-soft);color:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:23px}.login-form-body h2{font-size:28px;font-weight:600}.login-form-body>p{font-size:13px;color:var(--text2);margin:8px 0 25px;line-height:1.8}.btn-google{font-family:var(--font);background:var(--surface);color:var(--text);border:1px solid var(--border2);min-height:50px;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:12px;font-size:14px;font-weight:500;text-decoration:none;padding:13px}.btn-google:hover{background:var(--surface2);box-shadow:none;transform:none}.login-divider{display:flex;gap:15px;align-items:center;color:var(--text3);font-size:11px;margin:30px 0 20px}.login-divider:before,.login-divider:after{content:'';height:1px;background:var(--border);flex:1}.login-steps{list-style:none;display:grid;gap:22px}.login-steps li{display:flex;align-items:flex-start;gap:13px}.login-steps li>span{font:500 11px Inter,sans-serif;color:var(--accent);background:var(--accent-soft);padding:7px;border-radius:7px}.login-steps strong{font-size:13px;font-weight:500;display:block}.login-steps small{font-size:11px;color:var(--text2);line-height:1.8;display:block;margin-top:3px}.login-security{display:flex;align-items:flex-start;gap:8px;border-top:1px solid var(--border);padding-top:20px;margin-top:28px}.login-security .ui-icon{color:var(--accent);width:17px;height:17px;margin-top:3px}.login-security p{font-size:10px;color:var(--text3);line-height:1.8}.login-legal{display:flex;justify-content:center;gap:13px;font-size:11px;color:var(--text3);padding:8px}.login-legal a{color:var(--text2)}.auth-error{color:var(--red);border:1px solid var(--red);border-radius:8px;padding:12px;font-size:12px;margin-bottom:18px}.demo-controls{position:fixed;left:15px;bottom:14px;z-index:900;display:flex;gap:6px;align-items:center;border:1px solid var(--border2);padding:8px;background:var(--surface);border-radius:10px;box-shadow:var(--shadow);font-size:10px;flex-wrap:wrap;max-width:calc(100vw - 30px)}.demo-controls button{border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:6px;padding:6px 9px;cursor:pointer;font-size:10px}.demo-controls strong{color:var(--accent);font-size:10px}
+@media(max-width:1150px){:root{--sidebar:215px}.main{padding:24px}.logo{padding:27px 20px}.setup-card{padding:18px}.metrics{gap:12px}.metric{padding:18px}.settings-shell{grid-template-columns:175px minmax(0,1fr);gap:20px}.login-story{padding:34px}.login-story-copy h1{font-size:35px}.login-form{padding:28px 32px}}
+@media(max-width:950px){.sidebar-tip{display:none}.setup-grid{gap:12px}.setup-card-actions{align-items:flex-start;flex-direction:column;gap:3px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-bottom{grid-template-columns:1fr}.g2{grid-template-columns:1fr;gap:0}.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.settings-shell{display:block}.settings-tabs{position:static;flex-direction:row;overflow:auto;margin-bottom:24px;padding-bottom:5px}.settings-tabs button{white-space:nowrap}.login-story-copy{margin-top:34px}.login-story-copy h1{font-size:31px}.login-journey{flex-wrap:wrap;gap:10px}.login-form{padding:28px}.login-form-body h2{font-size:25px}}
+@media(max-width:700px){.app.active{display:block}.sidebar{height:auto;position:sticky;top:0;width:100%;overflow:visible;border-left:0;border-bottom:1px solid var(--border);background:var(--surface)}.sidebar .logo,.sidebar-caption,.sidebar-footer{display:none}.nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));width:100%;padding:6px;gap:2px;flex:none}.nav-item{width:100%;flex-direction:column;justify-content:center;gap:3px;min-height:59px;padding:7px 2px;font-size:10px;border-radius:8px;position:relative}.nav-item .ui-icon{width:19px;height:19px}.nav-badge{position:absolute;top:4px;left:3px;min-width:14px;padding:1px 3px;font-size:8px}.main{padding:18px 16px 72px}.workspace-bar{margin-bottom:24px;padding-bottom:15px}.workspace-location{font-size:11px}.workspace-location span{margin:0 7px}.theme-button{font-size:10px;padding:8px 10px;min-height:36px}.avatar{width:32px;height:32px;font-size:14px}.workspace-actions{gap:8px}.ph h1,h1,.ph-title{font-size:24px}.ph{gap:16px}.page-description{font-size:12px}.ph>.row{width:100%;gap:6px}.ph>.row .btn{font-size:11px;padding:8px 10px;min-height:36px}.ph .select{max-width:130px}.btn{min-height:44px;font-size:12px}.metrics{gap:10px;margin-bottom:20px}.metric{padding:16px}.metric-label{font-size:11px}.metric strong{font-size:27px;margin:6px 0 2px}.metric small{font-size:9px}.next-step{padding:20px;align-items:flex-start;flex-direction:column;gap:18px}.next-step h2{font-size:20px}.next-step p{font-size:12px}.inline-heading{align-items:flex-start;gap:12px}.inline-heading h2{font-size:17px}.inline-heading p{font-size:11px}.inline-heading .text-button{font-size:10px;white-space:nowrap}.setup-grid{grid-template-columns:1fr;gap:12px;margin-bottom:24px}.setup-card{padding:20px}.setup-card-top{margin-bottom:14px}.setup-card p{margin-bottom:17px}.setup-card-actions{align-items:center;flex-direction:row}.onboarding-heading{margin:15px 0 25px}.onboarding-heading h1{font-size:28px}.onboarding-heading>p{font-size:12px}.onboard-footer{flex-direction:column;align-items:stretch}.onboard-footer .row{justify-content:space-between}.help-note{font-size:11px;justify-content:flex-start;align-items:flex-start}.card{padding:18px}.settings-tabs{gap:3px;margin-bottom:22px}.settings-tabs button{padding:10px;font-size:11px}.settings-tabs .ui-icon{width:17px}.setup-return{flex-direction:column;align-items:flex-start}.profile-row{flex-wrap:wrap}.profile-row .state-badge{margin:0}.theme-choices{gap:7px;flex-wrap:wrap}.theme-choice{padding:10px 14px}.company-toolbar{flex-direction:column;align-items:stretch}.search-field{max-width:none}.selection-count{align-self:flex-end}.input,.select,.textarea{font-size:16px}.input[type=number]{width:100%}.connection-summary{gap:10px;flex-wrap:wrap}.connection-summary p{overflow-wrap:anywhere}.tbl{min-width:650px}.tbl-wrap{width:100%;max-width:100%;overflow:auto}.activity-row{gap:9px}.activity-row .state-badge{font-size:9px;padding:4px 6px}.activity-description strong{font-size:12px}.activity-description small{font-size:10px}.timeline-layout{display:flex;flex-direction:column}.report-top,.timeline-side,.timeline-main{padding:20px}.report-heading h2{font-size:18px}.report-footer{padding:16px 20px}.overlay{padding:10px}.modal{padding:20px;max-height:calc(100dvh - 20px)}.report-modal{padding:0}.report-text{font-size:13px}.report-badges{gap:6px}.report-chip{max-width:100%;overflow-wrap:anywhere}.modal-sub{overflow-wrap:anywhere}.login-shell{display:flex;flex-direction:column;border:0;border-radius:0;min-height:100dvh;width:100%}#login-screen{padding:0}.login-story{padding:27px 24px 25px;border-left:0;border-bottom:1px solid var(--border)}.login-story .meem-mark{width:38px;height:35px}.login-story .brand-word{font-size:23px}.login-story-copy{margin-top:25px}.login-story-copy h1{font-size:29px;line-height:1.4;margin:10px 0}.login-story-copy h1 br{display:none}.login-story-copy p{font-size:12px;max-width:none}.login-story-copy .eyebrow{font-size:10px}.login-preview,.login-story-foot{display:none}.login-journey{margin:22px 0 0;gap:6px}.login-journey div{font-size:10px}.login-form{padding:24px}.login-form-body{padding:22px 0;margin:0 auto;max-width:420px}.login-welcome-icon{display:none}.login-form-body h2{font-size:25px}.login-form-body>p{font-size:12px;margin-bottom:22px}.login-steps{gap:16px}.login-security{margin-top:23px}.login-legal{padding:5px 0 20px}.login-form-top .eyebrow{font-size:10px}.demo-controls{left:8px;bottom:8px;max-width:calc(100vw - 16px);padding:6px;gap:4px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 </style>
-</head>
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg"></head>
 <body>
 
 <div id="app-loading" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px">
@@ -159,107 +250,15 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div style="font-size:14px;color:var(--text2);font-weight:600">جاري التحميل...</div>
 </div>
 
-<div id="login-screen">
-  <div class="login-card">
-    <div class="login-logo">✉ مرسال</div>
-    <div class="login-title">أداة التقدم الذكي للوظائف</div>
-    <div class="login-sub">ارفع سيرتك الذاتية، استورد قائمة الشركات،<br>واترك الذكاء الاصطناعي يكتب الإيميل المثالي لكل شركة</div>
-    <a href="/auth/google">
-      <button class="btn-google">
-        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        تسجيل الدخول بـ Google
-      </button>
-    </a>
-    <div class="login-note">
-      🔒 نستخدم Google OAuth الرسمي — لا نخزن كلمة المرور<br>
-      صلاحية: إرسال إيميلات من حسابك فقط
-      <div style="margin-top:10px;display:flex;gap:15px;justify-content:center">
-        <a href="/privacy.html" style="color:var(--accent);text-decoration:none">سياسة الخصوصية</a>
-        <a href="/terms.html" style="color:var(--accent);text-decoration:none">شروط الخدمة</a>
-      </div>
-    </div>
-  </div>
-</div>
+<div id="login-screen"><div class="login-shell"><section class="login-story"><a class="login-brand" href="#"><div class="brand-lockup"><svg class="meem-mark" viewBox="0 -5 110 105" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 80V54C14 35 28 31 43 40L72 56C87 64 96 56 96 42V23C96 7 82 2 69 13L54 26" fill="none" stroke="currentColor" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/></svg><div><div class="brand-word">مرسال</div><div class="brand-caption" lang="en">Mrsaal</div></div></div></a><div class="login-story-copy"><span class="eyebrow">خطوتك الجاية تبدأ برسالة</span><h1>خبرتك تستاهل<br>توصل للمكان الصح.</h1><p>جهّز سيرتك الذاتية، اختار الشركات، واكتب رسالة تعبر عنك. مرسال يجمع خطوات التقديم والمتابعة في مساحة واحدة.</p></div><div class="login-journey"><div><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8m-8 4h5"/></svg><span>سيرتك الذاتية</span></div><i>←</i><div><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg><span>رسالة مناسبة</span></div><i>←</i><div><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3v18h17M8 16v-5m5 5V7m5 9v-8"/></svg><span>متابعة واضحة</span></div></div><div class="login-preview"><div class="mini-card-head"><span class="mini-dot"></span><strong>رسالتك، خطوة بخطوة</strong><span class="state-badge ready">تم الرد</span></div><div class="mini-message"><span class="message-avatar">م</span><p>مرحبًا بفريقكم، يسعدني مشاركة خبرتي والتعرف على فرص التعاون...</p></div><div class="mini-timeline"><span>✓ تم الإرسال</span><span>✓ تم التسليم</span><span>↩ وصل رد</span></div></div><small class="login-story-foot">رسالة تبدأ تواصل. ومتابعة تساعدك تعرف الخطوة الجاية.</small></section><section class="login-form"><div class="login-form-top"><span class="eyebrow">مرسال / حسابك</span><button class="theme-button" onclick="toggleMrsaalTheme()"><span class="theme-label">المظهر</span></button></div><div class="login-form-body"><span class="login-welcome-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg></span><h2>أهلًا بيك في مرسال</h2><p>سجّل دخولك أو ابدأ حساب جديد بنفس الخطوة.</p><div class="auth-error" id="auth-error" role="alert" hidden></div><a href="/auth/google" class="btn-google"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>كمّل باستخدام Google</span></a><div class="login-divider"><span>وبعد الدخول؟</span></div><ol class="login-steps"><li><span>01</span><div><strong>جهّز حسابك على مهلك</strong><small>CV وواتساب وتفضيلات الرسالة، مع إمكانية التخطي.</small></div></li><li><span>02</span><div><strong>اختار فرصك</strong><small>استورد الشركات وراجع بيانات التواصل.</small></div></li><li><span>03</span><div><strong>راجع رسالتك قبل الإرسال</strong><small>عدّل النص وتابع النتائج من التقارير.</small></div></li></ol><div class="login-security"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg><p>تسجيل آمن عن طريق Google. مرسال مش بيطلب كلمة مرور حسابك. هتظهر لك الصلاحيات المطلوبة في شاشة Google.</p></div></div><footer class="login-legal"><a href="/privacy.html">سياسة الخصوصية</a><span>·</span><a href="/terms.html">شروط الخدمة</a></footer></section></div></div>
 
 <div class="app">
-  <aside class="sidebar">
-    <div class="logo">
-      <div class="logo-mark">✉ مرسال</div>
-      <div class="logo-sub">AI Job Outreach Tool</div>
-    </div>
-    <nav class="nav">
-      <div class="nav-item active" onclick="nav('setup')"><span class="nav-icon">⚙️</span> الإعداد</div>
-      <div class="nav-item" onclick="nav('companies')"><span class="nav-icon">🏢</span> الشركات <span class="nav-badge" id="nb-companies">0</span></div>
-      <div class="nav-item" onclick="nav('send')"><span class="nav-icon">🚀</span> الإرسال</div>
-      <div class="nav-item" onclick="nav('report')"><span class="nav-icon">📊</span> التقرير <span class="nav-badge red" id="nb-report">0</span></div>
-      <div class="nav-item" onclick="nav('settings')"><span class="nav-icon">⚙️</span> الإعدادات</div>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="gmail-box">
-        <div class="gdot loading" id="gdot"></div>
-        <div>
-          <div class="gmail-label" id="gmail-label">جاري الفحص...</div>
-          <div class="gmail-sub" id="gmail-sub">—</div>
-        </div>
-      </div>
-      <div style="margin-top:8px">
-        <div style="display:flex;gap:10px;justify-content:center;margin-bottom:8px;font-size:10px">
-          <a href="/privacy.html" style="color:var(--text3);text-decoration:none">الخصوصية</a>
-          <a href="/terms.html" style="color:var(--text3);text-decoration:none">الشروط</a>
-        </div>
-        <a href="/auth/logout"><button class="btn btn-secondary" style="width:100%;font-size:12px;padding:7px">تسجيل خروج</button></a>
-      </div>
-    </div>
-  </aside>
+  <aside class="sidebar"><a class="logo" href="#" onclick="nav('home');return false" aria-label="مرسال — الرئيسية"><div class="brand-lockup"><svg class="meem-mark" viewBox="0 -5 110 105" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 80V54C14 35 28 31 43 40L72 56C87 64 96 56 96 42V23C96 7 82 2 69 13L54 26" fill="none" stroke="currentColor" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/></svg><div><div class="brand-word">مرسال</div><div class="brand-caption" lang="en">Mrsaal</div></div></div></a><div class="sidebar-caption">مساحة العمل</div><nav class="nav" aria-label="التنقل الرئيسي"><button type="button" class="nav-item" data-page="home" onclick="nav('home')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1Z"/></svg><span>الرئيسية</span></button><button type="button" class="nav-item" data-page="companies" onclick="nav('companies')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"/></svg><span>الشركات</span><span class="nav-badge" id="nb-companies">0</span></button><button type="button" class="nav-item" data-page="send" onclick="nav('send')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 3-7 18-4-7-7-4 18-7ZM10 14 21 3"/></svg><span>الإرسال</span></button><button type="button" class="nav-item" data-page="report" onclick="nav('report')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3v18h17M8 16v-5m5 5V7m5 9v-8"/></svg><span>التقارير</span><span class="nav-badge" id="nb-report">0</span></button><button type="button" class="nav-item" data-page="settings" onclick="nav('settings')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="16" cy="17" r="3"/></svg><span>الإعدادات</span></button></nav><div class="sidebar-tip"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg><strong>رسالة مناسبة لكل فرصة</strong><p>راجع الرسالة قبل ما تبعتها، وخلي صوتك حاضر.</p></div><div class="sidebar-footer"><button class="account-button" onclick="openSettings('account')"><span class="avatar" id="sidebar-avatar">م</span><span class="account-text"><strong id="gmail-label">جاري الفحص...</strong><small id="gmail-sub">—</small></span><span class="gdot" id="gdot"></span></button></div></aside>
 
   <main class="main">
+    <header class="workspace-bar"><div class="workspace-location">مرسال <span>/</span> <strong id="workspace-current">الرئيسية</strong></div><div class="workspace-actions"><button class="theme-button" onclick="toggleMrsaalTheme()" aria-label="تغيير المظهر"><span class="theme-label">المظهر</span></button><button class="account-top" onclick="openSettings('account')" aria-label="إعدادات حسابك"><span class="avatar" id="top-avatar">م</span></button></div></header>
 
-    <div class="page" id="page-settings">
-      <div class="ph"><div class="ph-title">الإعدادات <span class="ph-sub">تخصيص تجربتك</span></div></div>
-      <div class="card" style="max-width:600px">
-        <div class="card-title">🤖 إعدادات الذكاء الاصطناعي</div>
-        <div class="field">
-          <div class="label">Gemini API Key</div>
-          <input type="text" id="set-api-key" class="input" placeholder="اضف مفتاحك هنا...">
-          <div class="hint">يمكنك الحصول عليه مجاناً من <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--accent)">Google AI Studio</a></div>
-        </div>
-        <div class="field" style="margin-top:15px">
-          <div class="label">موديل الذكاء الاصطناعي</div>
-          <select id="set-api-model" class="input">
-            <option value="gemini-2.0-flash">Gemini 2.0 Flash (سريع - افتراضي)</option>
-            <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite (أسرع)</option>
-            <option value="gemini-1.5-pro">Gemini 1.5 Pro (أدق)</option>
-          </select>
-        </div>
-        <div style="margin-top:20px;display:flex;justify-content:flex-end">
-          <button class="btn btn-primary" id="btn-save-settings" onclick="saveSettings()">💾 حفظ الإعدادات</button>
-        </div>
-      </div>
-      <div class="card" style="max-width:600px;margin-top:20px">
-        <div class="card-title">⚖️ الروابط القانونية</div>
-        <div style="display:flex;gap:15px">
-          <a href="/privacy.html" target="_blank" class="btn btn-secondary" style="font-size:11px">سياسة الخصوصية</a>
-          <a href="/terms.html" target="_blank" class="btn btn-secondary" style="font-size:11px">شروط الخدمة</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="page active" id="page-setup">
-      <div class="ph"><div class="ph-title">الإعداد <span class="ph-sub">ابدأ من هنا</span></div></div>
-      <div class="card" style="margin-bottom:20px">
-        <div class="card-title">📱 ربط واتساب</div>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:12px">اربط حسابك من واتساب ← الأجهزة المرتبطة ← ربط جهاز. كل مستخدم له جلسة منفصلة.</p>
-        <div id="wa-status" role="status" aria-live="polite">جارٍ قراءة حالة الاتصال...</div>
-        <img id="wa-qr" alt="رمز ربط واتساب" style="display:none;width:280px;max-width:100%;margin:16px auto;border-radius:12px">
-        <div class="row" style="margin-top:12px">
-          <button id="wa-connect" class="btn btn-primary" onclick="connectWhatsApp()">ربط واتساب / إعادة الاتصال</button>
-          <button id="wa-disconnect" class="btn btn-secondary" onclick="disconnectWhatsApp()">فصل الربط</button>
-          <button class="btn btn-secondary" onclick="loadWhatsAppStatus()">تحديث الحالة</button>
-        </div>
-      </div>
-
-      <div class="g2">
-        <div class="card">
+    <div class="page" id="page-settings"><div class="ph"><div><h1>الإعدادات</h1><p class="page-description">حسابك، قنواتك، وكل التفاصيل اللي بتجهّز رسالتك.</p></div></div><div class="setup-return" id="setup-return" hidden><span>بتجهّز حسابك لأول مرة؟ احفظ التعديل وارجع للخطوات.</span><button class="btn btn-secondary" onclick="nav('onboarding')">رجوع للإعداد السريع</button></div><div class="settings-shell"><nav class="settings-tabs" aria-label="أقسام الإعدادات"><button type="button" data-setting="account" onclick="selectSettings('account')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="16" cy="17" r="3"/></svg>الحساب والمظهر</button><button type="button" data-setting="cv" onclick="selectSettings('cv')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8m-8 4h5"/></svg>السيرة الذاتية</button><button type="button" data-setting="channels" onclick="selectSettings('channels')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11a9 9 0 0 1-9 9 10 10 0 0 1-4-1l-5 2 1-5a9 9 0 1 1 17-5Z"/><path d="M8 11h8"/></svg>قنوات التواصل</button><button type="button" data-setting="template" onclick="selectSettings('template')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>تفضيلات الرسالة</button><button type="button" data-setting="ai" onclick="selectSettings('ai')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg>الذكاء الاصطناعي</button></nav><div class="settings-content"><section class="settings-panel" id="settings-account" hidden><div class="section-heading"><h2>حسابك</h2><p>إعدادات الدخول والمظهر.</p></div><div class="card"><div class="profile-row"><div class="avatar" id="settings-avatar">م</div><div><h3 id="profile-name">حسابك</h3><p id="profile-email" dir="ltr"></p></div><span class="state-badge ready">Google متصل</span></div><p class="section-copy">الدخول وإرسال الإيميلات مرتبطين بحساب Google اللي سجلت بيه.</p></div><div class="card"><h3>المظهر</h3><p class="section-copy">اختار المظهر المناسب ليك. اختيارك بيتحفظ على الجهاز ده.</p><div class="theme-choices"><button class="theme-choice" data-choice="light" onclick="setAppTheme('light')">☀ فاتح</button><button class="theme-choice" data-choice="dark" onclick="setAppTheme('dark')">☾ داكن</button><button class="theme-choice" data-choice="system" onclick="setAppTheme('system')">◐ حسب الجهاز</button></div></div><div class="card"><h3>الإعداد السريع</h3><p class="section-copy">ارجع لكروت البداية في أي وقت.</p><button class="btn btn-secondary" onclick="startOnboarding()">عرض خطوات الإعداد</button></div><div class="card account-footer"><div class="row"><a href="/privacy.html" target="_blank" rel="noopener">الخصوصية</a><a href="/terms.html" target="_blank" rel="noopener">الشروط</a></div><a class="btn btn-danger" href="/auth/logout">تسجيل خروج</a></div></section><section class="settings-panel" id="settings-cv" hidden><div class="section-heading"><h2>السيرة الذاتية</h2><p>الذكاء الاصطناعي بيستخدم المعلومات اللي هنا لكتابة رسالتك.</p></div><div class="card">
           <div class="card-title">📄 سيرتك الذاتية (PDF)</div>
           <div class="upload-zone" id="cv-zone">
             <input type="file" id="cv-file" accept=".pdf" onchange="uploadCV(event)">
@@ -269,15 +268,99 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           </div>
           <div id="cv-status"></div>
           <div style="margin-top:14px">
-            <div class="label">أو اكتب / الصق هنا يدوياً</div>
-            <textarea class="textarea" id="cv-text" rows="7" placeholder="اسمك، مجالك، خبراتك، مهاراتك..."></textarea>
+            <div class="label">أو اكتب سيرتك الذاتية كنص</div>
+            <p class="hint" style="margin-bottom:8px">رفع PDF بيحفظه مباشرة. زر حفظ النص يستبدل النسخة المرفوعة بنص بدون مرفق PDF.</p><textarea class="textarea" id="cv-text" aria-label="نص السيرة الذاتية" rows="7" placeholder="اسمك، مجالك، خبراتك، مهاراتك..."></textarea>
           </div>
           <div class="row" style="margin-top:12px">
             <button class="btn btn-primary" onclick="saveCV()">💾 حفظ السيرة</button>
             <span id="cv-saved-note" style="font-size:12px;color:var(--green);display:none">✅ محفوظة</span>
           </div>
+        </div></section><section class="settings-panel" id="settings-channels" hidden><div class="section-heading"><h2>قنوات التواصل</h2><p>الإيميل متصل بحساب Google. تقدر تضيف واتساب كقناة تانية.</p></div><div class="card connection-summary"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg><div><h3>Gmail</h3><p id="channel-email" dir="ltr">حساب Google متصل</p></div><span class="state-badge ready">متصل</span></div><div class="card" style="margin-bottom:20px">
+        <div class="card-title">📱 ربط واتساب</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px">اربط حسابك من واتساب ← الأجهزة المرتبطة ← ربط جهاز. كل مستخدم له جلسة منفصلة.</p>
+        <div id="wa-status" role="status" aria-live="polite">جارٍ قراءة حالة الاتصال...</div>
+        <img id="wa-qr" alt="رمز ربط واتساب" style="display:none;width:280px;max-width:100%;margin:16px auto;border-radius:12px">
+        <div class="row" style="margin-top:12px">
+          <button id="wa-connect" class="btn btn-primary" onclick="connectWhatsApp()">ربط واتساب / إعادة الاتصال</button>
+          <button id="wa-disconnect" class="btn btn-secondary" onclick="disconnectWhatsApp()">فصل الربط</button>
+          <button class="btn btn-secondary" onclick="loadWhatsAppStatus()">تحديث الحالة</button>
         </div>
-        <div class="card">
+      </div></section><section class="settings-panel" id="settings-template" hidden><div class="section-heading"><h2>تفضيلات الرسالة</h2><p>حدد اللغة والأسلوب، وعدّل النص قبل كل إرسال لو محتاج.</p></div><div class="card">
+        <div class="card-title">✉️ قالب الإيميل</div>
+        <div class="g2">
+          <div class="field">
+            <div class="label">موضوع الإيميل</div>
+            <input class="input" id="tpl-subject" aria-label="موضوع الرسالة" value="طلب انضمام — {your_name}" placeholder="موضوع الإيميل">
+            <div class="hint">متغيرات: <span class="code-pill">{company_name}</span> <span class="code-pill">{field}</span> <span class="code-pill">{your_name}</span></div>
+          </div>
+          <div class="field">
+            <div class="label" style="display:flex;justify-content:space-between;align-items:center">
+              <span>تفضيلات الذكاء الاصطناعي</span>
+              <button class="btn btn-secondary" style="padding:4px 8px;font-size:10px" onclick="updateAIPrompt()">♻️ توليد</button>
+            </div>
+            <div class="row" style="margin-bottom:12px">
+              <select class="select" id="ai-lang" aria-label="لغة الرسالة" style="width:auto;flex:1" onchange="updateAIPrompt()">
+                <option value="arabic">فصحى</option>
+                <option value="arabic_eg">مصرية</option>
+                <option value="arabic_sa">خليجية</option>
+                <option value="english">English</option>
+              </select>
+              <select class="select" id="ai-tone" aria-label="أسلوب الرسالة" style="width:auto;flex:1" onchange="updateAIPrompt()">
+                <option value="professional" selected>احترافي</option>
+                <option value="friendly">ودّي</option>
+                <option value="creative">مبتكر</option>
+              </select>
+              <select class="select" id="ai-len" aria-label="طول الرسالة" style="width:auto;flex:1" onchange="updateAIPrompt()">
+                <option value="short">قصير</option>
+                <option value="medium" selected>متوسط</option>
+              </select>
+            </div>
+            <textarea class="textarea" id="tpl-instructions" aria-label="تعليمات كتابة الرسالة" rows="5" placeholder="تعليمات للذكاء الاصطناعي..."></textarea>
+          </div>
+        </div>
+        <button class="btn btn-secondary" onclick="saveTemplate()">💾 حفظ القالب</button>
+      </div></section><section class="settings-panel" id="settings-ai" hidden><div class="section-heading"><h2>الذكاء الاصطناعي</h2><p>تخصيص Gemini اختياري. إعداد OpenRouter العام موجود على السيرفر.</p></div><div class="card" >
+        <div class="card-title">إعدادات Gemini الشخصية</div><p class="section-copy">لو سايب المفتاح فاضي، التطبيق بيستخدم إعدادات الذكاء الاصطناعي المتاحة على السيرفر. ترتيب Gemini وOpenRouter بيتحدد من إعدادات السيرفر.</p>
+        <div class="field">
+          <div class="label">مفتاح Gemini الخاص بك — اختياري</div>
+          <input type="password" autocomplete="off" id="set-api-key" aria-label="مفتاح Gemini" class="input" placeholder="اضف مفتاحك هنا...">
+          <div class="hint">يمكنك الحصول عليه مجاناً من <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--accent)">Google AI Studio</a></div>
+        </div>
+        <div class="field" style="margin-top:15px">
+          <div class="label">موديل Gemini الخاص بك</div>
+          <input id="set-api-model" aria-label="موديل Gemini" class="input" value="gemini-2.5-flash-lite" placeholder="اسم موديل Gemini" dir="ltr">
+        </div>
+        <div style="margin-top:20px;display:flex;justify-content:flex-end">
+          <button class="btn btn-primary" id="btn-save-settings" onclick="saveSettings()">💾 حفظ الإعدادات</button>
+        </div>
+      </div></section></div></div></div>
+
+    <div class="page active" id="page-home">
+ <div class="ph"><div><div class="eyebrow">مساحة عملك</div><h1>أهلًا، <span id="welcome-name">بيك</span> <span class="wave">✦</span></h1><p class="page-description">كل خطوة في تقديمك، من أول رسالة لحد أول رد.</p></div><button class="btn btn-primary" onclick="nav('companies')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"/></svg>إدارة الشركات</button></div>
+ <div class="metrics"><div class="metric"><span class="metric-label">الشركات عندك</span><strong id="home-companies">—</strong><small>فرصك في مكان واحد</small></div><div class="metric"><span class="metric-label">رسائل اتبعتت</span><strong id="home-sent">—</strong><small>من سجل الإرسال</small></div><div class="metric"><span class="metric-label">ردود وصلتك</span><strong id="home-replies">—</strong><small>ردود مرصودة من الخدمة</small></div><div class="metric"><span class="metric-label">جاهزة للإرسال</span><strong id="home-pending">—</strong><small>شركات في الانتظار</small></div></div>
+ <section class="next-step"><div><span class="eyebrow">خطوتك الجاية</span><h2 id="next-title">جهّز سيرتك الذاتية</h2><p id="next-copy">ابدأ بخبراتك ومهاراتك عشان الرسالة تعبّر عنك.</p></div><button id="next-action" class="btn btn-primary" onclick="editSetup('cv')">ابدأ دلوقتي<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button></section>
+ <div class="section-heading inline-heading"><div><h2>حسابك جاهز قد إيه؟</h2><p>كمّل اللي محتاجه دلوقتي، والباقي وقت ما تحب.</p></div><button class="text-button" onclick="startOnboarding()">عرض الإعداد السريع ←</button></div>
+ <div class="setup-grid" id="home-setup-cards"></div>
+ <div class="dashboard-bottom"><section class="card"><div class="section-heading inline-heading"><h2>آخر نشاط</h2><button class="text-button" onclick="nav('report')">كل التقارير ←</button></div><div id="home-activity" class="activity-list"></div></section><section class="card workflow-card"><h2>رحلتك مع مرسال</h2><ol><li><b>جهّز حسابك</b><span>الـCV وقناة التواصل وتفضيلات الرسالة.</span></li><li><b>اختار الشركات</b><span>استورد قائمتك وحدّد مين هتتواصل معاه.</span></li><li><b>راجع، ابعت، وتابع</b><span>معاينة قبل الإرسال ونتائج في التقارير.</span></li></ol></section></div>
+ </div><div class="page" id="page-onboarding"><div class="onboarding-heading"><span class="eyebrow">خلّينا نجهّز أول رسالة</span><h1>بداية بسيطة. وفرص أكتر.</h1><p>3 خطوات تساعدك تبدأ. كل خطوة ممكن تتخطاها وتكمّلها بعدين من الإعدادات.</p><div class="onboard-progress"><span id="onboard-counter">0 من 3 مكتمل</span><div class="prog-wrap"><div class="prog-bar" id="onboard-bar"></div></div></div></div><div class="setup-grid" id="onboard-cards"></div><div class="onboard-footer"><p>تخطي الإعداد مش بيحذف أي حاجة من حسابك.</p><div class="row"><button class="btn btn-secondary" onclick="finishOnboarding(true)">تخطي دلوقتي</button><button class="btn btn-primary" onclick="finishOnboarding(false)">افتح مساحة العمل<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button></div></div><div class="help-note"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>حساب Google متصل. ربط واتساب مطلوب بس لو هتبعت على واتساب.</div></div>
+
+    <div class="page" id="page-companies">
+      <div class="ph">
+        <div class="ph-title">الشركات <span class="ph-sub" id="companies-count">0 شركة</span></div>
+        <div class="row">
+          <select class="select" id="filter-status" aria-label="فلتر حالة الشركات" onchange="filterCompanies()" style="width:auto;font-size:12px;padding:7px 12px">
+            <option value="all">كل الحالات</option>
+            <option value="pending">انتظار</option>
+            <option value="sent">تم الإرسال</option>
+            <option value="failed">فشل</option>
+            <option value="scheduled">مجدول</option>
+          </select>
+          <button class="btn btn-secondary" onclick="bulkSelect(true)">☑️ الكل</button>
+          <button class="btn btn-secondary" onclick="bulkSelect(false)">⬜ لا شيء</button>
+          <button class="btn btn-danger" onclick="deleteSelected()">🗑️ حذف</button>
+        </div>
+      </div>
+      <details id="import-panel" class="import-details"><summary><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"/></svg>استيراد شركات من Excel أو CSV<span>＋</span></summary><div class="card">
           <div class="card-title">📊 ملف الشركات (Excel)</div>
           <div class="upload-zone" id="xl-zone">
             <input type="file" id="xl-file" accept=".xlsx,.xls,.csv" onchange="uploadExcel(event)">
@@ -299,66 +382,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             <button id="btn-import-companies" class="btn btn-primary" onclick="commitImport()" style="width:100%">✅ استيراد الشركات</button>
             <div id="import-result" role="status" aria-live="polite" style="margin-top:12px;font-size:13px;white-space:pre-line"></div>
           </div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">✉️ قالب الإيميل</div>
-        <div class="g2">
-          <div class="field">
-            <div class="label">موضوع الإيميل</div>
-            <input class="input" id="tpl-subject" value="طلب انضمام — {your_name}" placeholder="موضوع الإيميل">
-            <div class="hint">متغيرات: <span class="code-pill">{company_name}</span> <span class="code-pill">{field}</span> <span class="code-pill">{your_name}</span></div>
-          </div>
-          <div class="field">
-            <div class="label" style="display:flex;justify-content:space-between;align-items:center">
-              <span>تفضيلات الذكاء الاصطناعي</span>
-              <button class="btn btn-secondary" style="padding:4px 8px;font-size:10px" onclick="updateAIPrompt()">♻️ توليد</button>
-            </div>
-            <div class="row" style="margin-bottom:12px">
-              <select class="select" id="ai-lang" style="width:auto;flex:1" onchange="updateAIPrompt()">
-                <option value="arabic">فصحى</option>
-                <option value="arabic_eg">مصرية</option>
-                <option value="arabic_sa">خليجية</option>
-                <option value="english">English</option>
-              </select>
-              <select class="select" id="ai-tone" style="width:auto;flex:1" onchange="updateAIPrompt()">
-                <option value="professional" selected>احترافي</option>
-                <option value="friendly">ودّي</option>
-                <option value="creative">مبتكر</option>
-              </select>
-              <select class="select" id="ai-len" style="width:auto;flex:1" onchange="updateAIPrompt()">
-                <option value="short">قصير</option>
-                <option value="medium" selected>متوسط</option>
-              </select>
-            </div>
-            <textarea class="textarea" id="tpl-instructions" rows="5" placeholder="تعليمات للذكاء الاصطناعي..."></textarea>
-          </div>
-        </div>
-        <button class="btn btn-secondary" onclick="saveTemplate()">💾 حفظ القالب</button>
-      </div>
-    </div>
-
-    <div class="page" id="page-companies">
-      <div class="ph">
-        <div class="ph-title">الشركات <span class="ph-sub" id="companies-count">0 شركة</span></div>
-        <div class="row">
-          <select class="select" id="filter-status" onchange="filterCompanies()" style="width:auto;font-size:12px;padding:7px 12px">
-            <option value="all">كل الحالات</option>
-            <option value="pending">انتظار</option>
-            <option value="sent">تم الإرسال</option>
-            <option value="failed">فشل</option>
-            <option value="scheduled">مجدول</option>
-          </select>
-          <button class="btn btn-secondary" onclick="bulkSelect(true)">☑️ الكل</button>
-          <button class="btn btn-secondary" onclick="bulkSelect(false)">⬜ لا شيء</button>
-          <button class="btn btn-danger" onclick="deleteSelected()">🗑️ حذف</button>
-        </div>
-      </div>
-      <div class="card" style="padding:0"><div id="companies-container"></div></div>
+        </div></details><div class="company-toolbar"><label class="search-field"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input class="input" id="company-search" placeholder="ابحث بالاسم أو الإيميل أو المجال" oninput="renderCompanies()" aria-label="بحث الشركات"></label><span id="selection-count" class="selection-count">0 شركة محددة</span></div><div class="card" style="padding:0"><div id="companies-container"></div></div>
     </div>
 
     <div class="page" id="page-send">
-      <div class="ph"><div class="ph-title">الإرسال</div></div>
+      <div class="ph"><div><h1>راجع. ابعت. وتابع.</h1><p class="page-description">اختار الشركات وتوقيت الإرسال. قناة التواصل بتتحدد حسب بيانات الشركة.</p></div></div>
       <div class="g4" style="margin-bottom:20px">
         <div class="stat-card"><div class="stat-num c-blue" id="s-total">0</div><div class="stat-lbl">إجمالي</div></div>
         <div class="stat-card"><div class="stat-num c-yellow" id="s-pending">0</div><div class="stat-lbl">انتظار</div></div>
@@ -370,26 +398,26 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           <div class="card-title">🕐 الجدولة</div>
           <div class="field">
             <div class="label">وقت الإرسال</div>
-            <select class="select" id="sched-type" onchange="toggleSched()">
+            <select class="select" id="sched-type" aria-label="توقيت الإرسال" onchange="toggleSched()">
               <option value="now">الآن فوراً</option>
               <option value="scheduled">في وقت محدد</option>
             </select>
           </div>
           <div id="sched-dt" style="display:none" class="field">
             <div class="label">التاريخ والوقت</div>
-            <input type="datetime-local" class="input" id="send-dt" style="width:100%">
+            <input type="datetime-local" class="input" id="send-dt" aria-label="وقت الإرسال المحدد" style="width:100%">
           </div>
           <div class="field">
-            <div class="label">تأخير بين الإيميلات (ثانية)</div>
-            <input type="number" class="input" id="delay-s" value="5" min="1" max="120">
+            <div class="label">فاصل بين الرسائل — بالثواني</div>
+            <input type="number" class="input" id="delay-s" aria-label="الفاصل بين الرسائل" value="5" min="1" max="120">
           </div>
         </div>
         <div class="card">
           <div class="card-title">⚡ خيارات</div>
           <div style="display:grid;gap:12px">
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
-              <input type="checkbox" id="opt-preview" style="accent-color:var(--accent);width:15px;height:15px">
-              معاينة كل إيميل قبل الإرسال
+              <input type="checkbox" id="opt-preview" checked style="accent-color:var(--accent);width:15px;height:15px">
+              معاينة كل رسالة قبل الإرسال
             </label>
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
               <input type="checkbox" id="opt-skip-sent" checked style="accent-color:var(--accent);width:15px;height:15px">
@@ -397,7 +425,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             </label>
             <div class="field" style="margin-bottom:0">
               <div class="label">إرسال لـ</div>
-              <select class="select" id="send-filter">
+              <select class="select" id="send-filter" aria-label="الشركات المستهدفة">
                 <option value="all">كل الشركات</option>
                 <option value="selected">المحددة فقط</option>
                 <option value="pending">في الانتظار فقط</option>
@@ -420,7 +448,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
     <div class="page" id="page-report">
       <div class="ph">
-        <div class="ph-title">التقرير</div>
+        <div><h1>التقارير</h1><p class="page-description">حالة كل رسالة وآخر رد مرصود، في مكان واحد.</p></div>
         <div class="row">
           <button class="btn btn-secondary" onclick="syncNow()">🔄 تزامن الردود</button>
           <button class="btn btn-secondary" onclick="exportCSV()">⬇️ تصدير CSV</button>
@@ -434,7 +462,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <div class="stat-card"><div class="stat-num c-orange" id="r-opens">0</div><div class="stat-lbl">فُتح 👁</div></div>
       </div>
       <div class="card">
-        <div class="card-title">📋 سجل الإرسال</div>
+        <div class="card-title">سجل الإرسال</div><p class="section-copy">افتح التفاصيل لعرض الرسالة والخط الزمني. فتح الإيميل مؤشر تتبع؛ قراءة واتساب تعتمد على تأكيد الخدمة.</p>
         <div id="log-container"></div>
       </div>
     </div>
@@ -443,13 +471,13 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div>
 
 <div class="overlay" id="preview-overlay">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="prev-company" tabindex="-1">
     <div class="modal-hdr">
       <div>
         <div class="modal-title" id="prev-company">معاينة الإيميل</div>
         <div class="modal-sub" id="prev-to"></div>
       </div>
-      <button class="modal-close" onclick="closePrev()">✕</button>
+      <button class="modal-close" onclick="closePrev()" aria-label="إغلاق معاينة الرسالة">✕</button>
     </div>
     <div id="prev-loading" style="text-align:center;padding:40px;display:none">
       <div class="spin" style="width:28px;height:28px;margin:0 auto 12px"></div>
@@ -458,7 +486,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div id="prev-form">
       <div class="field"><div class="label">📧 إلى</div><input class="input" id="prev-email" readonly style="direction:ltr;text-align:left"></div>
       <div class="field" id="prev-subject-field"><div class="label">الموضوع</div><input class="input" id="prev-subject"></div>
-      <div class="field"><div class="label" id="prev-body-label">نص الرسالة</div><textarea class="textarea" id="prev-body" rows="10"></textarea></div>
+      <div class="field"><div class="label" id="prev-body-label">نص الرسالة</div><textarea class="textarea" id="prev-body" dir="auto" rows="10"></textarea></div>
       <div class="row">
         <button class="btn btn-primary" id="btn-confirm" onclick="confirmSend()">✉️ إرسال</button>
         <button class="btn btn-secondary" onclick="regenerate()">🔄 إعادة الكتابة</button>
@@ -469,6 +497,48 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div>
 </div>
 
+
+<div class="overlay" id="report-detail-overlay">
+  <section class="modal report-modal" role="dialog" aria-modal="true" aria-labelledby="rd-company" aria-describedby="rd-description" tabindex="-1">
+    <div class="report-top">
+      <div class="report-head">
+        <div class="report-symbol" id="rd-icon" aria-hidden="true">📱</div>
+        <div class="report-heading">
+          <div class="report-eyebrow">تفاصيل الرسالة</div>
+          <h2 id="rd-company"></h2>
+          <p id="rd-description"></p>
+        </div>
+        <button class="modal-close report-close" id="rd-close" onclick="closeLogDetail()" aria-label="إغلاق تفاصيل الرسالة">✕</button>
+      </div>
+      <div class="report-badges">
+        <span class="report-chip" id="rd-channel"></span>
+        <span class="report-chip" id="rd-status"></span>
+        <span class="report-chip" id="rd-recipient" dir="ltr"></span>
+      </div>
+    </div>
+<div class="timeline-layout"><aside class="timeline-side">
+      <div class="report-section-title">حالة الرسالة</div>
+      <div class="report-progress">
+        <div class="report-step" id="rd-sent-step"><div class="report-step-icon" aria-hidden="true">↗</div><strong id="rd-sent-label"></strong><small id="rd-sent-time"></small></div>
+        <div class="report-step" id="rd-read-step"><div class="report-step-icon" aria-hidden="true">✓✓</div><strong id="rd-read-label"></strong><small id="rd-read-time"></small></div>
+        <div class="report-step" id="rd-reply-step"><div class="report-step-icon" aria-hidden="true">↩</div><strong id="rd-reply-label"></strong><small id="rd-reply-time"></small></div>
+      </div>
+      <div class="report-note" id="rd-delivery" hidden></div>
+</aside><div class="timeline-main">      <div class="report-message" id="rd-message-section">
+        <div class="report-message-head"><h3>الرسالة المرسلة</h3><button class="btn btn-secondary" style="padding:5px 10px;font-size:11px" onclick="copyLogMessage()">نسخ النص</button></div>
+        <div class="report-subject" id="rd-subject" hidden></div>
+        <div class="report-text" id="rd-body" dir="auto"></div>
+      </div>
+      <div class="report-message" id="rd-reply-section" hidden>
+        <div class="report-message-head"><h3 class="report-reply-title">↩ آخر رد مرصود</h3></div>
+        <div class="report-text report-reply" id="rd-reply" dir="auto"></div>
+      </div>
+      <div class="report-note report-error" id="rd-error" hidden></div>
+      <div class="report-note" id="rd-note" hidden></div>
+    </div>
+</div>    <div class="report-footer"><span>حالة القراءة تتحدث عند وصول تأكيد من الخدمة.</span><button class="btn btn-secondary" onclick="closeLogDetail()">إغلاق</button></div>
+  </section>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -488,7 +558,8 @@ function updateAIPrompt() {
     `اكتب إيميل تقديم وظيفي ${langTxt} للتقدم لشركة {company_name} في مجال {field}.\nالأسلوب: ${toneTxt}.\nالطول: ${lenTxt}.\nابرز أهم المهارات المناسبة لمجال الشركة.`;
 }
 
-checkAuth();
+// Auth starts after all state declarations below.
+
 
 async function checkAuth() {
   try {
@@ -498,9 +569,13 @@ async function checkAuth() {
       document.getElementById('login-screen').style.display = 'flex';
       setGmail(false, 'غير متصل', 'سجّل دخولك أولاً');
     } else {
-      document.querySelector('.app').classList.add('active');
+      document.getElementById('login-screen').style.display='none'; document.querySelector('.app').classList.add('active');
       setGmail(true, r.name || 'Gmail متصل', r.email);
-      loadAll();
+      currentUser=r;
+      await loadAll();
+      await loadWhatsAppStatus();
+      hydrateAccount();
+      decideFirstPage();
     }
   } catch {
     document.getElementById('app-loading').style.display = 'none';
@@ -509,7 +584,8 @@ async function checkAuth() {
 }
 
 async function loadAll() {
-  await Promise.all([loadCompanies(), loadCV(), loadLog(), loadTemplate(), loadSettings()]);
+  const results=await Promise.allSettled([loadCompanies(), loadCV(), loadLog(), loadTemplate(), loadSettings()]);
+  dataLoaded=true; refreshWorkspace();
 }
 
 async function api(path, method='GET', body=null) {
@@ -535,15 +611,18 @@ async function apiForm(path, formData) {
 }
 
 function nav(page) {
+  if(page==='setup')page='onboarding';
+  if(!document.getElementById('page-'+page))return;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>{const active=n.dataset.page===page;n.classList.toggle('active',active);if(active)n.setAttribute('aria-current','page');else n.removeAttribute('aria-current');});
   document.getElementById('page-'+page).classList.add('active');
-  const labels = {setup:'الإعداد',companies:'الشركات',send:'الإرسال',report:'التقرير',settings:'الإعدادات'};
-  document.querySelectorAll('.nav-item').forEach(n=>{
-    if(n.textContent.trim().includes(labels[page])) n.classList.add('active');
-  });
-  if(page==='report') loadLog();
-  if(page==='companies') renderCompanies();
+  document.getElementById('workspace-current').textContent={home:'الرئيسية',onboarding:'الإعداد السريع',companies:'الشركات',send:'الإرسال',report:'التقارير',settings:'الإعدادات'}[page];
+  if(page==='report')loadLog();
+  if(page==='companies')renderCompanies();
+  if(page==='settings')selectSettings(activeSetting);
+  document.getElementById('setup-return').hidden=!onboardingEditing;
+  refreshWorkspace();
+  window.scrollTo({top:0,behavior:'instant'});
 }
 
 function setGmail(on, label, sub) {
@@ -554,7 +633,7 @@ function setGmail(on, label, sub) {
 }
 
 function pill(name, size) {
-  return `<div class="file-pill"><div class="fname">📄 ${name}</div><div class="fsize">${size}</div></div>`;
+  return `<div class="file-pill"><div class="fname">📄 ${esc(name)}</div><div class="fsize">${size}</div></div>`;
 }
 
 async function uploadCV(e) {
@@ -565,7 +644,7 @@ async function uploadCV(e) {
     const r = await apiForm('/api/cv/upload', fd);
     document.getElementById('cv-text').value = r.content;
     document.getElementById('cv-status').innerHTML = pill(file.name, (file.size/1024).toFixed(0)+' KB');
-    toast('تم رفع السيرة ✅','success');
+    cvReady=!!r.content?.trim();refreshWorkspace();toast('تم رفع السيرة وحفظها','success');
   } catch(err) {
     document.getElementById('cv-status').innerHTML = `<div style="margin-top:10px;font-size:13px;color:var(--red)">❌ ${err.message}</div>`;
     toast('خطأ: '+err.message,'error');
@@ -579,14 +658,14 @@ async function saveCV() {
     await api('/api/cv/text','POST',{content});
     document.getElementById('cv-saved-note').style.display='';
     setTimeout(()=>document.getElementById('cv-saved-note').style.display='none',3000);
-    toast('تم حفظ السيرة ✅','success');
+    cvReady=true;refreshWorkspace();toast('تم حفظ السيرة','success');
   } catch(err) { toast(err.message,'error'); }
 }
 
 async function loadCV() {
   try {
     const cv = await api('/api/cv');
-    if(cv?.content) document.getElementById('cv-text').value = cv.content;
+    cvReady=!!cv?.content?.trim(); if(cvReady) document.getElementById('cv-text').value=cv.content; refreshWorkspace();
   } catch {}
 }
 
@@ -595,7 +674,7 @@ async function saveTemplate() {
   const instructions = document.getElementById('tpl-instructions').value;
   try {
     await api('/api/cv/template','POST',{subject_template,instructions});
-    toast('تم حفظ القالب ✅','success');
+    templateReady=!!(instructions.trim()||subject_template.trim());refreshWorkspace();toast('تم حفظ التفضيلات','success');
   } catch(err) { toast(err.message,'error'); }
 }
 
@@ -603,7 +682,7 @@ async function loadTemplate() {
   try {
     const tpl = await api('/api/cv/template');
     if(tpl.subject_template) document.getElementById('tpl-subject').value = tpl.subject_template;
-    if(tpl.instructions) document.getElementById('tpl-instructions').value = tpl.instructions;
+    if(tpl.instructions) document.getElementById('tpl-instructions').value = tpl.instructions; templateReady=!!(tpl.id || tpl.instructions?.trim()); refreshWorkspace();
   } catch {}
 }
 
@@ -708,7 +787,7 @@ async function loadCompanies() {
     if(!Array.isArray(data)) throw new Error('السيرفر لم يُرجع قائمة شركات صحيحة');
     companies = data;
     renderCompanies();
-    updateSendStats();
+    updateSendStats();refreshWorkspace();
     return true;
   } catch(err) {
     console.error('تحميل الشركات:', err);
@@ -721,11 +800,13 @@ function filterCompanies() { renderCompanies(); }
 
 function renderCompanies() {
   const filter = document.getElementById('filter-status')?.value || 'all';
-  const filtered = filter==='all' ? companies : companies.filter(c=>c.status===filter);
+  const term=document.getElementById('company-search').value.trim().toLowerCase();
+  const filtered=companies.filter(c=>(filter==='all'||c.status===filter)&&[c.name,c.email,c.phone,c.field,c.location].some(v=>String(v||'').toLowerCase().includes(term)));
+  document.getElementById('selection-count').textContent=companies.filter(c=>c.selected).length+' شركة محددة';
   document.getElementById('nb-companies').textContent = companies.length;
   document.getElementById('companies-count').textContent = filtered.length+' شركة';
   if(!filtered.length) {
-    document.getElementById('companies-container').innerHTML = `<div class="empty"><div class="empty-ico">🏢</div><div class="empty-t">${filter!=='all'?'لا يوجد نتائج':'لا توجد شركات بعد'}</div><div class="empty-s">${filter!=='all'?'جرب تغيير الفلتر':'ارفع ملف Excel من صفحة الإعداد'}</div></div>`;
+    document.getElementById('companies-container').innerHTML = `<div class="empty"><div class="empty-ico">🏢</div><div class="empty-t">${filter!=='all'?'لا يوجد نتائج':'لا توجد شركات بعد'}</div><div class="empty-s">${filter!=='all'?'جرب تغيير الفلتر':'استورد ملف الشركات من الزر اللي فوق'}</div></div>`;
     return;
   }
   const rows = filtered.map(c=>`
@@ -747,7 +828,7 @@ function renderCompanies() {
 }
 
 function stLabel(s){return{pending:'انتظار',sent:'أُرسل',failed:'فشل',scheduled:'مجدول',skipped:'تخطي'}[s]||s}
-function esc(s){return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 
 async function toggleChk(id,val) {
   const c=companies.find(x=>x.id===id); if(c) c.selected=val;
@@ -774,7 +855,7 @@ function updateSendStats() {
   document.getElementById('s-total').textContent=t;
   document.getElementById('s-sent').textContent=s;
   document.getElementById('s-failed').textContent=f;
-  document.getElementById('s-pending').textContent=p;
+  document.getElementById('s-pending').textContent=p;refreshWorkspace();
 }
 
 function toggleSched() {
@@ -783,6 +864,7 @@ function toggleSched() {
 }
 
 async function previewOne(id) {
+  if(!ensureCV())return;
   prevCompanyId=id;
   const co=companies.find(c=>c.id===id); if(!co) return;
   document.getElementById('prev-company').textContent=co.name;
@@ -834,6 +916,7 @@ async function regenerate() {
 }
 
 async function confirmSend() {
+  let didSend=false;
   const btn=document.getElementById('btn-confirm');
   if(btn.disabled)return;
   if(!document.getElementById('prev-body').value.trim()){toast('اكتب نص الرسالة أولاً','error');return;}
@@ -851,7 +934,7 @@ async function confirmSend() {
     const co=companies.find(c=>c.id===prevCompanyId);
     if(co) co.status=scheduledAt?'scheduled':'sent';
     renderCompanies(); updateSendStats(); closePrev();
-    toast(scheduledAt?'🕐 تم الجدولة':'✅ تم الإرسال','success');
+    didSend=true; await loadLog(); toast(scheduledAt?'تم الجدولة':'تم الإرسال','success');
   } catch(err) {
     const co=companies.find(c=>c.id===prevCompanyId);
     if(co) co.status='failed';
@@ -859,7 +942,7 @@ async function confirmSend() {
     status.textContent='❌ '+err.message; status.style.color='var(--red)';
     toast('فشل: '+err.message,'error');
   } finally {
-    btn.disabled=false; btn.innerHTML='✉️ إرسال';
+    btn.disabled=false; btn.innerHTML='إرسال'; if(didSend&&sendQueue.length)processNextInQueue();
   }
 }
 
@@ -870,6 +953,7 @@ async function skipCo() {
 }
 
 async function startSend() {
+  if(!ensureCV())return;
   const filter=document.getElementById('send-filter').value;
   const skipSent=document.getElementById('opt-skip-sent').checked;
   const previewMode=document.getElementById('opt-preview').checked;
@@ -879,7 +963,8 @@ async function startSend() {
     if(skipSent&&c.status==='sent') return false;
     return true;
   });
-  if(!queue.length){toast('لا توجد شركات للإرسال','info');return;}
+  if(!queue.length){toast('مفيش شركات مناسبة للاختيارات الحالية','info');return;}
+  if(queue.some(c=>!c.email&&c.phone)&&waState!=='connected'){toast('القائمة فيها شركات واتساب. اربط واتساب أو اختار شركات الإيميل فقط.','error');openSettings('channels');return;}
   const schedType=document.getElementById('sched-type').value;
   if(schedType==='scheduled') {
     const dt=document.getElementById('send-dt').value;
@@ -935,7 +1020,7 @@ function processNextInQueue(){
 }
 
 async function loadLog(){
-  try{log=await api('/api/email/log');renderLog();}catch{}
+  try{log=await api('/api/email/log');renderLog();refreshWorkspace();if(activeLogId){const item=log.find(x=>x.id===activeLogId);if(item)fillLogDetail(item);else closeLogDetail();}}catch{}
 }
 
 function renderLog(){
@@ -958,16 +1043,77 @@ function renderLog(){
       <td><button class="btn btn-secondary" style="padding:4px 8px;font-size:10px" onclick="viewLogDetail('${l.id}')">تفاصيل</button></td>
     </tr>`;
   }).join('');
-  container.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>الشركة</th><th>الإيميل</th><th>الحالة</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  container.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>الشركة</th><th>وسيلة التواصل</th><th>الحالة</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
-async function viewLogDetail(id){
-  const l=log.find(x=>x.id===id); if(!l) return;
-  const state=l.channel==='whatsapp'
-    ? `القناة: واتساب\nالتسليم: ${l.whatsapp_delivered_at?'وصلت':'لم يصل تأكيد بعد'}\nالقراءة: ${l.whatsapp_read_at?'اتقرت':'لم يصل تأكيد قراءة'}${!l.message_id?'\nهذه رسالة قديمة بدون معرّف؛ القراءة لا يمكن تتبعها.':''}`
-    : `القناة: إيميل\nعدد مرات الفتح: ${l.open_count||0}`;
-  alert(`الشركة: ${l.company_name}\nالحالة: ${stLabel(l.status)}\n${state}\nتم الرد: ${l.replied?'نعم':'لم يُرصد رد بعد'}${l.reply_text?'\nالرد:\n'+l.reply_text:''}${l.reason?'\nالسبب: '+l.reason:''}`);
+let activeLogId=null, logDetailFocus=null, logDetailOverflow='';
+function reportDate(value){
+  if(!Number(value))return '';
+  const date=new Date(Number(value)*1000);
+  return Number.isNaN(date.getTime())?'':date.toLocaleString('ar-EG',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
 }
+function fillLogDetail(l){
+  const el=id=>document.getElementById(id);
+  const text=(id,value)=>el(id).textContent=value||'';
+  const wa=l.channel==='whatsapp';
+  const read=wa?!!l.whatsapp_read_at:Number(l.open_count)>0;
+  const replied=Number(l.replied)>0;
+  text('rd-company',l.company_name||'شركة بدون اسم');
+  text('rd-description',reportDate(l.sent_at)?'وقت تسجيل الرسالة · '+reportDate(l.sent_at):'سجل الرسالة');
+  text('rd-icon',wa?'📱':'✉');
+  text('rd-channel',wa?'واتساب':'إيميل');
+  text('rd-recipient',l.company_email||'غير محدد');
+  text('rd-status',replied?'تم الرد':read?(wa?'اتقرت':'تم رصد فتح'):stLabel(l.status));
+  el('rd-status').className='report-chip'+(l.status==='failed'?' bad':l.status==='sent'?' good':'');
+  const step=(id,label,time,done)=>{
+    text('rd-'+id+'-label',label);text('rd-'+id+'-time',time);
+    el('rd-'+id+'-step').classList.toggle('done',done);
+  };
+  step('sent',l.status==='sent'?'تم الإرسال':stLabel(l.status),reportDate(l.sent_at),l.status==='sent');
+  step('read',read?(wa?'اتقرت':'تم رصد فتح'):'بانتظار تأكيد القراءة',read?reportDate(wa?l.whatsapp_read_at:l.last_opened_at)||'وصل تأكيد القراءة':'عدم وصول تأكيد لا يعني إن الرسالة لم تُقرأ',read);
+  step('reply',replied?'تم الرد':'لم يُرصد رد بعد',replied?reportDate(l.whatsapp_reply_at)||'تم تسجيل رد':'يظهر هنا عند رصد رد جديد',replied);
+  el('rd-delivery').hidden=!wa;
+  text('rd-delivery',l.whatsapp_delivered_at?'✓✓ وصلت للمستلم · '+reportDate(l.whatsapp_delivered_at):'لم يصل تأكيد تسليم من واتساب حتى الآن.');
+  el('rd-subject').hidden=!l.subject;
+  text('rd-subject',l.subject?'الموضوع: '+l.subject:'');
+  el('rd-message-section').hidden=!l.body;
+  text('rd-body',l.body);
+  el('rd-reply-section').hidden=!replied;
+  text('rd-reply',l.reply_text||'تم رصد رد بدون نص محفوظ.');
+  el('rd-error').hidden=!l.reason;text('rd-error',l.reason);
+  el('rd-note').hidden=!(wa&&!l.message_id);
+  text('rd-note','هذه رسالة قديمة بدون معرّف؛ لا يمكن تتبع قراءتها.');
+}
+function viewLogDetail(id){
+  const l=log.find(x=>x.id===id);if(!l)return;
+  const overlay=document.getElementById('report-detail-overlay');
+  if(!overlay.classList.contains('open')){
+    logDetailFocus=document.activeElement;logDetailOverflow=document.body.style.overflow;
+  }
+  activeLogId=id;fillLogDetail(l);
+  overlay.classList.add('open');document.body.style.overflow='hidden';
+  document.getElementById('rd-close').focus();
+}
+function closeLogDetail(){
+  document.getElementById('report-detail-overlay').classList.remove('open');
+  activeLogId=null;document.body.style.overflow=logDetailOverflow;
+  if(logDetailFocus?.isConnected)logDetailFocus.focus();
+}
+async function copyLogMessage(){
+  const l=log.find(x=>x.id===activeLogId);if(!l?.body)return;
+  try{await navigator.clipboard.writeText((l.subject?l.subject+'\n\n':'')+l.body);toast('تم نسخ الرسالة','success');}
+  catch{toast('تعذر النسخ. تقدر تحدد النص وتنسخه يدويًا.','error');}
+}
+const reportOverlay=document.getElementById('report-detail-overlay');
+reportOverlay.addEventListener('click',event=>{if(event.target===reportOverlay)closeLogDetail();});
+reportOverlay.addEventListener('keydown',event=>{
+  if(event.key==='Escape'){event.preventDefault();closeLogDetail();return;}
+  if(event.key!=='Tab')return;
+  const buttons=[...reportOverlay.querySelectorAll('button:not([disabled])')].filter(button=>button.getClientRects().length);
+  const first=buttons[0],last=buttons.at(-1);if(!first)return;
+  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+  else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+});
 
 async function clearLog(){
   if(!confirm('مسح كل السجل؟')) return;
@@ -1022,7 +1168,7 @@ async function loadWhatsAppStatus() {
   if(waChecking || !document.querySelector('.app.active'))return;
   waChecking=true;
   try {
-    const state=await api('/api/whatsapp/status');
+    const state=await api('/api/whatsapp/status');waState=state.status;refreshWorkspace();
     const labels={connected:'🟢 متصل',connecting:'🟡 جاري الاتصال...',qr:'امسح رمز QR من تطبيق واتساب',disconnected:'⚪ غير متصل'};
     document.getElementById('wa-status').textContent=(labels[state.status]||state.status)+(state.phone?' — '+state.phone:'')+(state.error?' — '+state.error:'');
     const image=document.getElementById('wa-qr');
@@ -1053,5 +1199,39 @@ setInterval(async()=>{
   try{await loadLog();}finally{refreshingReports=false;}
 },5000);
 </script>
-</body>
+
+
+<script>let currentUser=null,cvReady=false,templateReady=false,waState='unknown',dataLoaded=false,activeSetting='account',onboardingEditing=false;
+const setupItems=[{key:'cv',title:'السيرة الذاتية',description:'ارفع PDF أو اكتب خبراتك ومهاراتك. دي المعلومات اللي هتتكتب منها رسالتك.',icon:'cv',action:'أضف الـCV'},{key:'channels',title:'ربط واتساب',description:'امسح QR من الأجهزة المرتبطة عشان تبعت من رقمك. تقدر تبدأ بالإيميل بس.',icon:'chat',action:'اربط واتساب'},{key:'template',title:'تفضيلات الرسالة',description:'اختار اللغة والأسلوب، وحدّد التعليمات اللي تخلي كل رسالة أقرب ليك.',icon:'mail',action:'ظبط الرسالة'}];
+function storageKey(){return 'mrsaal:onboarding:v1:'+String(currentUser?.email||'anonymous').toLowerCase();}
+function getSetupPreferences(){try{return JSON.parse(localStorage.getItem(storageKey())||'{}')}catch{return {};}}
+function putSetupPreferences(data){try{localStorage.setItem(storageKey(),JSON.stringify(data))}catch{}}
+function setupComplete(key){return key==='cv'?cvReady:key==='channels'?waState==='connected':templateReady;}
+function setupIcon(key){const paths={cv:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8m-8 4h5"/>',chat:'<path d="M21 11a9 9 0 0 1-9 9 10 10 0 0 1-4-1l-5 2 1-5a9 9 0 1 1 17-5Z"/><path d="M8 11h8"/>',mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/>'};return '<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+paths[key]+'</svg>';}
+function setupCard(item,firstTime){const ready=setupComplete(item.key),preferences=getSetupPreferences(),skipped=preferences.skipped?.includes(item.key);const unknown=item.key==='channels'&&waState==='unknown';return `<article class="setup-card"><div class="setup-card-top"><span class="setup-icon">${setupIcon(item.icon)}</span><span class="state-badge ${ready?'ready':''}">${ready?'مكتمل ✓':unknown?'تعذر التحقق':skipped?'مؤجل':'اختياري دلوقتي'}</span></div><h3>${item.title}</h3><p>${item.description}</p><div class="setup-card-actions"><button class="btn ${ready?'btn-secondary':'btn-primary'}" onclick="${firstTime?'editSetup':'openSettings'}('${item.key}')">${ready?'عرض وتعديل':item.action}</button>${firstTime&&!ready?`<button class="text-button" onclick="skipSetup('${item.key}')">${skipped?'تم التأجيل':'تخطي دلوقتي'}</button>`:''}</div></article>`;}
+function refreshWorkspace(){if(!currentUser)return;const home=document.getElementById('home-setup-cards'),onboard=document.getElementById('onboard-cards');home.innerHTML=setupItems.map(i=>setupCard(i,false)).join('');onboard.innerHTML=setupItems.map(i=>setupCard(i,true)).join('');const count=setupItems.filter(i=>setupComplete(i.key)).length;document.getElementById('onboard-counter').textContent=count+' من 3 مكتمل';document.getElementById('onboard-bar').style.width=(count/3*100)+'%';document.getElementById('home-companies').textContent=companies.length;document.getElementById('home-pending').textContent=companies.filter(c=>c.status==='pending').length;document.getElementById('home-sent').textContent=log.filter(l=>l.status==='sent').length;document.getElementById('home-replies').textContent=log.filter(l=>l.replied).length;const title=document.getElementById('next-title'),copy=document.getElementById('next-copy'),button=document.getElementById('next-action');if(!cvReady){title.textContent='ابدأ بسيرتك الذاتية';copy.textContent='ضيف خبراتك عشان الرسائل تتكتب بناءً على معلوماتك.';button.textContent='أضف الـCV';button.onclick=()=>openSettings('cv');}else if(!companies.length){title.textContent='اختار الشركات اللي تناسبك';copy.textContent='استورد قائمتك، وحدّد الشركات اللي حابب تتواصل معاها.';button.textContent='استيراد الشركات';button.onclick=openImporter;}else{title.textContent='جاهز لرسالتك الجاية؟';copy.textContent='اختار الشركات، راجع النص، وحدّد وقت الإرسال.';button.textContent='افتح الإرسال';button.onclick=()=>nav('send');}const activity=document.getElementById('home-activity');activity.innerHTML=log.length?log.slice(0,4).map(l=>`<button class="activity-row" onclick="viewLogDetail('${esc(l.id)}')"><span class="activity-symbol">${l.replied?'↩':'↗'}</span><span class="activity-description"><strong>${esc(l.company_name)}</strong><small>${l.channel==='whatsapp'?'واتساب':'إيميل'} · ${esc(reportDate(l.sent_at))}</small></span><span class="state-badge ${l.replied||l.status==='sent'?'ready':''}">${l.replied?'وصل رد':esc(stLabel(l.status))}</span></button>`).join(''):'<div class="empty"><div class="empty-t">أول رسالة تبدأ من هنا</div><p class="empty-s">لما تبعت رسالة، نتيجتها هتظهر هنا وفي التقارير.</p></div>';}
+function hydrateAccount(){const name=currentUser.name||'حسابك',email=currentUser.email||'';document.getElementById('welcome-name').textContent=name.split(' ')[0];document.getElementById('profile-name').textContent=name;document.getElementById('profile-email').textContent=email;document.getElementById('channel-email').textContent=email;for(const id of ['sidebar-avatar','top-avatar','settings-avatar'])document.getElementById(id).textContent=name.charAt(0)||'م';}
+function decideFirstPage(){const prefs=getSetupPreferences();const returning=cvReady||companies.length>0||log.length>0;if(prefs.dismissed||returning){nav('home');}else{nav('onboarding');}}
+function skipSetup(key){const prefs=getSetupPreferences();prefs.skipped=[...new Set([...(prefs.skipped||[]),key])];putSetupPreferences(prefs);refreshWorkspace();toast('تقدر ترجع للخطوة دي من الإعدادات في أي وقت','info');}
+function finishOnboarding(skip){const prefs=getSetupPreferences();prefs.dismissed=true;if(skip)prefs.skipped=setupItems.filter(i=>!setupComplete(i.key)).map(i=>i.key);putSetupPreferences(prefs);onboardingEditing=false;nav('home');}
+function startOnboarding(){onboardingEditing=true;nav('onboarding');}
+function editSetup(key){onboardingEditing=true;activeSetting=key;nav('settings');}
+function openSettings(key='account'){onboardingEditing=false;activeSetting=key;nav('settings');}
+function selectSettings(key){if(!['account','cv','channels','template','ai'].includes(key))key='account';activeSetting=key;document.querySelectorAll('.settings-panel').forEach(el=>el.hidden=el.id!=='settings-'+key);document.querySelectorAll('[data-setting]').forEach(el=>{el.classList.toggle('active',el.dataset.setting===key);el.setAttribute('aria-pressed',el.dataset.setting===key?'true':'false');});}
+function openImporter(){nav('companies');const panel=document.getElementById('import-panel');panel.open=true;panel.scrollIntoView({behavior:'smooth',block:'start'});}
+function ensureCV(){if(cvReady)return true;toast('ضيف السيرة الذاتية الأول عشان نكتب رسالة تعبّر عنك','error');openSettings('cv');return false;}
+function setAppTheme(choice){let theme=choice==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):choice;document.documentElement.dataset.theme=theme;try{localStorage.setItem('mrsaal-theme-choice',choice);if(choice==='system')localStorage.removeItem('mrsaal-theme');else localStorage.setItem('mrsaal-theme',theme)}catch{}updateMrsaalThemeLabels();}
+function updateMrsaalThemeLabels(){const dark=document.documentElement.dataset.theme==='dark';document.querySelectorAll('.theme-label').forEach(el=>el.textContent=dark?'☀ فاتح':'☾ داكن');let choice='system';try{choice=localStorage.getItem('mrsaal-theme-choice')||'system'}catch{}document.querySelectorAll('[data-choice]').forEach(el=>{el.classList.toggle('active',el.dataset.choice===choice);el.setAttribute('aria-pressed',el.dataset.choice===choice?'true':'false')});}
+function toggleMrsaalTheme(){setAppTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');}
+try{setAppTheme(localStorage.getItem('mrsaal-theme-choice')||'system')}catch{updateMrsaalThemeLabels()}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{try{if((localStorage.getItem('mrsaal-theme-choice')||'system')==='system')setAppTheme('system')}catch{}});
+const authError=new URLSearchParams(location.search).get('error');if(authError){const el=document.getElementById('auth-error');el.hidden=false;el.textContent={auth_denied:'الدخول ما اكتملش. تقدر تحاول تاني وتراجع الصلاحيات في Google.',no_code:'رابط الدخول غير مكتمل. ابدأ تسجيل الدخول من الزر اللي تحت.',auth_failed:'تعذر تسجيل الدخول. حاول تاني، ولو المشكلة مستمرة راجع إعداد Google.'}[authError]||'حصلت مشكلة أثناء تسجيل الدخول. حاول تاني.';}
+// Preview focus, Escape/backdrop, focus restoration.
+let previousPreviewFocus=null,previewFocusBound=false;
+const originalPreviewOne=previewOne;previewOne=async function(id){previousPreviewFocus=document.activeElement;await originalPreviewOne(id);if(document.getElementById('preview-overlay').classList.contains('open'))document.querySelector('#preview-overlay .modal').focus();};
+const originalClosePrev=closePrev;closePrev=function(){originalClosePrev();previousPreviewFocus?.focus?.();};
+document.getElementById('preview-overlay').addEventListener('click',e=>{if(e.target.id==='preview-overlay')closePrev();});
+document.addEventListener('keydown',e=>{const overlay=document.getElementById('preview-overlay');if(!overlay.classList.contains('open'))return;if(e.key==='Escape'){e.preventDefault();closePrev();}if(e.key==='Tab'){const items=[...overlay.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),[tabindex="0"]')].filter(el=>el.offsetParent!==null);if(!items.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&(document.activeElement===first||!items.includes(document.activeElement))){e.preventDefault();last.focus();}else if(!e.shiftKey&&(document.activeElement===last||!items.includes(document.activeElement))){e.preventDefault();first.focus();}}});
+checkAuth();
+</script></body>
 </html>
