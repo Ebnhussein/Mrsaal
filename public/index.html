@@ -266,7 +266,7 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
 .preview-actions .text-button{font-size:12px}
 @media(min-width:701px) and (max-height:760px){#login-screen{padding-top:20px;padding-bottom:20px}.login-shell{min-height:calc(100dvh - 40px)}.login-story{padding:32px}.login-story-copy{margin-top:26px}.login-story-copy h1{font-size:35px;line-height:1.45}.login-journey{margin:24px 0}.login-form{padding:26px 36px}.login-form-body{padding:28px 0 22px}.login-welcome-icon{margin-bottom:18px}.login-divider{margin:24px 0 18px}.login-steps{gap:17px}.login-security{margin-top:24px}}
 @media(max-width:700px){#login-screen{padding:0;align-items:stretch;scrollbar-gutter:auto}.login-shell{flex:0 0 auto;min-height:100dvh;border-radius:0;align-self:stretch}.login-story,.login-form{border-radius:0;min-height:0}.login-form-body{margin:0 auto;padding:24px 0}.login-legal{padding-bottom:20px}.preview-actions{align-items:flex-start}}
-</style></head>
+</style><style id="smart-setup-layout">.dashboard-bottom.workflow-single{grid-template-columns:1fr}.setup-empty{grid-column:1/-1;padding:32px;text-align:center;border:1px solid var(--border);background:var(--surface);border-radius:14px}.setup-empty strong{display:block;font-size:19px}.setup-empty p{font-size:14px;color:var(--text2);margin:12px 0 20px}@media(min-width:951px){.setup-grid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}}</style></head>
 <body>
 
 <div id="app-loading" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px">
@@ -361,11 +361,11 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
 
     <div class="page active" id="page-home">
  <div class="ph"><div><div class="eyebrow">مساحة عملك</div><h1>أهلًا، <span id="welcome-name">بيك</span> <span class="wave">✦</span></h1><p class="page-description">كل خطوة في تقديمك، من أول رسالة لحد أول رد.</p></div><button class="btn btn-primary" onclick="nav('companies')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"/></svg>إدارة الشركات</button></div>
- <div class="metrics"><div class="metric"><span class="metric-label">الشركات عندك</span><strong id="home-companies">—</strong><small>فرصك في مكان واحد</small></div><div class="metric"><span class="metric-label">رسائل اتبعتت</span><strong id="home-sent">—</strong><small>من سجل الإرسال</small></div><div class="metric"><span class="metric-label">ردود وصلتك</span><strong id="home-replies">—</strong><small>ردود مرصودة من الخدمة</small></div><div class="metric"><span class="metric-label">جاهزة للإرسال</span><strong id="home-pending">—</strong><small>شركات في الانتظار</small></div></div>
- <section class="next-step"><div><span class="eyebrow">خطوتك الجاية</span><h2 id="next-title">جهّز سيرتك الذاتية</h2><p id="next-copy">ابدأ بخبراتك ومهاراتك عشان الرسالة تعبّر عنك.</p></div><button id="next-action" class="btn btn-primary" onclick="editSetup('cv')">ابدأ دلوقتي<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button></section>
- <div class="section-heading inline-heading"><div><h2>حسابك جاهز قد إيه؟</h2><p>كمّل اللي محتاجه دلوقتي، والباقي وقت ما تحب.</p></div><button class="text-button" onclick="startOnboarding()">عرض الإعداد السريع ←</button></div>
- <div class="setup-grid" id="home-setup-cards"></div>
- <div class="dashboard-bottom"><section class="card"><div class="section-heading inline-heading"><h2>آخر نشاط</h2><button class="text-button" onclick="nav('report')">كل التقارير ←</button></div><div id="home-activity" class="activity-list"></div></section><section class="card workflow-card"><h2>رحلتك مع مرسال</h2><ol><li><b>جهّز حسابك</b><span>الـCV وقناة التواصل وتفضيلات الرسالة.</span></li><li><b>اختار الشركات</b><span>استورد قائمتك وحدّد مين هتتواصل معاه.</span></li><li><b>راجع، ابعت، وتابع</b><span>معاينة قبل الإرسال ونتائج في التقارير.</span></li></ol></section></div>
+ <div class="metrics"><div class="metric"><span class="metric-label">الشركات عندك</span><strong id="home-companies">—</strong><small>فرصك في مكان واحد</small></div><div class="metric"><span class="metric-label">رسائل اتبعتت</span><strong id="home-sent">—</strong><small>من سجل الإرسال</small></div><div class="metric"><span class="metric-label">ردود وصلتك</span><strong id="home-replies">—</strong><small>ردود مرصودة من الخدمة</small></div><div class="metric"><span class="metric-label">جاهزة للإرسال</span><strong id="home-pending">—</strong><small>CV موجود وقناة التواصل متاحة</small></div></div>
+ <section class="next-step" id="home-next-block" hidden><div><span class="eyebrow">خطوتك الجاية</span><h2 id="next-title">جهّز سيرتك الذاتية</h2><p id="next-copy">ابدأ بخبراتك ومهاراتك عشان الرسالة تعبّر عنك.</p></div><button id="next-action" class="btn btn-primary" onclick="editSetup('cv')">ابدأ دلوقتي<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button></section>
+ <section id="home-readiness" hidden><div class="section-heading inline-heading"><div><h2>حسابك جاهز قد إيه؟</h2><p>كمّل اللي محتاجه دلوقتي، والباقي وقت ما تحب.</p></div><button class="text-button" onclick="startOnboarding()">عرض الإعداد السريع ←</button></div>
+ <div class="setup-grid" id="home-setup-cards"></div></section>
+ <div class="dashboard-bottom" id="home-bottom"><section class="card"><div class="section-heading inline-heading"><h2>آخر نشاط</h2><button class="text-button" onclick="nav('report')">كل التقارير ←</button></div><div id="home-activity" class="activity-list"></div></section><section class="card workflow-card" id="home-workflow" hidden><h2>خطوات متبقية</h2><ol id="home-workflow-steps"></ol></section></div>
  </div><div class="page" id="page-onboarding"><div class="onboarding-heading"><span class="eyebrow">خلّينا نجهّز أول رسالة</span><h1>بداية بسيطة. وفرص أكتر.</h1><p>3 خطوات تساعدك تبدأ. كل خطوة ممكن تتخطاها وتكمّلها بعدين من الإعدادات.</p><div class="onboard-progress"><span id="onboard-counter">0 من 3 مكتمل</span><div class="prog-wrap"><div class="prog-bar" id="onboard-bar"></div></div></div></div><div class="setup-grid" id="onboard-cards"></div><div class="onboard-footer"><p>تخطي الإعداد مش بيحذف أي حاجة من حسابك.</p><div class="row"><button class="btn btn-secondary" onclick="finishOnboarding(true)">تخطي دلوقتي</button><button class="btn btn-primary" onclick="finishOnboarding(false)">افتح مساحة العمل<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button></div></div><div class="help-note"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>حساب Google متصل. ربط واتساب مطلوب بس لو هتبعت على واتساب.</div></div>
 
     <div class="page" id="page-companies">
@@ -595,9 +595,10 @@ async function checkAuth() {
     } else {
       document.getElementById('login-screen').style.display='none'; document.querySelector('.app').classList.add('active');
       setGmail(true, r.name || 'Gmail متصل', r.email);
-      currentUser=r;
+      dataLoaded=false;cvReady=false;templateReady=false;waState='unknown';currentUser=r;
       await loadAll();
       await loadWhatsAppStatus();
+      dataLoaded=true;
       hydrateAccount();
       decideFirstPage();
     }
@@ -609,7 +610,7 @@ async function checkAuth() {
 
 async function loadAll() {
   const results=await Promise.allSettled([loadCompanies(), loadCV(), loadLog(), loadTemplate(), loadSettings()]);
-  dataLoaded=true; refreshWorkspace();
+  refreshWorkspace();
 }
 
 async function api(path, method='GET', body=null) {
@@ -698,7 +699,7 @@ async function saveTemplate() {
   const instructions = document.getElementById('tpl-instructions').value;
   try {
     await api('/api/cv/template','POST',{subject_template,instructions});
-    templateReady=!!(instructions.trim()||subject_template.trim());refreshWorkspace();toast('تم حفظ التفضيلات','success');
+    templateReady=true;refreshWorkspace();toast('تم حفظ التفضيلات','success');
   } catch(err) { toast(err.message,'error'); }
 }
 
@@ -1232,8 +1233,65 @@ function getSetupPreferences(){try{return JSON.parse(localStorage.getItem(storag
 function putSetupPreferences(data){try{localStorage.setItem(storageKey(),JSON.stringify(data))}catch{}}
 function setupComplete(key){return key==='cv'?cvReady:key==='channels'?waState==='connected':templateReady;}
 function setupIcon(key){const paths={cv:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8m-8 4h5"/>',chat:'<path d="M21 11a9 9 0 0 1-9 9 10 10 0 0 1-4-1l-5 2 1-5a9 9 0 1 1 17-5Z"/><path d="M8 11h8"/>',mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/>'};return '<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+paths[key]+'</svg>';}
-function setupCard(item,firstTime){const ready=setupComplete(item.key),preferences=getSetupPreferences(),skipped=preferences.skipped?.includes(item.key);const unknown=item.key==='channels'&&waState==='unknown';return `<article class="setup-card"><div class="setup-card-top"><span class="setup-icon">${setupIcon(item.icon)}</span><span class="state-badge ${ready?'ready':''}">${ready?'مكتمل ✓':unknown?'تعذر التحقق':skipped?'مؤجل':'اختياري دلوقتي'}</span></div><h3>${item.title}</h3><p>${item.description}</p><div class="setup-card-actions"><button class="btn ${ready?'btn-secondary':'btn-primary'}" onclick="${firstTime?'editSetup':'openSettings'}('${item.key}')">${ready?'عرض وتعديل':item.action}</button>${firstTime&&!ready?`<button class="text-button" onclick="skipSetup('${item.key}')">${skipped?'تم التأجيل':'تخطي دلوقتي'}</button>`:''}</div></article>`;}
-function refreshWorkspace(){if(!currentUser)return;const home=document.getElementById('home-setup-cards'),onboard=document.getElementById('onboard-cards');home.innerHTML=setupItems.map(i=>setupCard(i,false)).join('');onboard.innerHTML=setupItems.map(i=>setupCard(i,true)).join('');const count=setupItems.filter(i=>setupComplete(i.key)).length;document.getElementById('onboard-counter').textContent=count+' من 3 مكتمل';document.getElementById('onboard-bar').style.width=(count/3*100)+'%';document.getElementById('home-companies').textContent=companies.length;document.getElementById('home-pending').textContent=companies.filter(c=>c.status==='pending').length;document.getElementById('home-sent').textContent=log.filter(l=>l.status==='sent').length;document.getElementById('home-replies').textContent=log.filter(l=>l.replied).length;const title=document.getElementById('next-title'),copy=document.getElementById('next-copy'),button=document.getElementById('next-action');if(!cvReady){title.textContent='ابدأ بسيرتك الذاتية';copy.textContent='ضيف خبراتك عشان الرسائل تتكتب بناءً على معلوماتك.';button.textContent='أضف الـCV';button.onclick=()=>openSettings('cv');}else if(!companies.length){title.textContent='اختار الشركات اللي تناسبك';copy.textContent='استورد قائمتك، وحدّد الشركات اللي حابب تتواصل معاها.';button.textContent='استيراد الشركات';button.onclick=openImporter;}else{title.textContent='جاهز لرسالتك الجاية؟';copy.textContent='اختار الشركات، راجع النص، وحدّد وقت الإرسال.';button.textContent='افتح الإرسال';button.onclick=()=>nav('send');}const activity=document.getElementById('home-activity');activity.innerHTML=log.length?log.slice(0,4).map(l=>`<button class="activity-row" onclick="viewLogDetail('${esc(l.id)}')"><span class="activity-symbol">${l.replied?'↩':'↗'}</span><span class="activity-description"><strong>${esc(l.company_name)}</strong><small>${l.channel==='whatsapp'?'واتساب':'إيميل'} · ${esc(reportDate(l.sent_at))}</small></span><span class="state-badge ${l.replied||l.status==='sent'?'ready':''}">${l.replied?'وصل رد':esc(stLabel(l.status))}</span></button>`).join(''):'<div class="empty"><div class="empty-t">أول رسالة تبدأ من هنا</div><p class="empty-s">لما تبعت رسالة، نتيجتها هتظهر هنا وفي التقارير.</p></div>';}
+function pendingSetupItems(){
+  const skipped=getSetupPreferences().skipped||[];
+  return setupItems.filter(item=>!setupComplete(item.key)&&!skipped.includes(item.key));
+}
+function setupCard(item,firstTime){
+  const unknown=item.key==='channels'&&waState==='unknown';
+  return `<article class="setup-card"><div class="setup-card-top"><span class="setup-icon">${setupIcon(item.icon)}</span><span class="state-badge">${unknown?'تعذر التحقق':'لسه محتاجة إعداد'}</span></div><h3>${item.title}</h3><p>${item.description}</p><div class="setup-card-actions"><button class="btn btn-primary" onclick="${firstTime?'editSetup':'openSettings'}('${item.key}')">${item.action}</button><button class="text-button" onclick="skipSetup('${item.key}')">تخطي دلوقتي</button></div></article>`;
+}
+function refreshWorkspace(){
+  if(!currentUser)return;
+  const outstanding=pendingSetupItems(),preferences=getSetupPreferences();
+  const count=setupItems.filter(item=>setupComplete(item.key)).length;
+  const deferred=setupItems.filter(item=>!setupComplete(item.key)&&preferences.skipped?.includes(item.key)).length;
+  const home=document.getElementById('home-setup-cards'),onboard=document.getElementById('onboard-cards');
+  document.getElementById('home-readiness').hidden=!dataLoaded||outstanding.length===0;
+  home.innerHTML=outstanding.map(item=>setupCard(item,false)).join('');
+  onboard.innerHTML=outstanding.length?outstanding.map(item=>setupCard(item,true)).join(''):`<div class="setup-empty"><strong>مفيش خطوات متبقية للعرض</strong><p>${count===setupItems.length?'إعداداتك محفوظة. تقدر تعدّلها من الإعدادات في أي وقت.':'الخطوات مكتملة أو اخترت تأجيلها. تقدر ترجع لأي خطوة من الإعدادات.'}</p><button class="btn btn-secondary" onclick="openSettings('account')">افتح الإعدادات</button></div>`;
+  document.getElementById('onboard-counter').textContent=count+' مكتمل'+(deferred?' · '+deferred+' مؤجل':'')+' · '+outstanding.length+' متبقي';
+  // Deferred items are deliberately not presented as completed.
+  document.getElementById('onboard-bar').style.width=(count/setupItems.length*100)+'%';
+  const pending=companies.filter(c=>c.status==='pending');
+  const ready=cvReady?pending.filter(c=>!!c.email||(!!c.phone&&waState==='connected')):[];
+  const replied=log.filter(l=>l.replied).length;
+  const scheduled=companies.filter(c=>c.status==='scheduled').length;
+  document.getElementById('home-companies').textContent=companies.length;
+  document.getElementById('home-pending').textContent=ready.length;
+  document.getElementById('home-sent').textContent=log.filter(l=>l.status==='sent').length;
+  document.getElementById('home-replies').textContent=replied;
+  const title=document.getElementById('next-title'),copy=document.getElementById('next-copy'),button=document.getElementById('next-action');
+  document.getElementById('home-next-block').hidden=!dataLoaded;
+  function recommend(heading,description,label,action){title.textContent=heading;copy.textContent=description;button.textContent=label;button.onclick=action;}
+  if(outstanding.some(item=>item.key==='cv')){
+    recommend('ابدأ بسيرتك الذاتية','ضيف خبراتك عشان الرسائل تتكتب بناءً على معلوماتك.','أضف الـCV',()=>openSettings('cv'));
+  }else if(!companies.length){
+    recommend('اختار الشركات اللي تناسبك','استورد قائمتك، وحدّد الشركات اللي حابب تتواصل معاها.','استيراد الشركات',openImporter);
+  }else if(ready.length){
+    recommend('عندك '+ready.length+' شركة في انتظار الإرسال','السيرة الذاتية موجودة وقناة التواصل متاحة. راجع الرسالة قبل الإرسال.','راجع الإرسال',()=>nav('send'));
+  }else if(cvReady&&pending.some(c=>!c.email&&c.phone)&&outstanding.some(item=>item.key==='channels')){
+    recommend('قناة واتساب محتاجة ربط','عندك شركات بوسيلة تواصل واتساب فقط. اربط حسابك لو حابب تبعت لها.','ربط واتساب',()=>openSettings('channels'));
+  }else if(replied){
+    recommend('عندك '+replied+' رد مرصود في التقارير','راجع تفاصيل الرسائل وآخر رد وصل من كل شركة.','عرض التقارير',()=>nav('report'));
+  }else if(scheduled){
+    recommend('عندك '+scheduled+' رسالة مجدولة','تابع حالة الشركات ونتائج الإرسال في التقارير.','عرض الشركات',()=>nav('companies'));
+  }else if(log.length){
+    recommend('تابع نتائج رسائلك','شوف حالة الإرسال والقراءة وآخر رد مرصود من الخدمة.','عرض التقارير',()=>nav('report'));
+  }else{
+    recommend('قائمة شركاتك موجودة','راجع بيانات التواصل وحدّد الشركات اللي حابب تبدأ معاها.','عرض الشركات',()=>nav('companies'));
+  }
+  const steps=[];
+  if(outstanding.length)steps.push('<li><b>كمّل الخطوات المتبقية</b><span>'+outstanding.map(item=>item.title).join('، ')+'</span></li>');
+  if(!companies.length)steps.push('<li><b>اختار الشركات</b><span>استورد قائمتك وحدّد مين هتتواصل معاه.</span></li>');
+  if(!log.length&&ready.length)steps.push('<li><b>راجع أول رسالة</b><span>المعاينة بتخليك تعدّل النص قبل الإرسال.</span></li>');
+  const workflow=document.getElementById('home-workflow');workflow.hidden=!dataLoaded||!steps.length;
+  document.getElementById('home-workflow-steps').innerHTML=steps.join('');
+  document.getElementById('home-bottom').classList.toggle('workflow-single',workflow.hidden);
+  const activity=document.getElementById('home-activity');
+  activity.innerHTML=log.length?log.slice(0,4).map(l=>`<button class="activity-row" onclick="viewLogDetail('${esc(l.id)}')"><span class="activity-symbol">${l.replied?'↩':'↗'}</span><span class="activity-description"><strong>${esc(l.company_name)}</strong><small>${l.channel==='whatsapp'?'واتساب':'إيميل'} · ${esc(reportDate(l.sent_at))}</small></span><span class="state-badge ${l.replied||l.status==='sent'?'ready':''}">${l.replied?'وصل رد':esc(stLabel(l.status))}</span></button>`).join(''):'<div class="empty"><div class="empty-t">مفيش نشاط إرسال لسه</div><p class="empty-s">نتائج الرسائل هتظهر هنا وفي التقارير بعد الإرسال.</p></div>';
+}
+
 function hydrateAccount(){const name=currentUser.name||'حسابك',email=currentUser.email||'';document.getElementById('welcome-name').textContent=name.split(' ')[0];document.getElementById('profile-name').textContent=name;document.getElementById('profile-email').textContent=email;document.getElementById('channel-email').textContent=email;for(const id of ['sidebar-avatar','top-avatar','settings-avatar'])document.getElementById(id).textContent=name.charAt(0)||'م';}
 function decideFirstPage(){const prefs=getSetupPreferences();const returning=cvReady||companies.length>0||log.length>0;if(prefs.dismissed||returning){nav('home');}else{nav('onboarding');}}
 function skipSetup(key){const prefs=getSetupPreferences();prefs.skipped=[...new Set([...(prefs.skipped||[]),key])];putSetupPreferences(prefs);refreshWorkspace();toast('تقدر ترجع للخطوة دي من الإعدادات في أي وقت','info');}
