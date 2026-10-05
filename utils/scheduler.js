@@ -29,7 +29,7 @@ async function tick(){
         const company={name:job.company_name,email:job.company_email,phone:job.phone,field:job.field,location:job.location};
         const channel=company.email?.includes('@')?'email':company.phone?'whatsapp':null;
         if(!channel)throw new Error('لا توجد وسيلة تواصل');
-        const params={cv:cv.content,company,instructions:tpl?.instructions,subjectTemplate:tpl?.subject_template,apiKey:user.gemini_key||null,modelName:user.gemini_model||'gemini-2.5-flash-lite'};
+        const params={cv:cv.content,company,instructions:tpl?.instructions,subjectTemplate:tpl?.subject_template,apiKey:user.gemini_key||null,modelName:user.gemini_model||null};
         let subject=saved?.subject||'',body=saved?.body||'';
         if(!body.trim()){
           if(channel==='email'){const email=await generateEmail(params);subject=email.subject;body=email.body;}

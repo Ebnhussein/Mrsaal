@@ -45,7 +45,7 @@ async function initDB() {
       refresh_token TEXT,
       token_expiry BIGINT,
       gemini_key TEXT,
-      gemini_model TEXT DEFAULT 'gemini-2.0-flash',
+      gemini_model TEXT,
       created_at BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())
     );
 
@@ -118,11 +118,9 @@ async function initDB() {
     CREATE INDEX IF NOT EXISTS IDX_session_expire ON session (expire);
   `);
 
-await query(`
-    UPDATE users SET gemini_model = 'gemini-2.0-flash'
-    WHERE gemini_model = 'gemini-1.5-flash' OR gemini_model IS NULL
-  `);
-  
+// Remove the old implicit model default; keep every user's existing selection.
+  await query('ALTER TABLE users ALTER COLUMN gemini_model DROP DEFAULT');
+
   console.log('✅ Database tables ready');
 }
 
