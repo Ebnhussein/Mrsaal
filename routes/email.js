@@ -4,7 +4,7 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { requireAuth } = require('../middleware/auth');
 const { get, all, run } = require('../utils/db');
-const { generateEmail } = require('../utils/ai');
+const {   generateEmail,   generateWhatsAppMessage } = require('../utils/ai');
 const { sendEmail } = require('../utils/gmail');
 const { syncReplies } = require('../utils/replyTracker');
 
