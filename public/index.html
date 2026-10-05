@@ -266,7 +266,10 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
 .preview-actions .text-button{font-size:12px}
 @media(min-width:701px) and (max-height:760px){#login-screen{padding-top:20px;padding-bottom:20px}.login-shell{min-height:calc(100dvh - 40px)}.login-story{padding:32px}.login-story-copy{margin-top:26px}.login-story-copy h1{font-size:35px;line-height:1.45}.login-journey{margin:24px 0}.login-form{padding:26px 36px}.login-form-body{padding:28px 0 22px}.login-welcome-icon{margin-bottom:18px}.login-divider{margin:24px 0 18px}.login-steps{gap:17px}.login-security{margin-top:24px}}
 @media(max-width:700px){#login-screen{padding:0;align-items:stretch;scrollbar-gutter:auto}.login-shell{flex:0 0 auto;min-height:100dvh;border-radius:0;align-self:stretch}.login-story,.login-form{border-radius:0;min-height:0}.login-form-body{margin:0 auto;padding:24px 0}.login-legal{padding-bottom:20px}.preview-actions{align-items:flex-start}}
-</style><style id="smart-setup-layout">.dashboard-bottom.workflow-single{grid-template-columns:1fr}.setup-empty{grid-column:1/-1;padding:32px;text-align:center;border:1px solid var(--border);background:var(--surface);border-radius:14px}.setup-empty strong{display:block;font-size:19px}.setup-empty p{font-size:14px;color:var(--text2);margin:12px 0 20px}@media(min-width:951px){.setup-grid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}}</style></head>
+</style><style id="smart-setup-layout">.dashboard-bottom.workflow-single{grid-template-columns:1fr}.setup-empty{grid-column:1/-1;padding:32px;text-align:center;border:1px solid var(--border);background:var(--surface);border-radius:14px}.setup-empty strong{display:block;font-size:19px}.setup-empty p{font-size:14px;color:var(--text2);margin:12px 0 20px}@media(min-width:951px){.setup-grid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}}</style><link rel="stylesheet" href="/assets/writing.css">
+<link rel="stylesheet" href="/assets/tour.css">
+<script src="/assets/tour.js" defer></script>
+</head>
 <body>
 
 <div id="app-loading" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px">
@@ -280,7 +283,7 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
   <aside class="sidebar"><a class="logo" href="#" onclick="nav('home');return false" aria-label="مرسال — الرئيسية"><div class="brand-lockup"><svg class="meem-mark" viewBox="0 -5 110 105" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 80V54C14 35 28 31 43 40L72 56C87 64 96 56 96 42V23C96 7 82 2 69 13L54 26" fill="none" stroke="currentColor" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/></svg><div><div class="brand-word">مرسال</div><div class="brand-caption" lang="en">Mrsaal</div></div></div></a><div class="sidebar-caption">مساحة العمل</div><nav class="nav" aria-label="التنقل الرئيسي"><button type="button" class="nav-item" data-page="home" onclick="nav('home')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1Z"/></svg><span>الرئيسية</span></button><button type="button" class="nav-item" data-page="companies" onclick="nav('companies')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"/></svg><span>الشركات</span><span class="nav-badge" id="nb-companies">0</span></button><button type="button" class="nav-item" data-page="send" onclick="nav('send')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 3-7 18-4-7-7-4 18-7ZM10 14 21 3"/></svg><span>الإرسال</span></button><button type="button" class="nav-item" data-page="report" onclick="nav('report')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3v18h17M8 16v-5m5 5V7m5 9v-8"/></svg><span>التقارير</span><span class="nav-badge" id="nb-report">0</span></button><button type="button" class="nav-item" data-page="settings" onclick="nav('settings')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="16" cy="17" r="3"/></svg><span>الإعدادات</span></button></nav><div class="sidebar-tip"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg><strong>رسالة مناسبة لكل فرصة</strong><p>راجع الرسالة قبل ما تبعتها، وخلي صوتك حاضر.</p></div><div class="sidebar-footer"><button class="account-button" onclick="openSettings('account')"><span class="avatar" id="sidebar-avatar">م</span><span class="account-text"><strong id="gmail-label">جاري الفحص...</strong><small id="gmail-sub">—</small></span><span class="gdot" id="gdot"></span></button></div></aside>
 
   <main class="main">
-    <header class="workspace-bar"><div class="workspace-location">مرسال <span>/</span> <strong id="workspace-current">الرئيسية</strong></div><div class="workspace-actions"><button class="theme-button" onclick="toggleMrsaalTheme()" aria-label="تغيير المظهر"><span class="theme-label">المظهر</span></button><button class="account-top" onclick="openSettings('account')" aria-label="إعدادات حسابك"><span class="avatar" id="top-avatar">م</span></button></div></header>
+    <header class="workspace-bar"><div class="workspace-location">مرسال <span>/</span> <strong id="workspace-current">الرئيسية</strong></div><div class="workspace-actions"><button class="theme-button tour-launch" onclick="MrsaalTour.start()">ⓘ اشرحلي الصفحة</button><button class="theme-button" onclick="toggleMrsaalTheme()" aria-label="تغيير المظهر"><span class="theme-label">المظهر</span></button><button class="account-top" onclick="openSettings('account')" aria-label="إعدادات حسابك"><span class="avatar" id="top-avatar">م</span></button></div></header>
 
     <div class="page" id="page-settings"><div class="ph"><div><h1>الإعدادات</h1><p class="page-description">حسابك، قنواتك، وكل التفاصيل اللي بتجهّز رسالتك.</p></div></div><div class="setup-return" id="setup-return" hidden><span>بتجهّز حسابك لأول مرة؟ احفظ التعديل وارجع للخطوات.</span><button class="btn btn-secondary" onclick="nav('onboarding')">رجوع للإعداد السريع</button></div><div class="settings-shell"><nav class="settings-tabs" aria-label="أقسام الإعدادات"><button type="button" data-setting="account" onclick="selectSettings('account')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="16" cy="17" r="3"/></svg>الحساب والمظهر</button><button type="button" data-setting="cv" onclick="selectSettings('cv')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8m-8 4h5"/></svg>السيرة الذاتية</button><button type="button" data-setting="channels" onclick="selectSettings('channels')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11a9 9 0 0 1-9 9 10 10 0 0 1-4-1l-5 2 1-5a9 9 0 1 1 17-5Z"/><path d="M8 11h8"/></svg>قنوات التواصل</button><button type="button" data-setting="template" onclick="selectSettings('template')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>تفضيلات الرسالة</button><button type="button" data-setting="ai" onclick="selectSettings('ai')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg>الذكاء الاصطناعي</button></nav><div class="settings-content"><section class="settings-panel" id="settings-account" hidden><div class="section-heading"><h2>حسابك</h2><p>إعدادات الدخول والمظهر.</p></div><div class="card"><div class="profile-row"><div class="avatar" id="settings-avatar">م</div><div><h3 id="profile-name">حسابك</h3><p id="profile-email" dir="ltr"></p></div><span class="state-badge ready">Google متصل</span></div><p class="section-copy">الدخول وإرسال الإيميلات مرتبطين بحساب Google اللي سجلت بيه.</p></div><div class="card"><h3>المظهر</h3><p class="section-copy">اختار المظهر المناسب ليك. اختيارك بيتحفظ على الجهاز ده.</p><div class="theme-choices"><button class="theme-choice" data-choice="light" onclick="setAppTheme('light')">☀ فاتح</button><button class="theme-choice" data-choice="dark" onclick="setAppTheme('dark')">☾ داكن</button><button class="theme-choice" data-choice="system" onclick="setAppTheme('system')">◐ حسب الجهاز</button></div></div><div class="card"><h3>الإعداد السريع</h3><p class="section-copy">ارجع لكروت البداية في أي وقت.</p><button class="btn btn-secondary" onclick="startOnboarding()">عرض خطوات الإعداد</button></div><div class="card account-footer"><div class="row"><a href="/privacy.html" target="_blank" rel="noopener">الخصوصية</a><a href="/terms.html" target="_blank" rel="noopener">الشروط</a></div><a class="btn btn-danger" href="/auth/logout">تسجيل خروج</a></div></section><section class="settings-panel" id="settings-cv" hidden><div class="section-heading"><h2>السيرة الذاتية</h2><p>الذكاء الاصطناعي بيستخدم المعلومات اللي هنا لكتابة رسالتك.</p></div><div class="card">
           <div class="card-title">📄 سيرتك الذاتية (PDF)</div>
@@ -309,41 +312,7 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
           <button id="wa-disconnect" class="btn btn-secondary" onclick="disconnectWhatsApp()">فصل الربط</button>
           <button class="btn btn-secondary" onclick="loadWhatsAppStatus()">تحديث الحالة</button>
         </div>
-      </div></section><section class="settings-panel" id="settings-template" hidden><div class="section-heading"><h2>تفضيلات الرسالة</h2><p>حدد اللغة والأسلوب، وعدّل النص قبل كل إرسال لو محتاج.</p></div><div class="card">
-        <div class="card-title">✉️ قالب الإيميل</div>
-        <div class="g2">
-          <div class="field">
-            <div class="label">موضوع الإيميل</div>
-            <input class="input" id="tpl-subject" aria-label="موضوع الرسالة" value="طلب انضمام — {your_name}" placeholder="موضوع الإيميل">
-            <div class="hint">متغيرات: <span class="code-pill">{company_name}</span> <span class="code-pill">{field}</span> <span class="code-pill">{your_name}</span></div>
-          </div>
-          <div class="field">
-            <div class="label" style="display:flex;justify-content:space-between;align-items:center">
-              <span>تفضيلات الذكاء الاصطناعي</span>
-              <button class="btn btn-secondary" style="padding:4px 8px;font-size:12px" onclick="updateAIPrompt()">♻️ توليد</button>
-            </div>
-            <div class="row" style="margin-bottom:12px">
-              <select class="select" id="ai-lang" aria-label="لغة الرسالة" style="width:auto;flex:1" onchange="updateAIPrompt()">
-                <option value="arabic">فصحى</option>
-                <option value="arabic_eg">مصرية</option>
-                <option value="arabic_sa">خليجية</option>
-                <option value="english">English</option>
-              </select>
-              <select class="select" id="ai-tone" aria-label="أسلوب الرسالة" style="width:auto;flex:1" onchange="updateAIPrompt()">
-                <option value="professional" selected>احترافي</option>
-                <option value="friendly">ودّي</option>
-                <option value="creative">مبتكر</option>
-              </select>
-              <select class="select" id="ai-len" aria-label="طول الرسالة" style="width:auto;flex:1" onchange="updateAIPrompt()">
-                <option value="short">قصير</option>
-                <option value="medium" selected>متوسط</option>
-              </select>
-            </div>
-            <textarea class="textarea" id="tpl-instructions" aria-label="تعليمات كتابة الرسالة" rows="5" placeholder="تعليمات للذكاء الاصطناعي..."></textarea>
-          </div>
-        </div>
-        <button class="btn btn-secondary" onclick="saveTemplate()">💾 حفظ القالب</button>
-      </div></section><section class="settings-panel" id="settings-ai" hidden><div class="section-heading"><h2>الذكاء الاصطناعي</h2><p>تخصيص Gemini اختياري. إعداد OpenRouter العام موجود على السيرفر.</p></div><div class="card" >
+      </div></section><section class="settings-panel" id="settings-template" hidden><div class="section-heading"><h2>أسلوبي في الكتابة</h2><p>رسالة تشبهك، مبنية على خبرتك، وبهدف واضح.</p></div><p id="writing-status" role="status" aria-live="polite"></p><div id="writing-editor"><div class="card"><div class="card-title">١ — عايز تقول إيه؟</div><div class="g2"><div class="field"><label class="label" for="ws-language">لغة الرسائل</label><select class="select" id="ws-language"><option value="egyptian">مصري مهذب</option><option value="arabic">عربي فصحى بسيط</option><option value="gulf">خليجي</option><option value="english">English</option></select></div><div class="field"><label class="label" for="ws-goal">هدف التواصل</label><select class="select" id="ws-goal"><option value="opportunity">السؤال عن فرص</option><option value="advertised">التقديم على وظيفة معلنة</option><option value="followup">متابعة تواصل سابق</option></select></div><div class="field"><label class="label" for="ws-role">الدور اللي بتدور عليه — اختياري</label><input class="input" id="ws-role" value=""></div><div class="field"><label class="label" for="ws-cta">الخطوة اللي عايزها من الطرف التاني</label><input class="input" id="ws-cta" value=""></div></div><p class="hint">اختار وظيفة معلنة أو متابعة فقط لو ده حصل فعلًا. خبراتك ومهاراتك مصدرها السي في المحفوظ.</p></div><div class="card"><div class="card-title">٢ — طريقتك أنت</div><p class="section-copy">ضيف مثالين أو تلاتة كتبتهم بنفسك. هيستخدمهم لفهم أسلوبك، مش لنقل بياناتهم للرسائل. الأمثلة هتتبعت لمزوّد الذكاء الاصطناعي عند التحليل والكتابة؛ احذف منها أي بيانات مش محتاج تشاركها.</p><div class="field"><label class="label" for="ws-example-0">مثال 1</label><textarea class="textarea" id="ws-example-0" rows="3"></textarea></div><div class="field"><label class="label" for="ws-example-1">مثال 2</label><textarea class="textarea" id="ws-example-1" rows="3"></textarea></div><div class="field"><label class="label" for="ws-example-2">مثال 3 — اختياري</label><textarea class="textarea" id="ws-example-2" rows="3"></textarea></div><button class="btn btn-secondary" id="ws-analyze" onclick="writingAnalyze()">افهم أسلوبي بالـAI</button><div id="ws-suggestion-box" hidden><p class="hint">اقتراح قابل للتعديل؛ مش هيتطبق غير لما تعتمده.</p><div class="field"><label class="label" for="ws-suggestion">وصف الأسلوب المقترح</label><textarea class="textarea" id="ws-suggestion" rows="3"></textarea></div><button class="btn btn-primary" onclick="writingAccept()">اعتمد الوصف</button></div><div class="field"><label class="label" for="ws-summary">أسلوبي المعتمد — تقدر تكتبه بنفسك</label><textarea class="textarea" id="ws-summary" rows="3"></textarea></div><div class="field"><label class="label" for="ws-forbidden">عبارات مش عايزها — كل عبارة في سطر</label><textarea class="textarea" id="ws-forbidden" rows="3"></textarea></div><div class="field"><label class="label" for="tpl-instructions">تعليمات إضافية — اختياري</label><textarea class="textarea" id="tpl-instructions" rows="3"></textarea></div><p class="hint">اختيارات اللغة والقناة لها الأولوية لو تعارضت مع التعليمات أو الأمثلة.</p></div><div class="card"><div class="card-title">٣ — لكل قناة طريقتها</div><div class="field"><label class="label" for="ws-mode">طريقة الكتابة</label><select class="select" id="ws-mode"><option value="ai">كتابة بالـAI مع مراجعة</option><option value="template">قالب ثابت بمتغيرات فقط</option></select></div><div class="field"><label class="label" for="tpl-subject">عنوان الإيميل — اختياري، الـAI يقترح عنوان لو سيبته فاضي</label><input class="input" id="tpl-subject" value=""></div><div class="g2"><div class="writing-channel"><h3>الإيميل</h3><div class="field"><label class="label" for="ws-email-tone">النبرة</label><select class="select" id="ws-email-tone"><option value="professional">مهني وبسيط</option><option value="friendly">ودّي ومحترم</option><option value="direct">مباشر</option></select></div><div class="field"><label class="label" for="ws-email-length">الطول</label><select class="select" id="ws-email-length"><option value="short">قصير</option><option value="medium">متوسط</option></select></div><div class="field"><label class="label" for="ws-email-opening">بداية مفضلة — اختياري</label><input class="input" id="ws-email-opening" value=""></div><div class="field"><label class="label" for="ws-email-closing">نهاية مفضلة — اختياري</label><input class="input" id="ws-email-closing" value=""></div><div class="field"><label class="label" for="ws-email-template">نص القالب الثابت</label><textarea class="textarea" id="ws-email-template" rows="3"></textarea></div></div><div class="writing-channel"><h3>الواتساب</h3><div class="field"><label class="label" for="ws-whatsapp-tone">النبرة</label><select class="select" id="ws-whatsapp-tone"><option value="professional">مهني وبسيط</option><option value="friendly">ودّي ومحترم</option><option value="direct">مباشر</option></select></div><div class="field"><label class="label" for="ws-whatsapp-length">الطول</label><select class="select" id="ws-whatsapp-length"><option value="short">قصير</option><option value="medium">متوسط</option></select></div><div class="field"><label class="label" for="ws-whatsapp-opening">بداية مفضلة — اختياري</label><input class="input" id="ws-whatsapp-opening" value=""></div><div class="field"><label class="label" for="ws-whatsapp-closing">نهاية مفضلة — اختياري</label><input class="input" id="ws-whatsapp-closing" value=""></div><div class="field"><label class="label" for="ws-whatsapp-template">نص القالب الثابت</label><textarea class="textarea" id="ws-whatsapp-template" rows="3"></textarea></div></div></div><p class="hint">القالب الثابت يدعم {company_name} و{field} و{role}. اكتب اسمك بنفسك. هيحافظ على نصك، وتقدر تطلب تعديل بالـAI من المعاينة.</p></div><div class="writing-actions"><button class="btn btn-primary" id="ws-save" onclick="saveTemplate()">حفظ أسلوبي</button><button class="btn btn-secondary" onclick="writingTry()">حفظ وتجربة على شركة</button><button class="btn btn-secondary" onclick="nav('companies')">اختيار شركة من القائمة</button></div><div class="card"><div class="field"><label class="label" for="ws-test-company">شركة لتجربة الرسالة</label><select class="select" id="ws-test-company"><option value="">اختار شركة</option></select></div><p class="hint">التجربة تولّد مسودة فقط؛ مفيش إرسال إلا بزر الإرسال المعتاد بعد مراجعتك.</p></div></div></section><section class="settings-panel" id="settings-ai" hidden><div class="section-heading"><h2>الذكاء الاصطناعي</h2><p>تخصيص Gemini اختياري. إعداد OpenRouter العام موجود على السيرفر.</p></div><div class="card" >
         <div class="card-title">إعدادات Gemini الشخصية</div><p class="section-copy">لو سايب المفتاح فاضي، التطبيق بيستخدم إعدادات الذكاء الاصطناعي المتاحة على السيرفر. ترتيب Gemini وOpenRouter بيتحدد من إعدادات السيرفر.</p>
         <div class="field">
           <div class="label">مفتاح Gemini الخاص بك — اختياري</div>
@@ -510,10 +479,10 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
     <div id="prev-form">
       <div class="field"><div class="label">📧 إلى</div><input class="input" id="prev-email" readonly style="direction:ltr;text-align:left"></div>
       <div class="field" id="prev-subject-field"><div class="label">الموضوع</div><input class="input" id="prev-subject"></div>
-      <div class="field"><div class="label" id="prev-body-label">نص الرسالة</div><textarea class="textarea" id="prev-body" dir="auto" rows="10"></textarea></div>
+      <div class="writing-revision"><div class="row"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('shorten')">اختصرها</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('simplify')">خليها أبسط</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('casual')">قلل الرسمية</button><button class="btn btn-secondary" data-writing-control onclick="writingReference()">احفظها كمرجع لأسلوبي</button></div><label class="label" for="writing-note">ملاحظة على المسودة</label><div class="row"><input class="input" id="writing-note" placeholder="مثلًا: ابدأ بسبب التواصل على طول"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('custom')">طبّق ملاحظتي</button></div><p id="writing-review" class="hint" role="status" aria-live="polite"></p></div><div class="field"><div class="label" id="prev-body-label">نص الرسالة</div><textarea class="textarea" id="prev-body" dir="auto" rows="10"></textarea></div>
       <div class="row">
         <button class="btn btn-primary" id="btn-confirm" onclick="confirmSend()">✉️ إرسال</button>
-        <button class="btn btn-secondary" onclick="regenerate()">🔄 إعادة الكتابة</button>
+        <button class="btn btn-secondary" onclick="MrsaalTour.start('preview')">ⓘ اشرح المعاينة</button><button class="btn btn-secondary" data-writing-control onclick="regenerate()">🔄 إعادة الكتابة</button>
         <button class="btn btn-secondary" onclick="skipCo()">⏭️ تخطي</button>
         <div id="prev-send-status" style="font-size:12px;color:var(--text2)"></div>
       </div>
@@ -565,22 +534,11 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="/assets/writing.js"></script>
 <script>
 let companies = [], log = [], prevCompanyId = null, sendQueue = [], stopFlag = false, excelFile = null;
 
-function updateAIPrompt() {
-  const lang = document.getElementById('ai-lang').value;
-  const tone = document.getElementById('ai-tone').value;
-  const len  = document.getElementById('ai-len').value;
-  let langTxt = 'باللغة العربية الفصحى';
-  if (lang==='arabic_eg') langTxt='باللهجة المصرية';
-  if (lang==='arabic_sa') langTxt='باللهجة الخليجية';
-  if (lang==='english')   langTxt='in English';
-  const toneTxt = tone==='professional'?'رسمي واحترافي':(tone==='friendly'?'ودّي ومباشر':'مبتكر وجذاب');
-  const lenTxt  = len==='short'?'قصير جداً (فقرة)':'متوسط (3 فقرات)';
-  document.getElementById('tpl-instructions').value =
-    `اكتب إيميل تقديم وظيفي ${langTxt} للتقدم لشركة {company_name} في مجال {field}.\nالأسلوب: ${toneTxt}.\nالطول: ${lenTxt}.\nابرز أهم المهارات المناسبة لمجال الشركة.`;
-}
+
 
 // Auth starts after all state declarations below.
 
@@ -648,6 +606,7 @@ function nav(page) {
   document.getElementById('setup-return').hidden=!onboardingEditing;
   refreshWorkspace();
   window.scrollTo({top:0,behavior:'instant'});
+  window.MrsaalTour?.contextChanged();
 }
 
 function setGmail(on, label, sub) {
@@ -694,22 +653,9 @@ async function loadCV() {
   } catch {}
 }
 
-async function saveTemplate() {
-  const subject_template = document.getElementById('tpl-subject').value;
-  const instructions = document.getElementById('tpl-instructions').value;
-  try {
-    await api('/api/cv/template','POST',{subject_template,instructions});
-    templateReady=true;refreshWorkspace();toast('تم حفظ التفضيلات','success');
-  } catch(err) { toast(err.message,'error'); }
-}
+async function saveTemplate(){return writingSave();}
 
-async function loadTemplate() {
-  try {
-    const tpl = await api('/api/cv/template');
-    if(tpl.subject_template) document.getElementById('tpl-subject').value = tpl.subject_template;
-    if(tpl.instructions) document.getElementById('tpl-instructions').value = tpl.instructions; templateReady=!!(tpl.id || tpl.instructions?.trim()); refreshWorkspace();
-  } catch {}
-}
+async function loadTemplate(){return writingLoad();}
 
 async function uploadExcel(e) {
   const file = e.target.files[0]; if(!file) return;
@@ -810,7 +756,7 @@ async function loadCompanies() {
   try {
     const data = await api('/api/companies');
     if(!Array.isArray(data)) throw new Error('السيرفر لم يُرجع قائمة شركات صحيحة');
-    companies = data;
+    companies = data; writingCompanies();
     renderCompanies();
     updateSendStats();refreshWorkspace();
     return true;
@@ -904,6 +850,7 @@ async function previewOne(id) {
   document.getElementById('prev-form').style.opacity='.4';
   document.getElementById('preview-overlay').classList.add('open');
   document.getElementById('prev-send-status').textContent='';
+  document.getElementById('writing-review').textContent='جاري الكتابة ومراجعة المسودة…';
   await genPreview(id);
 }
 
@@ -911,12 +858,13 @@ let previewRequest = 0;
 async function genPreview(id) {
   const requestId = ++previewRequest;
   document.getElementById('btn-confirm').disabled=true;
+  writingBusy(true);
   document.getElementById('prev-send-status').textContent='';
   try {
-    const r=await api('/api/email/generate','POST',{companyId:id});
+    const r=await api('/api/writing/generate','POST',{companyId:id});
     if(requestId!==previewRequest || id!==prevCompanyId) return;
     document.getElementById('prev-subject').value=r.subject||'';
-    document.getElementById('prev-body').value=r.body||'';
+    document.getElementById('prev-body').value=r.body||''; writingReview(r);
     document.getElementById('prev-subject-field').style.display=r.channel==='whatsapp'?'none':'';
     document.getElementById('prev-body-label').textContent=r.channel==='whatsapp'?'رسالة واتساب':'نص الإيميل';
     document.getElementById('btn-confirm').disabled=!r.body?.trim();
@@ -927,7 +875,7 @@ async function genPreview(id) {
   } finally {
     if(requestId===previewRequest && id===prevCompanyId){
       document.getElementById('prev-loading').style.display='none';
-      document.getElementById('prev-form').style.opacity='1';
+      document.getElementById('prev-form').style.opacity='1'; writingBusy(false);
     }
   }
 }
@@ -1299,7 +1247,7 @@ function finishOnboarding(skip){const prefs=getSetupPreferences();prefs.dismisse
 function startOnboarding(){onboardingEditing=true;nav('onboarding');}
 function editSetup(key){onboardingEditing=true;activeSetting=key;nav('settings');}
 function openSettings(key='account'){onboardingEditing=false;activeSetting=key;nav('settings');}
-function selectSettings(key){if(!['account','cv','channels','template','ai'].includes(key))key='account';activeSetting=key;document.querySelectorAll('.settings-panel').forEach(el=>el.hidden=el.id!=='settings-'+key);document.querySelectorAll('[data-setting]').forEach(el=>{el.classList.toggle('active',el.dataset.setting===key);el.setAttribute('aria-pressed',el.dataset.setting===key?'true':'false');});}
+function selectSettings(key){if(!['account','cv','channels','template','ai'].includes(key))key='account';activeSetting=key;document.querySelectorAll('.settings-panel').forEach(el=>el.hidden=el.id!=='settings-'+key);document.querySelectorAll('[data-setting]').forEach(el=>{el.classList.toggle('active',el.dataset.setting===key);el.setAttribute('aria-pressed',el.dataset.setting===key?'true':'false');});window.MrsaalTour?.contextChanged();}
 function openImporter(){nav('companies');const panel=document.getElementById('import-panel');panel.open=true;panel.scrollIntoView({behavior:'smooth',block:'start'});}
 function ensureCV(){if(cvReady)return true;toast('ضيف السيرة الذاتية الأول عشان نكتب رسالة تعبّر عنك','error');openSettings('cv');return false;}
 function setAppTheme(choice){let theme=choice==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):choice;document.documentElement.dataset.theme=theme;try{localStorage.setItem('mrsaal-theme-choice',choice);if(choice==='system')localStorage.removeItem('mrsaal-theme');else localStorage.setItem('mrsaal-theme',theme)}catch{}updateMrsaalThemeLabels();}
