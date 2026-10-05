@@ -1,62 +1,49 @@
-// server.js
 require('dotenv').config();
-const express = require('express');
-const session = require('express-session');
-const path = require('path');
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.set('trust proxy', 1);
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.get('/health', (req, res) => res.status(200).send('OK'));
-
-const server = app.listen(PORT, () => {
-  console.log(`\n🚀 Server listening on port ${PORT}`);
-  lazyInit();
-});
-
-async function lazyInit() {
-  try {
-    console.log('⏳ Initialising database...');
-    const { initDB, pool } = require('./utils/db');
+const express=require('express');
+const session=require('express-session');
+const path=require('path');
+const app=express();
+const PORT=process.env.PORT||3000;
+let ready=false;
+app.set('trust proxy',1);
+app.use(express.json({limit:'50mb'}));
+app.use(express.urlencoded({extended:true,limit:'50mb'}));
+app.use(express.static(path.join(__dirname,'public')));
+app.get('/health',(req,res)=>res.status(ready?200:503).send(ready?'OK':'Initialising'));
+const server=app.listen(PORT,()=>{console.log(`Server listening on port ${PORT}`);lazyInit();});
+async function lazyInit(){
+  try{
+    const {initDB,pool}=require('./utils/db');
     await initDB();
-
-    const pgSession = require('connect-pg-simple')(session);
-    app.use(session({
-      store: new pgSession({ pool, tableName: 'session', createTableIfMissing: false }),
-      secret: process.env.SESSION_SECRET || 'mrsaal-dev-secret',
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        maxAge: 90 * 24 * 60 * 60 * 1000
-      }
-    }));
-
-    app.use('/auth',          require('./routes/auth'));
-    app.use('/api/companies', require('./routes/companies'));
-    app.use('/api/cv',        require('./routes/cv'));
-    app.use('/api/email',     require('./routes/email'));
-    app.use('/api/settings',  require('./routes/settings'));
-    app.use('/track',         require('./routes/tracking'));
-
-    app.get('*', (req, res) =>
-      res.sendFile(path.join(__dirname, 'public', 'index.html'))
-    );
-
-    console.log('✅ Routes loaded.');
-
-    const { startScheduler } = require('./utils/scheduler');
-    startScheduler();
-
-    console.log('✨ All systems initialised.');
-  } catch (err) {
-    console.error('❌ Init error:', err);
-    process.exit(1);
-  }
+    const {ensureSchedulerSchema,startScheduler}=require('./utils/scheduler');
+    await ensureSchedulerSchema();
+    const pgSession=require('connect-pg-simple')(session);
+    if(!process.env.SESSION_SECRET) throw new Error('SESSION_SECRET is required');
+    app.use(session({store:new pgSession({pool,tableName:'session',createTableIfMissing:false}),
+      secret:process.env.SESSION_SECRET,resave:false,saveUninitialized:false,
+      cookie:{secure:process.env.NODE_ENV==='production',httpOnly:true,sameSite:'lax',maxAge:90*24*60*60*1000}}));
+    app.use('/auth',require('./routes/auth'));
+    app.use('/api/companies',require('./routes/companies'));
+    app.use('/api/cv',require('./routes/cv'));
+    app.use('/api/email',require('./routes/email'));
+    app.use('/api/settings',require('./routes/settings'));
+    app.use('/api/whatsapp',require('./routes/whatsapp'));
+    app.use('/track',require('./routes/tracking'));
+    app.use('/api',(req,res)=>res.status(404).json({error:'المسار غير موجود'}));
+    app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
+    await require('./utils/whatsapp').restoreSessions();
+    startScheduler();ready=true;console.log('All systems initialised.');
+  }catch(err){console.error('Init error:',err.message);process.exit(1);}
 }
+let closing=false;
+async function close(){
+  if(closing)return;closing=true;ready=false;
+  require('./utils/scheduler').stopScheduler();
+  server.close();
+  const timer=setTimeout(()=>process.exit(0),10000);timer.unref();
+  await require('./utils/whatsapp').shutdown();
+  await require('./utils/db').pool.end();
+  process.exit(0);
+}
+process.on('SIGTERM',()=>close().catch(()=>process.exit(1)));
+process.on('SIGINT',()=>close().catch(()=>process.exit(1)));
