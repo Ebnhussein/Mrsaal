@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const { all, get, run } = require('./db');
 const QRCode = require('qrcode');
 const pino = require('pino');
+const {ensureTrackingSchema,attachTracking}=require('./whatsappTracking');
 const sessions = new Map();
 let libraryPromise;
 let schemaPromise;
@@ -32,11 +33,14 @@ function unseal(value, BufferJSON) {
   return JSON.parse(Buffer.concat([decipher.update(data.subarray(28)),decipher.final()]).toString('utf8'),BufferJSON.reviver);
 }
 function ensureSchema() {
-  return schemaPromise ||= run(`CREATE TABLE IF NOT EXISTS whatsapp_auth (
+  return schemaPromise ||= (async()=>{
+    await ensureTrackingSchema();
+    return run(`CREATE TABLE IF NOT EXISTS whatsapp_auth (
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     key_id TEXT NOT NULL, encrypted_value TEXT NOT NULL,
     PRIMARY KEY(user_id,key_id)
-  )`).catch(err=>{schemaPromise=null;throw err;});
+  )`);
+  })().catch(err=>{schemaPromise=null;throw err;});
 }
 async function authState(userId, lib, entry) {
   const read = async key => {
@@ -90,6 +94,7 @@ async function openSocket(userId,entry) {
     shouldSyncHistoryMessage:()=>false,connectTimeoutMs:30000,
     getMessage:async()=>undefined});
   entry.sock=sock;
+  attachTracking(sock,userId,entry);
   sock.ev.on('creds.update',()=>{auth.saveCreds().catch(()=>{
     entry.error='تعذر حفظ جلسة واتساب';console.error('WhatsApp credential save failed');
   });});
@@ -173,7 +178,7 @@ async function sendWhatsAppMessage(userId,phone,body,attachment) {
       ? {document:attachment.data,mimetype:attachment.mimeType||'application/pdf',fileName:attachment.filename||'CV.pdf',caption:body.trim()}
       : {text:body.trim()};
     const result=await entry.sock.sendMessage(target.jid,content);
-    return {messageId:result?.key?.id||null};
+    return {messageId:result?.key?.id||null,threadId:result?.key?.remoteJid||target.jid};
   });
   entry.sendQueue=work.catch(()=>{});
   return work;
