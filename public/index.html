@@ -279,10 +279,13 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             <div class="col-map-row">
               <div><div class="label">اسم الشركة *</div><select class="select" id="mc-name"></select></div>
               <div><div class="label">الإيميل (اختياري)</div><select class="select" id="mc-email"><option value="">— لا يوجد —</option></select></div>
+              <div><div class="label">رقم التليفون (اختياري)</div><select class="select" id="mc-phone"><option value="">— لا يوجد —</option></select></div>
               <div><div class="label">المجال (اختياري)</div><select class="select" id="mc-field"><option value="">— لا يوجد —</option></select></div>
               <div><div class="label">الموقع (اختياري)</div><select class="select" id="mc-loc"><option value="">— لا يوجد —</option></select></div>
             </div>
-            <button class="btn btn-primary" onclick="commitImport()" style="width:100%">✅ استيراد الشركات</button>
+            <p style="font-size:12px;color:var(--text2);margin:12px 0">اختار عمود اسم الشركة، وعمود الإيميل أو التليفون على الأقل. الشركات التي لا تحتوي على وسيلة تواصل سيتم تخطيها.</p>
+            <button id="btn-import-companies" class="btn btn-primary" onclick="commitImport()" style="width:100%">✅ استيراد الشركات</button>
+            <div id="import-result" role="status" aria-live="polite" style="margin-top:12px;font-size:13px;white-space:pre-line"></div>
           </div>
         </div>
       </div>
@@ -595,12 +598,15 @@ async function loadTemplate() {
 async function uploadExcel(e) {
   const file = e.target.files[0]; if(!file) return;
   document.getElementById('xl-status').innerHTML = '<div style="margin-top:10px;font-size:13px;color:var(--text2)">جاري القراءة...</div>';
-  excelFile = file;
+  excelFile = null;
+  document.getElementById('xl-map').style.display = 'none';
+  document.getElementById('import-result').textContent = '';
+  document.getElementById('btn-import-companies').disabled = true;
   const fd = new FormData(); fd.append('file', file);
   try {
     const r = await apiForm('/api/companies/import', fd);
     document.getElementById('xl-status').innerHTML = pill(file.name, r.totalRows+' صف');
-    ['mc-name','mc-email','mc-field','mc-loc'].forEach(id => {
+    ['mc-name','mc-email','mc-phone','mc-field','mc-loc'].forEach(id => {
       const sel = document.getElementById(id);
       const isOpt = id !== 'mc-name';
       sel.innerHTML = isOpt ? '<option value="">— لا يوجد —</option>' : '';
@@ -614,36 +620,89 @@ async function uploadExcel(e) {
       const hl = h.name.toLowerCase();
       if(hl.includes('name')||hl.includes('اسم')||hl.includes('شركة')) document.getElementById('mc-name').value=h.index;
       if(hl.includes('email')||hl.includes('بريد')||hl.includes('إيميل')) document.getElementById('mc-email').value=h.index;
+      if(hl.includes('phone')||hl.includes('mobile')||hl.includes('تليفون')||hl.includes('هاتف')||hl.includes('موبايل')) document.getElementById('mc-phone').value=h.index;
+      if(hl === 'xxvwce') document.getElementById('mc-name').value=h.index;
+      if(hl === 'usdlk') document.getElementById('mc-phone').value=h.index;
+      if(hl === 'w4efsd') document.getElementById('mc-field').value=h.index;
       if(hl.includes('field')||hl.includes('مجال')||hl.includes('قطاع')) document.getElementById('mc-field').value=h.index;
       if(hl.includes('location')||hl.includes('city')||hl.includes('موقع')) document.getElementById('mc-loc').value=h.index;
     });
+    excelFile = file;
+    document.getElementById('btn-import-companies').disabled = false;
     document.getElementById('xl-map').style.display = 'block';
-  } catch(err) { toast('خطأ: '+err.message,'error'); }
+  } catch(err) {
+    document.getElementById('xl-status').textContent = 'تعذر قراءة الملف: ' + err.message;
+    toast('خطأ: '+err.message,'error');
+  }
 }
 
 async function commitImport() {
-  if(!excelFile) { toast('لا يوجد ملف','error'); return; }
+  const btn = document.getElementById('btn-import-companies');
+  const result = document.getElementById('import-result');
+  if(btn.disabled) return;
+  if(!excelFile) { toast('ارفع ملف الشركات أولاً','error'); return; }
+  const nameCol = document.getElementById('mc-name').value;
+  const emailCol = document.getElementById('mc-email').value;
+  const phoneCol = document.getElementById('mc-phone').value;
+  if(nameCol === '' || (emailCol === '' && phoneCol === '')) {
+    result.style.color = 'var(--yellow)';
+    result.textContent = 'اختار عمود اسم الشركة وعمود الإيميل أو التليفون قبل الاستيراد.';
+    toast(result.textContent, 'error'); return;
+  }
+  if((emailCol !== '' && emailCol === nameCol) || (phoneCol !== '' && phoneCol === nameCol) ||
+     (emailCol !== '' && phoneCol !== '' && emailCol === phoneCol)) {
+    toast('اسم الشركة والإيميل والتليفون لازم يكونوا أعمدة مختلفة.', 'error'); return;
+  }
   const fd = new FormData();
   fd.append('file', excelFile);
-  fd.append('nameCol', document.getElementById('mc-name').value);
-  fd.append('emailCol', document.getElementById('mc-email').value);
-  fd.append('phoneCol', '-1');
+  fd.append('nameCol', nameCol);
+  fd.append('emailCol', emailCol);
+  fd.append('phoneCol', phoneCol);
   fd.append('fieldCol', document.getElementById('mc-field').value);
   fd.append('locationCol', document.getElementById('mc-loc').value);
+  btn.disabled = true;
+  btn.textContent = 'جاري الاستيراد...';
+  result.textContent = '';
   try {
     const r = await apiForm('/api/companies/import/commit', fd);
-    await loadCompanies();
-    toast(`✅ تم استيراد ${r.added} شركة${r.skipped?' (تخطي '+r.skipped+')':''}`, 'success');
-    if(r.added>0) nav('companies');
-  } catch(err) { toast(err.message,'error'); }
+    result.style.color = r.added > 0 ? 'var(--green)' : 'var(--yellow)';
+    result.textContent = `تم استيراد ${r.added} شركة، وتم تخطي ${r.skipped || 0} صف.
+` +
+      (r.skipped ? 'التخطي قد يكون بسبب تكرار البيانات، أو غياب الاسم ووسيلة التواصل، أو إيميل غير صالح.' : '');
+    const loaded = await loadCompanies();
+    if(!loaded) {
+      result.textContent += '\nنتيجة الاستيراد وصلت من السيرفر، لكن تعذر تحميل قائمة الشركات. جرّب تحديث الصفحة.';
+      return;
+    }
+    toast(r.added > 0 ? `تم استيراد ${r.added} شركة ✅` : 'لم تتم إضافة شركات. راجع الأعمدة والصفوف المتخطاة.', r.added > 0 ? 'success' : 'info');
+    if(r.added > 0) {
+      document.getElementById('filter-status').value = 'all';
+      renderCompanies();
+      nav('companies');
+    }
+  } catch(err) {
+    result.style.color = 'var(--red)';
+    result.textContent = 'تعذر تأكيد اكتمال الاستيراد: ' + err.message + '\nراجع قائمة الشركات قبل إعادة المحاولة، فقد تكون بعض الصفوف اتسجلت.';
+    toast(err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✅ استيراد الشركات';
+  }
 }
 
 async function loadCompanies() {
   try {
-    companies = await api('/api/companies');
+    const data = await api('/api/companies');
+    if(!Array.isArray(data)) throw new Error('السيرفر لم يُرجع قائمة شركات صحيحة');
+    companies = data;
     renderCompanies();
     updateSendStats();
-  } catch {}
+    return true;
+  } catch(err) {
+    console.error('تحميل الشركات:', err);
+    toast('تعذر تحميل الشركات: ' + err.message, 'error');
+    return false;
+  }
 }
 
 function filterCompanies() { renderCompanies(); }
@@ -662,14 +721,15 @@ function renderCompanies() {
       <td><input type="checkbox" class="chk" ${c.selected?'checked':''} onchange="toggleChk('${c.id}',this.checked)"></td>
       <td><strong>${esc(c.name)}</strong></td>
       <td class="mono">${c.email?esc(c.email):'<span style="color:var(--text3)">—</span>'}</td>
-      <td>${c.field||'<span style="color:var(--text3)">—</span>'}</td>
-      <td>${c.location||'<span style="color:var(--text3)">—</span>'}</td>
+      <td class="mono">${c.phone?esc(c.phone):'—'}</td>
+      <td>${esc(c.field)||'<span style="color:var(--text3)">—</span>'}</td>
+      <td>${esc(c.location)||'<span style="color:var(--text3)">—</span>'}</td>
       <td><span class="tag ${c.status}">${stLabel(c.status)}</span></td>
       <td><button class="btn btn-secondary" style="padding:5px 10px;font-size:11px" onclick="previewOne('${c.id}')">👁️ معاينة</button></td>
     </tr>`).join('');
   document.getElementById('companies-container').innerHTML = `
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>☑</th><th>الشركة</th><th>الإيميل</th><th>المجال</th><th>الموقع</th><th>الحالة</th><th>إجراء</th></tr></thead>
+      <thead><tr><th>☑</th><th>الشركة</th><th>الإيميل</th><th>التليفون</th><th>المجال</th><th>الموقع</th><th>الحالة</th><th>إجراء</th></tr></thead>
       <tbody>${rows}</tbody>
     </table></div>`;
 }
