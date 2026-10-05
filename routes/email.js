@@ -80,10 +80,10 @@ router.post('/send', requireAuth, async (req, res) => {
 
   if (!hasEmail(company) && hasPhone(company)) {
     try {
-      await sendWhatsAppMessage(req.session.userId, company.phone, body, attachment);
+      const result = await sendWhatsAppMessage(req.session.userId, company.phone, body, attachment);
       await run('UPDATE companies SET status=$1 WHERE id=$2', ['sent', companyId]);
-      await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,subject,body,status,channel) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-        [logId, req.session.userId, companyId, company.name, company.phone, subject||'', body, 'sent', 'whatsapp']);
+      await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,subject,body,status,channel,message_id,thread_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+        [logId, req.session.userId, companyId, company.name, company.phone, subject||'', body, 'sent', 'whatsapp',result.messageId,result.threadId]);
       return res.json({ ok: true, status: 'sent', channel: 'whatsapp' });
     } catch (err) {
       await run('UPDATE companies SET status=$1 WHERE id=$2', ['failed', companyId]);
@@ -164,10 +164,10 @@ router.post('/send-bulk', requireAuth, async (req, res) => {
     try {
       if (channel === 'whatsapp') {
         const message = await generateWhatsAppMessage({ cv: cv.content, company, instructions: tpl?.instructions, apiKey, modelName });
-        await sendWhatsAppMessage(req.session.userId, company.phone, message, attachment);
+        const result = await sendWhatsAppMessage(req.session.userId, company.phone, message, attachment);
         await run('UPDATE companies SET status=$1 WHERE id=$2', ['sent', company.id]);
-        await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,body,status,channel) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
-          [logId, req.session.userId, company.id, company.name, company.phone, message, 'sent', 'whatsapp']);
+        await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,body,status,channel,message_id,thread_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+          [logId, req.session.userId, company.id, company.name, company.phone, message, 'sent', 'whatsapp',result.messageId,result.threadId]);
       } else {
         const email = await generateEmail({ cv: cv.content, company, instructions: tpl?.instructions, subjectTemplate: tpl?.subject_template, apiKey, modelName });
         const trackingUrl = `${BASE_URL}/track/open/${logId}.gif`;
