@@ -29,7 +29,7 @@ router.post('/generate', requireAuth, async (req, res) => {
         instructions: tpl?.instructions,
         subjectTemplate: tpl?.subject_template,
         apiKey: userSettings?.gemini_key || null,
-        modelName: userSettings?.gemini_model || 'gemini-2.5-flash-lite'
+        modelName: userSettings?.gemini_model || null
       });
       return res.json({ channel: 'email', ...email });
     }
@@ -38,7 +38,7 @@ router.post('/generate', requireAuth, async (req, res) => {
         cv: cv.content, company,
         instructions: tpl?.instructions,
         apiKey: userSettings?.gemini_key || null,
-        modelName: userSettings?.gemini_model || 'gemini-2.5-flash-lite'
+        modelName: userSettings?.gemini_model || null
       });
       return res.json({ channel: 'whatsapp', body: message });
     }
@@ -123,7 +123,7 @@ router.post('/send-bulk', requireAuth, async (req, res) => {
     catch(err){return res.status(409).json({error:err.message});}
   }
   const apiKey = user?.gemini_key || null;
-  const modelName = user?.gemini_model || 'gemini-2.5-flash-lite';
+  const modelName = user?.gemini_model || null;
 
   if (scheduleType === 'scheduled' && scheduledAt) {
     const tsMs = new Date(scheduledAt).getTime();

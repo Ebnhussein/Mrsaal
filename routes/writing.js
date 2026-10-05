@@ -1,8 +1,8 @@
 'use strict';
 const router=require('express').Router();
-const {randomUUID}=require('crypto');
 const {requireAuth}=require('../middleware/auth');
-const {pool,get}=require('../utils/db');
+const {get}=require('../utils/db');
+const {replaceLatest}=require('../utils/user-records');
 const {normalize,encode,decode}=require('../utils/writing-profile');
 const {generate,analyzeStyle}=require('../utils/ai');
 router.use(requireAuth);
@@ -15,7 +15,7 @@ router.get('/',wrap(async(req,res)=>{const t=await template(req.session.userId);
 router.post('/',wrap(async(req,res)=>{
  const p=normalize(req.body.profile);const subject=typeof req.body.subject==='string'?req.body.subject.trim().slice(0,240):'';
  if(/[\r\n]/.test(subject))throw new Error('العنوان لازم يكون سطر واحد.');
- const client=await pool.connect();try{await client.query('BEGIN');await client.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[req.session.userId]);await client.query('DELETE FROM templates WHERE user_id=$1',[req.session.userId]);await client.query('INSERT INTO templates(id,user_id,subject_template,instructions) VALUES($1,$2,$3,$4)',[randomUUID(),req.session.userId,subject,encode(p)]);await client.query('COMMIT');}catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}res.json({ok:true,profile:p});
+ await replaceLatest('templates',req.session.userId,{subject_template:subject,instructions:encode(p)});res.json({ok:true,profile:p});
 }));
 router.post('/analyze',wrap(async(req,res)=>{const p=normalize(req.body.profile);res.json(await aiJob(req.session.userId,async()=>analyzeStyle(p,await settings(req.session.userId))));}));
 router.post('/generate',wrap(async(req,res)=>{
