@@ -950,7 +950,7 @@ function renderLog(){
   if(!log.length){container.innerHTML=`<div class="empty"><div class="empty-ico">📭</div><div class="empty-t">السجل فارغ</div><div class="empty-s">ستظهر هنا نتائج الإرسال</div></div>`;return;}
   const rows=log.map(l=>{
     const statusClass=l.replied?'replied':(l.open_count>0?'opened':l.status);
-    const statusText=l.replied?'تم الرد 💬':(l.open_count>0?`فُتح ${l.open_count} مرة`:stLabel(l.status));
+    const statusText=l.replied?'تم الرد 💬':(l.channel==='whatsapp'?(l.whatsapp_read_at?'اتقرت ✓✓':l.whatsapp_delivered_at?'وصلت ✓✓':stLabel(l.status)):(l.open_count>0?`فُتح ${l.open_count} مرة`:stLabel(l.status)));
     return `<tr class="${l.replied?'row-replied':''}">
       <td><div style="font-weight:700">${esc(l.company_name)}</div><div style="font-size:10px;color:var(--text3)">${new Date(l.sent_at*1000).toLocaleString('ar')}</div></td>
       <td class="mono" style="font-size:11px">${esc(l.company_email)}</td>
@@ -963,7 +963,10 @@ function renderLog(){
 
 async function viewLogDetail(id){
   const l=log.find(x=>x.id===id); if(!l) return;
-  alert(`الشركة: ${l.company_name}\nالحالة: ${stLabel(l.status)}\nعدد مرات الفتح: ${l.open_count}\nتم الرد: ${l.replied?'نعم':'لا'}${l.reply_text?'\nالرد:\n'+l.reply_text:''}${l.reason?'\nالسبب: '+l.reason:''}`);
+  const state=l.channel==='whatsapp'
+    ? `القناة: واتساب\nالتسليم: ${l.whatsapp_delivered_at?'وصلت':'لم يصل تأكيد بعد'}\nالقراءة: ${l.whatsapp_read_at?'اتقرت':'لم يصل تأكيد قراءة'}${!l.message_id?'\nهذه رسالة قديمة بدون معرّف؛ القراءة لا يمكن تتبعها.':''}`
+    : `القناة: إيميل\nعدد مرات الفتح: ${l.open_count||0}`;
+  alert(`الشركة: ${l.company_name}\nالحالة: ${stLabel(l.status)}\n${state}\nتم الرد: ${l.replied?'نعم':'لم يُرصد رد بعد'}${l.reply_text?'\nالرد:\n'+l.reply_text:''}${l.reason?'\nالسبب: '+l.reason:''}`);
 }
 
 async function clearLog(){
@@ -1042,6 +1045,13 @@ async function disconnectWhatsApp(){
 }
 waTimer=setInterval(loadWhatsAppStatus,4000);
 loadWhatsAppStatus();
+
+let refreshingReports=false;
+setInterval(async()=>{
+  if(refreshingReports || !document.querySelector('.app.active') || !document.querySelector('#page-report.active'))return;
+  refreshingReports=true;
+  try{await loadLog();}finally{refreshingReports=false;}
+},5000);
 </script>
 </body>
 </html>
