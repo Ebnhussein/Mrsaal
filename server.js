@@ -40,6 +40,7 @@ async function lazyInit() {
   try {
     const { initDB, pool } = require('./utils/db');
     await initDB();
+    await require('./utils/connections-schema').ensureConnectionsSchema();
 
     const {
       ensureSchedulerSchema,
@@ -83,6 +84,8 @@ async function lazyInit() {
 
     app.use('/api/email', require('./routes/email'));
     app.use('/api/settings', require('./routes/settings'));
+    app.use('/api/accounts', require('./routes/accounts'));
+    app.use('/api/providers', require('./routes/providers'));
     app.use('/api/whatsapp', require('./routes/whatsapp'));
     app.use('/track', require('./routes/tracking'));
 
