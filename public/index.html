@@ -246,6 +246,18 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
     <div class="page active" id="page-setup">
       <div class="ph"><div class="ph-title">الإعداد <span class="ph-sub">ابدأ من هنا</span></div></div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-title">📱 ربط واتساب</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px">اربط حسابك من واتساب ← الأجهزة المرتبطة ← ربط جهاز. كل مستخدم له جلسة منفصلة.</p>
+        <div id="wa-status" role="status" aria-live="polite">جارٍ قراءة حالة الاتصال...</div>
+        <img id="wa-qr" alt="رمز ربط واتساب" style="display:none;width:280px;max-width:100%;margin:16px auto;border-radius:12px">
+        <div class="row" style="margin-top:12px">
+          <button id="wa-connect" class="btn btn-primary" onclick="connectWhatsApp()">ربط واتساب / إعادة الاتصال</button>
+          <button id="wa-disconnect" class="btn btn-secondary" onclick="disconnectWhatsApp()">فصل الربط</button>
+          <button class="btn btn-secondary" onclick="loadWhatsAppStatus()">تحديث الحالة</button>
+        </div>
+      </div>
+
       <div class="g2">
         <div class="card">
           <div class="card-title">📄 سيرتك الذاتية (PDF)</div>
@@ -441,12 +453,12 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
     <div id="prev-loading" style="text-align:center;padding:40px;display:none">
       <div class="spin" style="width:28px;height:28px;margin:0 auto 12px"></div>
-      <div style="font-size:13px;color:var(--text2)">الذكاء الاصطناعي يكتب الإيميل...</div>
+      <div style="font-size:13px;color:var(--text2)">الذكاء الاصطناعي يكتب الرسالة...</div>
     </div>
     <div id="prev-form">
       <div class="field"><div class="label">📧 إلى</div><input class="input" id="prev-email" readonly style="direction:ltr;text-align:left"></div>
-      <div class="field"><div class="label">الموضوع</div><input class="input" id="prev-subject"></div>
-      <div class="field"><div class="label">نص الإيميل</div><textarea class="textarea" id="prev-body" rows="10"></textarea></div>
+      <div class="field" id="prev-subject-field"><div class="label">الموضوع</div><input class="input" id="prev-subject"></div>
+      <div class="field"><div class="label" id="prev-body-label">نص الرسالة</div><textarea class="textarea" id="prev-body" rows="10"></textarea></div>
       <div class="row">
         <button class="btn btn-primary" id="btn-confirm" onclick="confirmSend()">✉️ إرسال</button>
         <button class="btn btn-secondary" onclick="regenerate()">🔄 إعادة الكتابة</button>
@@ -774,8 +786,11 @@ async function previewOne(id) {
   prevCompanyId=id;
   const co=companies.find(c=>c.id===id); if(!co) return;
   document.getElementById('prev-company').textContent=co.name;
-  document.getElementById('prev-to').textContent=co.email;
-  document.getElementById('prev-email').value=co.email;
+  const isWhatsApp = !co.email && !!co.phone;
+  document.getElementById('prev-to').textContent=(isWhatsApp?'واتساب: ':'إيميل: ')+(co.email||co.phone||'');
+  document.getElementById('prev-subject-field').style.display=isWhatsApp?'none':'';
+  document.getElementById('prev-body-label').textContent=isWhatsApp?'رسالة واتساب':'نص الإيميل';
+  document.getElementById('prev-email').value=co.email||co.phone||'';
   document.getElementById('prev-subject').value='';
   document.getElementById('prev-body').value='';
   document.getElementById('prev-loading').style.display='block';
@@ -785,20 +800,32 @@ async function previewOne(id) {
   await genPreview(id);
 }
 
+let previewRequest = 0;
 async function genPreview(id) {
+  const requestId = ++previewRequest;
+  document.getElementById('btn-confirm').disabled=true;
+  document.getElementById('prev-send-status').textContent='';
   try {
     const r=await api('/api/email/generate','POST',{companyId:id});
+    if(requestId!==previewRequest || id!==prevCompanyId) return;
     document.getElementById('prev-subject').value=r.subject||'';
     document.getElementById('prev-body').value=r.body||'';
+    document.getElementById('prev-subject-field').style.display=r.channel==='whatsapp'?'none':'';
+    document.getElementById('prev-body-label').textContent=r.channel==='whatsapp'?'رسالة واتساب':'نص الإيميل';
+    document.getElementById('btn-confirm').disabled=!r.body?.trim();
   } catch(err) {
-    document.getElementById('prev-body').value='خطأ: '+err.message;
+    if(requestId!==previewRequest || id!==prevCompanyId) return;
+    document.getElementById('prev-body').value='';
+    document.getElementById('prev-send-status').textContent='تعذر توليد الرسالة: '+err.message;
   } finally {
-    document.getElementById('prev-loading').style.display='none';
-    document.getElementById('prev-form').style.opacity='1';
+    if(requestId===previewRequest && id===prevCompanyId){
+      document.getElementById('prev-loading').style.display='none';
+      document.getElementById('prev-form').style.opacity='1';
+    }
   }
 }
 
-function closePrev(){document.getElementById('preview-overlay').classList.remove('open')}
+function closePrev(){previewRequest++;document.getElementById('preview-overlay').classList.remove('open')}
 
 async function regenerate() {
   document.getElementById('prev-loading').style.display='block';
@@ -808,6 +835,8 @@ async function regenerate() {
 
 async function confirmSend() {
   const btn=document.getElementById('btn-confirm');
+  if(btn.disabled)return;
+  if(!document.getElementById('prev-body').value.trim()){toast('اكتب نص الرسالة أولاً','error');return;}
   const status=document.getElementById('prev-send-status');
   btn.disabled=true; btn.innerHTML='<div class="spin"></div> جاري الإرسال...';
   const schedType=document.getElementById('sched-type').value;
@@ -858,7 +887,7 @@ async function startSend() {
     try {
       const r=await api('/api/email/send-bulk','POST',{companyIds:queue.map(c=>c.id),scheduleType:'scheduled',scheduledAt:dt});
       queue.forEach(c=>c.status='scheduled'); renderCompanies(); updateSendStats();
-      toast(`🕐 تمت جدولة ${r.scheduled} إيميل`,'success');
+      toast(`🕐 تمت جدولة ${r.scheduled} رسالة`,'success');
     } catch(err){toast(err.message,'error');}
     return;
   }
@@ -871,9 +900,15 @@ async function startSend() {
   const ids=queue.map(c=>c.id);
   const delay=parseInt(document.getElementById('delay-s').value)||5;
   const r=await fetch('/api/email/send-bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyIds:ids,scheduleType:'now',delaySeconds:delay})});
+  if(!r.ok){
+    const error=await r.json().catch(()=>({error:'تعذر بدء الإرسال'}));
+    toast(error.error||'تعذر بدء الإرسال','error');
+    document.getElementById('btn-send').style.display='';
+    document.getElementById('btn-stop').style.display='none';return;
+  }
   const reader=r.body.getReader(); const dec=new TextDecoder(); let buf='';
   while(true){
-    if(stopFlag) break;
+    if(stopFlag){await reader.cancel();break;}
     const{done,value}=await reader.read(); if(done) break;
     buf+=dec.decode(value,{stream:true});
     const lines=buf.split('\n'); buf=lines.pop();
@@ -881,10 +916,10 @@ async function startSend() {
       if(!line.startsWith('data:')) continue;
       try{
         const ev=JSON.parse(line.slice(5).trim());
-        if(ev.type==='progress'){document.getElementById('prog-text').textContent=`جاري إرسال إيميل إلى ${ev.company}...`;document.getElementById('prog-detail').textContent=`${ev.i} / ${ev.total}`;document.getElementById('prog-bar').style.width=`${(ev.i/ev.total)*100}%`;}
+        if(ev.type==='progress'){document.getElementById('prog-text').textContent=`جاري إرسال رسالة إلى ${ev.company}...`;document.getElementById('prog-detail').textContent=`${ev.i} / ${ev.total}`;document.getElementById('prog-bar').style.width=`${(ev.i/ev.total)*100}%`;}
         else if(ev.type==='sent'){const co=companies.find(c=>c.name===ev.company);if(co)co.status='sent';renderCompanies();updateSendStats();toast('✅ '+ev.company,'success');}
         else if(ev.type==='failed'){const co=companies.find(c=>c.name===ev.company);if(co)co.status='failed';renderCompanies();updateSendStats();}
-        else if(ev.type==='done'){document.getElementById('prog-text').textContent=`✅ اكتمل — أُرسل: ${ev.sent}، فشل: ${ev.failed}`;document.getElementById('prog-bar').style.width='100%';toast(`🎉 اكتمل: ${ev.sent} إيميل`,'success');await loadLog();}
+        else if(ev.type==='done'){document.getElementById('prog-text').textContent=`✅ اكتمل — أُرسل: ${ev.sent}، فشل: ${ev.failed}`;document.getElementById('prog-bar').style.width='100%';toast(`🎉 اكتمل: ${ev.sent} رسالة`,'success');await loadLog();}
       }catch{}
     }
   }
@@ -977,6 +1012,36 @@ function toast(msg,type='info'){
   t.textContent=msg; t.className=`toast ${type} show`;
   setTimeout(()=>t.classList.remove('show'),3000);
 }
+
+let waTimer = null;
+let waChecking = false;
+async function loadWhatsAppStatus() {
+  if(waChecking || !document.querySelector('.app.active'))return;
+  waChecking=true;
+  try {
+    const state=await api('/api/whatsapp/status');
+    const labels={connected:'🟢 متصل',connecting:'🟡 جاري الاتصال...',qr:'امسح رمز QR من تطبيق واتساب',disconnected:'⚪ غير متصل'};
+    document.getElementById('wa-status').textContent=(labels[state.status]||state.status)+(state.phone?' — '+state.phone:'')+(state.error?' — '+state.error:'');
+    const image=document.getElementById('wa-qr');
+    image.style.display=state.qr?'block':'none';
+    if(state.qr)image.src=state.qr;else image.removeAttribute('src');
+  }catch(err){document.getElementById('wa-status').textContent='تعذر قراءة حالة واتساب: '+err.message;}
+  finally{waChecking=false;}
+}
+async function connectWhatsApp(){
+  const button=document.getElementById('wa-connect');if(button.disabled)return;
+  button.disabled=true;
+  try{await api('/api/whatsapp/connect','POST',{});await loadWhatsAppStatus();}
+  catch(err){toast(err.message,'error');}
+  finally{button.disabled=false;}
+}
+async function disconnectWhatsApp(){
+  if(!confirm('فصل واتساب؟ هتحتاج تمسح QR من جديد عشان تربطه.'))return;
+  try{await api('/api/whatsapp/disconnect','POST',{});await loadWhatsAppStatus();}
+  catch(err){toast(err.message,'error');}
+}
+waTimer=setInterval(loadWhatsAppStatus,4000);
+loadWhatsAppStatus();
 </script>
 </body>
 </html>
