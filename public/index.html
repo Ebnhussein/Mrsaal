@@ -271,6 +271,8 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
 <script src="/assets/tour.js" defer></script>
 <link rel="stylesheet" href="/assets/support.css">
 <script src="/assets/support.js" defer></script>
+<link rel="stylesheet" href="/assets/connections.css">
+<script src="/assets/connections.js" defer></script>
 </head>
 <body>
 
@@ -304,7 +306,7 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
             <button class="btn btn-primary" onclick="saveCV()">💾 حفظ السيرة</button>
             <span id="cv-saved-note" style="font-size:12px;color:var(--green);display:none">✅ محفوظة</span>
           </div>
-        </div></section><section class="settings-panel" id="settings-channels" hidden><div class="section-heading"><h2>قنوات التواصل</h2><p>الإيميل متصل بحساب Google. تقدر تضيف واتساب كقناة تانية.</p></div><div class="card connection-summary"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg><div><h3>Gmail</h3><p id="channel-email" dir="ltr">حساب Google متصل</p></div><span class="state-badge ready">متصل</span></div><div class="card" style="margin-bottom:20px">
+        </div></section><section class="settings-panel" id="settings-channels" hidden><div class="section-heading"><h2>قنوات التواصل</h2><p>اربط حسابات Gmail واختار حساب الإرسال، أو استخدم واتساب.</p></div><div class="card" id="gmail-channel-card"><div class="connections-header"><div><h3>حسابات Gmail</h3><p class="section-copy">اختار الميل اللي هتبعت منه. إضافة ميل لا تغيّر حساب مرسال أو الشركات.</p><p id="channel-email" dir="ltr"></p></div><a class="btn btn-primary" href="/auth/google/link">＋ إضافة حساب Google</a></div><div id="gmail-accounts" class="connections-list" role="region" aria-label="حسابات الإرسال">جاري تحميل الحسابات…</div></div><div class="card" style="margin-bottom:20px">
         <div class="card-title">📱 ربط واتساب</div>
         <p style="font-size:13px;color:var(--text2);margin-bottom:12px">اربط حسابك من واتساب ← الأجهزة المرتبطة ← ربط جهاز. كل مستخدم له جلسة منفصلة.</p>
         <div id="wa-status" role="status" aria-live="polite">جارٍ قراءة حالة الاتصال...</div>
@@ -314,21 +316,7 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
           <button id="wa-disconnect" class="btn btn-secondary" onclick="disconnectWhatsApp()">فصل الربط</button>
           <button class="btn btn-secondary" onclick="loadWhatsAppStatus()">تحديث الحالة</button>
         </div>
-      </div></section><section class="settings-panel" id="settings-template" hidden><div class="section-heading"><h2>أسلوبي في الكتابة</h2><p>رسالة تشبهك، مبنية على خبرتك، وبهدف واضح.</p></div><p id="writing-status" role="status" aria-live="polite"></p><div id="writing-editor"><div class="card"><div class="card-title">١ — عايز تقول إيه؟</div><div class="g2"><div class="field"><label class="label" for="ws-language">لغة الرسائل</label><select class="select" id="ws-language"><option value="egyptian">مصري مهذب</option><option value="arabic">عربي فصحى بسيط</option><option value="gulf">خليجي</option><option value="english">English</option></select></div><div class="field"><label class="label" for="ws-goal">هدف التواصل</label><select class="select" id="ws-goal"><option value="opportunity">السؤال عن فرص</option><option value="advertised">التقديم على وظيفة معلنة</option><option value="followup">متابعة تواصل سابق</option></select></div><div class="field"><label class="label" for="ws-role">الدور اللي بتدور عليه — اختياري</label><input class="input" id="ws-role" value=""></div><div class="field"><label class="label" for="ws-cta">الخطوة اللي عايزها من الطرف التاني</label><input class="input" id="ws-cta" value=""></div></div><p class="hint">اختار وظيفة معلنة أو متابعة فقط لو ده حصل فعلًا. خبراتك ومهاراتك مصدرها السي في المحفوظ.</p></div><div class="card"><div class="card-title">٢ — طريقتك أنت</div><p class="section-copy">ضيف مثالين أو تلاتة كتبتهم بنفسك. هيستخدمهم لفهم أسلوبك، مش لنقل بياناتهم للرسائل. الأمثلة هتتبعت لمزوّد الذكاء الاصطناعي عند التحليل والكتابة؛ احذف منها أي بيانات مش محتاج تشاركها.</p><div class="field"><label class="label" for="ws-example-0">مثال 1</label><textarea class="textarea" id="ws-example-0" rows="3"></textarea></div><div class="field"><label class="label" for="ws-example-1">مثال 2</label><textarea class="textarea" id="ws-example-1" rows="3"></textarea></div><div class="field"><label class="label" for="ws-example-2">مثال 3 — اختياري</label><textarea class="textarea" id="ws-example-2" rows="3"></textarea></div><button class="btn btn-secondary" id="ws-analyze" onclick="writingAnalyze()">افهم أسلوبي بالـAI</button><div id="ws-suggestion-box" hidden><p class="hint">اقتراح قابل للتعديل؛ مش هيتطبق غير لما تعتمده.</p><div class="field"><label class="label" for="ws-suggestion">وصف الأسلوب المقترح</label><textarea class="textarea" id="ws-suggestion" rows="3"></textarea></div><button class="btn btn-primary" onclick="writingAccept()">اعتمد الوصف</button></div><div class="field"><label class="label" for="ws-summary">أسلوبي المعتمد — تقدر تكتبه بنفسك</label><textarea class="textarea" id="ws-summary" rows="3"></textarea></div><div class="field"><label class="label" for="ws-forbidden">عبارات مش عايزها — كل عبارة في سطر</label><textarea class="textarea" id="ws-forbidden" rows="3"></textarea></div><div class="field"><label class="label" for="tpl-instructions">تعليمات إضافية — اختياري</label><textarea class="textarea" id="tpl-instructions" rows="3"></textarea></div><p class="hint">اختيارات اللغة والقناة لها الأولوية لو تعارضت مع التعليمات أو الأمثلة.</p></div><div class="card"><div class="card-title">٣ — لكل قناة طريقتها</div><div class="field"><label class="label" for="ws-mode">طريقة الكتابة</label><select class="select" id="ws-mode"><option value="ai">كتابة بالـAI مع مراجعة</option><option value="template">قالب ثابت بمتغيرات فقط</option></select></div><div class="field"><label class="label" for="tpl-subject">عنوان الإيميل — اختياري، الـAI يقترح عنوان لو سيبته فاضي</label><input class="input" id="tpl-subject" value=""></div><div class="g2"><div class="writing-channel"><h3>الإيميل</h3><div class="field"><label class="label" for="ws-email-tone">النبرة</label><select class="select" id="ws-email-tone"><option value="professional">مهني وبسيط</option><option value="friendly">ودّي ومحترم</option><option value="direct">مباشر</option></select></div><div class="field"><label class="label" for="ws-email-length">الطول</label><select class="select" id="ws-email-length"><option value="short">قصير</option><option value="medium">متوسط</option></select></div><div class="field"><label class="label" for="ws-email-opening">بداية مفضلة — اختياري</label><input class="input" id="ws-email-opening" value=""></div><div class="field"><label class="label" for="ws-email-closing">نهاية مفضلة — اختياري</label><input class="input" id="ws-email-closing" value=""></div><div class="field"><label class="label" for="ws-email-template">نص القالب الثابت</label><textarea class="textarea" id="ws-email-template" rows="3"></textarea></div></div><div class="writing-channel"><h3>الواتساب</h3><div class="field"><label class="label" for="ws-whatsapp-tone">النبرة</label><select class="select" id="ws-whatsapp-tone"><option value="professional">مهني وبسيط</option><option value="friendly">ودّي ومحترم</option><option value="direct">مباشر</option></select></div><div class="field"><label class="label" for="ws-whatsapp-length">الطول</label><select class="select" id="ws-whatsapp-length"><option value="short">قصير</option><option value="medium">متوسط</option></select></div><div class="field"><label class="label" for="ws-whatsapp-opening">بداية مفضلة — اختياري</label><input class="input" id="ws-whatsapp-opening" value=""></div><div class="field"><label class="label" for="ws-whatsapp-closing">نهاية مفضلة — اختياري</label><input class="input" id="ws-whatsapp-closing" value=""></div><div class="field"><label class="label" for="ws-whatsapp-template">نص القالب الثابت</label><textarea class="textarea" id="ws-whatsapp-template" rows="3"></textarea></div></div></div><p class="hint">القالب الثابت يدعم {company_name} و{field} و{role}. اكتب اسمك بنفسك. هيحافظ على نصك، وتقدر تطلب تعديل بالـAI من المعاينة.</p></div><div class="writing-actions"><button class="btn btn-primary" id="ws-save" onclick="saveTemplate()">حفظ أسلوبي</button><button class="btn btn-secondary" onclick="writingTry()">حفظ وتجربة على شركة</button><button class="btn btn-secondary" onclick="nav('companies')">اختيار شركة من القائمة</button></div><div class="card"><div class="field"><label class="label" for="ws-test-company">شركة لتجربة الرسالة</label><select class="select" id="ws-test-company"><option value="">اختار شركة</option></select></div><p class="hint">التجربة تولّد مسودة فقط؛ مفيش إرسال إلا بزر الإرسال المعتاد بعد مراجعتك.</p></div></div></section><section class="settings-panel" id="settings-ai" hidden><div class="section-heading"><h2>الذكاء الاصطناعي</h2><p>تخصيص Gemini اختياري. إعداد OpenRouter العام موجود على السيرفر.</p></div><div class="card" >
-        <div class="card-title">إعدادات Gemini الشخصية</div><p class="section-copy">لو سايب المفتاح فاضي، التطبيق بيستخدم إعدادات الذكاء الاصطناعي المتاحة على السيرفر. ترتيب Gemini وOpenRouter بيتحدد من إعدادات السيرفر.</p>
-        <div class="field">
-          <div class="label">مفتاح Gemini الخاص بك — اختياري</div>
-          <input type="password" autocomplete="off" id="set-api-key" aria-label="مفتاح Gemini" class="input" placeholder="اضف مفتاحك هنا...">
-          <div class="hint">يمكنك الحصول عليه مجاناً من <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--accent)">Google AI Studio</a></div>
-        </div>
-        <div class="field" style="margin-top:15px">
-          <div class="label">موديل Gemini الخاص بك</div>
-          <input id="set-api-model" aria-label="موديل Gemini" class="input" value="" placeholder="اختياري — سيبه فاضي لاستخدام قائمة السيرفر" dir="ltr">
-        </div>
-        <div style="margin-top:20px;display:flex;justify-content:flex-end">
-          <button class="btn btn-primary" id="btn-save-settings" onclick="saveSettings()">💾 حفظ الإعدادات</button>
-        </div>
-      </div></section></div></div></div>
+      </div></section><section class="settings-panel" id="settings-template" hidden><div class="section-heading"><h2>أسلوبي في الكتابة</h2><p>رسالة تشبهك، مبنية على خبرتك، وبهدف واضح.</p></div><p id="writing-status" role="status" aria-live="polite"></p><div id="writing-editor"><div class="card"><div class="card-title">١ — عايز تقول إيه؟</div><div class="g2"><div class="field"><label class="label" for="ws-language">لغة الرسائل</label><select class="select" id="ws-language"><option value="egyptian">مصري مهذب</option><option value="arabic">عربي فصحى بسيط</option><option value="gulf">خليجي</option><option value="english">English</option></select></div><div class="field"><label class="label" for="ws-goal">هدف التواصل</label><select class="select" id="ws-goal"><option value="opportunity">السؤال عن فرص</option><option value="advertised">التقديم على وظيفة معلنة</option><option value="followup">متابعة تواصل سابق</option></select></div><div class="field"><label class="label" for="ws-role">الدور اللي بتدور عليه — اختياري</label><input class="input" id="ws-role" value=""></div><div class="field"><label class="label" for="ws-cta">الخطوة اللي عايزها من الطرف التاني</label><input class="input" id="ws-cta" value=""></div></div><p class="hint">اختار وظيفة معلنة أو متابعة فقط لو ده حصل فعلًا. خبراتك ومهاراتك مصدرها السي في المحفوظ.</p></div><div class="card"><div class="card-title">٢ — طريقتك أنت</div><p class="section-copy">ضيف مثالين أو تلاتة كتبتهم بنفسك. هيستخدمهم لفهم أسلوبك، مش لنقل بياناتهم للرسائل. الأمثلة هتتبعت لمزوّد الذكاء الاصطناعي عند التحليل والكتابة؛ احذف منها أي بيانات مش محتاج تشاركها.</p><div class="field"><label class="label" for="ws-example-0">مثال 1</label><textarea class="textarea" id="ws-example-0" rows="3"></textarea></div><div class="field"><label class="label" for="ws-example-1">مثال 2</label><textarea class="textarea" id="ws-example-1" rows="3"></textarea></div><div class="field"><label class="label" for="ws-example-2">مثال 3 — اختياري</label><textarea class="textarea" id="ws-example-2" rows="3"></textarea></div><button class="btn btn-secondary" id="ws-analyze" onclick="writingAnalyze()">افهم أسلوبي بالـAI</button><div id="ws-suggestion-box" hidden><p class="hint">اقتراح قابل للتعديل؛ مش هيتطبق غير لما تعتمده.</p><div class="field"><label class="label" for="ws-suggestion">وصف الأسلوب المقترح</label><textarea class="textarea" id="ws-suggestion" rows="3"></textarea></div><button class="btn btn-primary" onclick="writingAccept()">اعتمد الوصف</button></div><div class="field"><label class="label" for="ws-summary">أسلوبي المعتمد — تقدر تكتبه بنفسك</label><textarea class="textarea" id="ws-summary" rows="3"></textarea></div><div class="field"><label class="label" for="ws-forbidden">عبارات مش عايزها — كل عبارة في سطر</label><textarea class="textarea" id="ws-forbidden" rows="3"></textarea></div><div class="field"><label class="label" for="tpl-instructions">تعليمات إضافية — اختياري</label><textarea class="textarea" id="tpl-instructions" rows="3"></textarea></div><p class="hint">اختيارات اللغة والقناة لها الأولوية لو تعارضت مع التعليمات أو الأمثلة.</p></div><div class="card"><div class="card-title">٣ — لكل قناة طريقتها</div><div class="field"><label class="label" for="ws-mode">طريقة الكتابة</label><select class="select" id="ws-mode"><option value="ai">كتابة بالـAI مع مراجعة</option><option value="template">قالب ثابت بمتغيرات فقط</option></select></div><div class="field"><label class="label" for="tpl-subject">عنوان الإيميل — اختياري، الـAI يقترح عنوان لو سيبته فاضي</label><input class="input" id="tpl-subject" value=""></div><div class="g2"><div class="writing-channel"><h3>الإيميل</h3><div class="field"><label class="label" for="ws-email-tone">النبرة</label><select class="select" id="ws-email-tone"><option value="professional">مهني وبسيط</option><option value="friendly">ودّي ومحترم</option><option value="direct">مباشر</option></select></div><div class="field"><label class="label" for="ws-email-length">الطول</label><select class="select" id="ws-email-length"><option value="short">قصير</option><option value="medium">متوسط</option></select></div><div class="field"><label class="label" for="ws-email-opening">بداية مفضلة — اختياري</label><input class="input" id="ws-email-opening" value=""></div><div class="field"><label class="label" for="ws-email-closing">نهاية مفضلة — اختياري</label><input class="input" id="ws-email-closing" value=""></div><div class="field"><label class="label" for="ws-email-template">نص القالب الثابت</label><textarea class="textarea" id="ws-email-template" rows="3"></textarea></div></div><div class="writing-channel"><h3>الواتساب</h3><div class="field"><label class="label" for="ws-whatsapp-tone">النبرة</label><select class="select" id="ws-whatsapp-tone"><option value="professional">مهني وبسيط</option><option value="friendly">ودّي ومحترم</option><option value="direct">مباشر</option></select></div><div class="field"><label class="label" for="ws-whatsapp-length">الطول</label><select class="select" id="ws-whatsapp-length"><option value="short">قصير</option><option value="medium">متوسط</option></select></div><div class="field"><label class="label" for="ws-whatsapp-opening">بداية مفضلة — اختياري</label><input class="input" id="ws-whatsapp-opening" value=""></div><div class="field"><label class="label" for="ws-whatsapp-closing">نهاية مفضلة — اختياري</label><input class="input" id="ws-whatsapp-closing" value=""></div><div class="field"><label class="label" for="ws-whatsapp-template">نص القالب الثابت</label><textarea class="textarea" id="ws-whatsapp-template" rows="3"></textarea></div></div></div><p class="hint">القالب الثابت يدعم {company_name} و{field} و{role}. اكتب اسمك بنفسك. هيحافظ على نصك، وتقدر تطلب تعديل بالـAI من المعاينة.</p></div><div class="writing-actions"><button class="btn btn-primary" id="ws-save" onclick="saveTemplate()">حفظ أسلوبي</button><button class="btn btn-secondary" onclick="writingTry()">حفظ وتجربة على شركة</button><button class="btn btn-secondary" onclick="nav('companies')">اختيار شركة من القائمة</button></div><div class="card"><div class="field"><label class="label" for="ws-test-company">شركة لتجربة الرسالة</label><select class="select" id="ws-test-company"><option value="">اختار شركة</option></select></div><p class="hint">التجربة تولّد مسودة فقط؛ مفيش إرسال إلا بزر الإرسال المعتاد بعد مراجعتك.</p></div></div></section><section class="settings-panel" id="settings-ai" hidden><div class="section-heading"><h2>منصات الذكاء الاصطناعي</h2><p>اربط المفتاح، اجلب الموديلات، اختبر اختيارك ثم احفظ.</p></div><div class="connections-notice">كل منصة لها مفتاح مستقل. الأولوية الأقل تبدأ أولًا، ثم الموديل الأساسي وبدائله داخل المنصة. لو مفيش منصة شخصية مفعّلة بموديل، يستخدم مرسال إعدادات السيرفر الحالية. التفعيل قد يستهلك رصيد منصتك؛ اختبار الاتصال نفسه طلب توليد قصير.</div><div id="ai-providers" class="provider-grid">جاري تحميل المنصات…</div></section></div></div></div>
 
     <div class="page active" id="page-home">
  <div class="ph"><div><div class="eyebrow">مساحة عملك</div><h1>أهلًا، <span id="welcome-name">بيك</span> <span class="wave">✦</span></h1><p class="page-description">كل خطوة في تقديمك، من أول رسالة لحد أول رد.</p></div><button class="btn btn-primary" onclick="nav('companies')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"/></svg>إدارة الشركات</button></div>
@@ -388,7 +376,7 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
         <div class="stat-card"><div class="stat-num c-green" id="s-sent">0</div><div class="stat-lbl">أُرسل</div></div>
         <div class="stat-card"><div class="stat-num c-red" id="s-failed">0</div><div class="stat-lbl">فشل</div></div>
       </div>
-      <div class="g2">
+<div class="sender-box"><label>الإرسال من حساب Gmail</label><select class="select" data-gmail-sender aria-label="حساب Gmail للإرسال" onchange="gmailSelect(this.value).catch(connectionError)"><option value="">جاري تحميل الحسابات…</option></select><small>يخص رسائل الإيميل. الرسائل المجدولة تحتفظ بالحساب المختار وقت الجدولة.</small></div>      <div class="g2">
         <div class="card">
           <div class="card-title">🕐 الجدولة</div>
           <div class="field">
@@ -478,7 +466,7 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
       <div class="spin" style="width:28px;height:28px;margin:0 auto 12px"></div>
       <div style="font-size:13px;color:var(--text2)">الذكاء الاصطناعي يكتب الرسالة...</div>
     </div>
-    <div id="prev-form">
+    <div id="prev-form"><div class="sender-box"><label>الإرسال من حساب Gmail</label><select class="select" data-gmail-sender aria-label="حساب Gmail للإرسال" onchange="gmailSelect(this.value).catch(connectionError)"><option value="">جاري تحميل الحسابات…</option></select><small>يخص رسائل الإيميل. الرسائل المجدولة تحتفظ بالحساب المختار وقت الجدولة.</small></div>
       <div class="field"><div class="label">📧 إلى</div><input class="input" id="prev-email" readonly style="direction:ltr;text-align:left"></div>
       <div class="field" id="prev-subject-field"><div class="label">الموضوع</div><input class="input" id="prev-subject"></div>
       <div class="writing-revision"><div class="row"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('shorten')">اختصرها</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('simplify')">خليها أبسط</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('casual')">قلل الرسمية</button><button class="btn btn-secondary" data-writing-control onclick="writingReference()">احفظها كمرجع لأسلوبي</button></div><label class="label" for="writing-note">ملاحظة على المسودة</label><div class="row"><input class="input" id="writing-note" placeholder="مثلًا: ابدأ بسبب التواصل على طول"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('custom')">طبّق ملاحظتي</button></div><p id="writing-review" class="hint" role="status" aria-live="polite"></p></div><div class="field"><div class="label" id="prev-body-label">نص الرسالة</div><textarea class="textarea" id="prev-body" dir="auto" rows="10"></textarea></div>
@@ -522,7 +510,7 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
 </aside><div class="timeline-main">      <div class="report-message" id="rd-message-section">
         <div class="report-message-head"><h3>الرسالة المرسلة</h3><button class="btn btn-secondary" style="padding:5px 10px;font-size:13px" onclick="copyLogMessage()">نسخ النص</button></div>
         <div class="report-subject" id="rd-subject" hidden></div>
-        <div class="report-text" id="rd-body" dir="auto"></div>
+        <div class="report-text" id="rd-body" dir="auto"></div><p id="rd-sender" class="hint" dir="ltr"></p>
       </div>
       <div class="report-message" id="rd-reply-section" hidden>
         <div class="report-message-head"><h3 class="report-reply-title">↩ آخر رد مرصود</h3></div>
@@ -569,11 +557,13 @@ async function checkAuth() {
 }
 
 async function loadAll() {
+  await gmailLoad().catch(e=>toast(e.message,'error'));
   const results=await Promise.allSettled([loadCompanies(), loadCV(), loadLog(), loadTemplate(), loadSettings()]);
   refreshWorkspace();
 }
 
 async function api(path, method='GET', body=null) {
+  if(body&&method==='POST'&&['/api/email/send','/api/email/send-bulk'].includes(path)){if(gmailChanging)throw new Error('استنى تغيير حساب الإرسال يخلص');body={...body,senderAccountId:gmailActiveId};}
   const opts = { method, headers: {'Content-Type':'application/json'} };
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(path, opts);
@@ -867,6 +857,7 @@ async function genPreview(id) {
     if(requestId!==previewRequest || id!==prevCompanyId) return;
     document.getElementById('prev-subject').value=r.subject||'';
     document.getElementById('prev-body').value=r.body||''; writingReview(r);
+    document.querySelector('#prev-form .sender-box').hidden=r.channel==='whatsapp';
     document.getElementById('prev-subject-field').style.display=r.channel==='whatsapp'?'none':'';
     document.getElementById('prev-body-label').textContent=r.channel==='whatsapp'?'رسالة واتساب':'نص الإيميل';
     document.getElementById('btn-confirm').disabled=!r.body?.trim();
@@ -928,6 +919,7 @@ async function skipCo() {
 }
 
 async function startSend() {
+  if(gmailChanging){toast('استنى تغيير حساب الإرسال يخلص','info');return;}
   if(!ensureCV())return;
   const filter=document.getElementById('send-filter').value;
   const skipSent=document.getElementById('opt-skip-sent').checked;
@@ -959,7 +951,7 @@ async function startSend() {
   document.getElementById('prog-bar').style.width='0%';
   const ids=queue.map(c=>c.id);
   const delay=parseInt(document.getElementById('delay-s').value)||5;
-  const r=await fetch('/api/email/send-bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyIds:ids,scheduleType:'now',delaySeconds:delay})});
+  const r=await fetch('/api/email/send-bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyIds:ids,scheduleType:'now',delaySeconds:delay,senderAccountId:gmailActiveId})});
   if(!r.ok){
     const error=await r.json().catch(()=>({error:'تعذر بدء الإرسال'}));
     toast(error.error||'تعذر بدء الإرسال','error');
@@ -1028,6 +1020,7 @@ function reportDate(value){
   return Number.isNaN(date.getTime())?'':date.toLocaleString('ar-EG',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
 }
 function fillLogDetail(l){
+  document.getElementById('rd-sender').textContent=l.sender_email?'From: '+l.sender_email:'';
   const el=id=>document.getElementById(id);
   const text=(id,value)=>el(id).textContent=value||'';
   const wa=l.channel==='whatsapp';
@@ -1106,26 +1099,7 @@ function exportCSV(){
   toast('✅ تم التصدير','success');
 }
 
-async function loadSettings(){
-  try{
-    const s=await api('/api/settings');
-    if(s.gemini_key) document.getElementById('set-api-key').value=s.gemini_key;
-    document.getElementById('set-api-model').value=s.gemini_model||'';
-  }catch{}
-}
-
-async function saveSettings(){
-  const key=document.getElementById('set-api-key').value.trim();
-  const model=document.getElementById('set-api-model').value;
-  const btn=document.getElementById('btn-save-settings');
-  btn.disabled=true; btn.innerHTML='<div class="spin"></div> جاري الحفظ...';
-  try{
-    await api('/api/settings','POST',{gemini_key:key,gemini_model:model});
-    toast('تم حفظ الإعدادات ✅','success');
-  }catch(err){toast(err.message,'error');}
-  finally{btn.disabled=false;btn.innerHTML='💾 حفظ الإعدادات';}
-}
-
+async function loadSettings(){try{await providersLoad();}catch(e){toast(e.message,'error');}}
 async function syncNow(){
   try{await api('/api/email/sync-replies');toast('تم التزامن ✅','success');}
   catch(err){toast(err.message,'error');}
@@ -1249,7 +1223,7 @@ function finishOnboarding(skip){const prefs=getSetupPreferences();prefs.dismisse
 function startOnboarding(){onboardingEditing=true;nav('onboarding');}
 function editSetup(key){onboardingEditing=true;activeSetting=key;nav('settings');}
 function openSettings(key='account'){onboardingEditing=false;activeSetting=key;nav('settings');}
-function selectSettings(key){if(!['account','cv','channels','template','ai'].includes(key))key='account';activeSetting=key;document.querySelectorAll('.settings-panel').forEach(el=>el.hidden=el.id!=='settings-'+key);document.querySelectorAll('[data-setting]').forEach(el=>{el.classList.toggle('active',el.dataset.setting===key);el.setAttribute('aria-pressed',el.dataset.setting===key?'true':'false');});window.MrsaalTour?.contextChanged();}
+function selectSettings(key){if(key==='channels')gmailLoad().catch(connectionError);if(!['account','cv','channels','template','ai'].includes(key))key='account';activeSetting=key;document.querySelectorAll('.settings-panel').forEach(el=>el.hidden=el.id!=='settings-'+key);document.querySelectorAll('[data-setting]').forEach(el=>{el.classList.toggle('active',el.dataset.setting===key);el.setAttribute('aria-pressed',el.dataset.setting===key?'true':'false');});window.MrsaalTour?.contextChanged();}
 function openImporter(){nav('companies');const panel=document.getElementById('import-panel');panel.open=true;panel.scrollIntoView({behavior:'smooth',block:'start'});}
 function ensureCV(){if(cvReady)return true;toast('ضيف السيرة الذاتية الأول عشان نكتب رسالة تعبّر عنك','error');openSettings('cv');return false;}
 function setAppTheme(choice){let theme=choice==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):choice;document.documentElement.dataset.theme=theme;try{localStorage.setItem('mrsaal-theme-choice',choice);if(choice==='system')localStorage.removeItem('mrsaal-theme');else localStorage.setItem('mrsaal-theme',theme)}catch{}updateMrsaalThemeLabels();}
@@ -1264,6 +1238,6 @@ const originalPreviewOne=previewOne;previewOne=async function(id){previousPrevie
 const originalClosePrev=closePrev;closePrev=function(){originalClosePrev();previousPreviewFocus?.focus?.();};
 document.getElementById('preview-overlay').addEventListener('click',e=>{if(e.target.id==='preview-overlay')closePrev();});
 document.addEventListener('keydown',e=>{const overlay=document.getElementById('preview-overlay');if(!overlay.classList.contains('open'))return;if(e.key==='Escape'){e.preventDefault();closePrev();}if(e.key==='Tab'){const items=[...overlay.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),[tabindex="0"]')].filter(el=>el.offsetParent!==null);if(!items.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&(document.activeElement===first||!items.includes(document.activeElement))){e.preventDefault();last.focus();}else if(!e.shiftKey&&(document.activeElement===last||!items.includes(document.activeElement))){e.preventDefault();first.focus();}}});
-checkAuth();
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',checkAuth,{once:true});else checkAuth();
 </script></body>
 </html>
