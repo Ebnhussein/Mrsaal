@@ -321,7 +321,7 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
         </div>
         <div class="field" style="margin-top:15px">
           <div class="label">موديل Gemini الخاص بك</div>
-          <input id="set-api-model" aria-label="موديل Gemini" class="input" value="gemini-2.5-flash-lite" placeholder="اسم موديل Gemini" dir="ltr">
+          <input id="set-api-model" aria-label="موديل Gemini" class="input" value="" placeholder="اختياري — سيبه فاضي لاستخدام قائمة السيرفر" dir="ltr">
         </div>
         <div style="margin-top:20px;display:flex;justify-content:flex-end">
           <button class="btn btn-primary" id="btn-save-settings" onclick="saveSettings()">💾 حفظ الإعدادات</button>
@@ -1108,7 +1108,7 @@ async function loadSettings(){
   try{
     const s=await api('/api/settings');
     if(s.gemini_key) document.getElementById('set-api-key').value=s.gemini_key;
-    if(s.gemini_model) document.getElementById('set-api-model').value=s.gemini_model;
+    document.getElementById('set-api-model').value=s.gemini_model||'';
   }catch{}
 }
 
