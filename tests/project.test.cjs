@@ -1,0 +1,5 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+const {checkProject}=require('../scripts/check-project');
+test('repository has every local import and browser asset',()=>{assert.deepEqual(checkProject().errors,[]);});
+test('preflight catches missing support controller before startup',()=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'mrsaal-check-'));try{fs.mkdirSync(path.join(dir,'public'));fs.writeFileSync(path.join(dir,'public/index.html'),'<div>test</div>');fs.writeFileSync(path.join(dir,'server.js'),"require('./routes/support');");assert(checkProject(dir).errors.some(e=>e.includes('missing ./routes/support')));}finally{fs.rmSync(dir,{recursive:true});}});
+test('new routes registered after session and before catch-all',()=>{const source=fs.readFileSync(path.join(__dirname,'../server.js'),'utf8');for(const name of ['writing','support']){assert(source.indexOf("app.use('/api/"+name+"'")>source.indexOf('app.use(session'));assert(source.indexOf("app.use('/api/"+name+"'")<source.indexOf("app.use('/api',"));}});
