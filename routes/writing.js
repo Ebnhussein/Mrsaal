@@ -9,7 +9,7 @@ router.use(requireAuth);
 const wrap=fn=>(req,res,next)=>Promise.resolve(fn(req,res,next)).catch(err=>{console.warn('Writing studio:',err.status||'failed');res.status(err.status||400).json({error:err.message||'تعذر تنفيذ الطلب'});});
 const active=new Set();
 async function aiJob(id,fn){if(active.has(id)){const e=new Error('استنى لحد ما الطلب الحالي يخلص.');e.status=429;throw e;}active.add(id);try{return await fn();}finally{active.delete(id);}}
-async function settings(id){const u=await get('SELECT gemini_key,gemini_model FROM users WHERE id=$1',[id]);return {apiKey:u?.gemini_key||null,modelName:u?.gemini_model||null};}
+async function settings(id){const u=await get('SELECT gemini_key,gemini_model FROM users WHERE id=$1',[id]);return {userId:id,apiKey:u?.gemini_key||null,modelName:u?.gemini_model||null};}
 async function template(id){return await get('SELECT * FROM templates WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1',[id]);}
 router.get('/',wrap(async(req,res)=>{const t=await template(req.session.userId);res.json({profile:decode(t?.instructions),subject:t?.subject_template||'',saved:!!t});}));
 router.post('/',wrap(async(req,res)=>{

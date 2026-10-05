@@ -14,7 +14,7 @@ router.post('/chat',async(req,res)=>{
  if(busy.has(id)||busy.size>=3)return res.status(429).json({error:'استنى الطلب الحالي يخلص، أو جرّب بعد لحظات.'});
  if(!reserve(id)){res.setHeader('Retry-After','3600');return res.status(429).json({error:'وصلت لحد 30 سؤال في الساعة. الشروحات الجاهزة والجولات ما زالت متاحة.'});}
  busy.add(id);
- try{const u=await get('SELECT gemini_key,gemini_model FROM users WHERE id=$1',[id]);res.json(await respond(q.trim(),{previousTopics:req.body.previousTopics},{apiKey:u?.gemini_key,modelName:u?.gemini_model}));}
+ try{const u=await get('SELECT gemini_key,gemini_model FROM users WHERE id=$1',[id]);res.json(await respond(q.trim(),{previousTopics:req.body.previousTopics},{userId:id,apiKey:u?.gemini_key,modelName:u?.gemini_model}));}
  catch{res.status(503).json({error:'تعذر تشغيل المساعد. جرب الشروحات الجاهزة.'});}
  finally{busy.delete(id);}
 });

@@ -1,0 +1,9 @@
+'use strict';
+const router=require('express').Router();
+const {requireAuth}=require('../middleware/auth');const wrap=require('../middleware/async-handler');
+const {get,all,run}=require('../utils/db');const {resolveAccount}=require('../utils/gmail-accounts');
+router.use(requireAuth);router.use((req,res,next)=>{res.set('Cache-Control','no-store');next();});
+router.get('/',wrap(async(req,res)=>{const user=await get('SELECT active_gmail_id,google_id FROM users WHERE id=$1',[req.session.userId]);const accounts=await all('SELECT id,email,name,google_id,connected FROM gmail_accounts WHERE user_id=$1 ORDER BY email',[req.session.userId]);res.json({accounts:accounts.map(a=>({...a,primary:a.google_id===user.google_id})),activeId:user.active_gmail_id||accounts.find(a=>a.google_id===user.google_id&&a.connected)?.id||null});}));
+router.post('/select',wrap(async(req,res)=>{const account=await resolveAccount(req.session.userId,req.body.id);await run('UPDATE users SET active_gmail_id=$1 WHERE id=$2',[account.gmail_account_id,req.session.userId]);res.json({ok:true,email:account.email});}));
+router.post('/disconnect',wrap(async(req,res)=>{const id=req.body.id;const a=await get('SELECT id FROM gmail_accounts WHERE id=$1 AND user_id=$2',[id,req.session.userId]);if(!a)return res.status(404).json({error:'الحساب غير موجود'});const job=await get("SELECT id FROM scheduled_jobs WHERE sender_account_id=$1 AND user_id=$2 AND status IN ('pending','processing') LIMIT 1",[id,req.session.userId]);if(job)return res.status(409).json({error:'الحساب عليه رسائل مجدولة؛ نفّذها أو ألغها قبل الفصل.'});await run('UPDATE gmail_accounts SET connected=false,credentials=NULL WHERE id=$1 AND user_id=$2',[id,req.session.userId]);await run('UPDATE users SET active_gmail_id=NULL WHERE active_gmail_id=$1 AND id=$2',[id,req.session.userId]);res.json({ok:true});}));
+module.exports=router;
