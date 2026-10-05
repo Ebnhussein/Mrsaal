@@ -9,11 +9,12 @@ function getOAuthClient() {
   );
 }
 
-function getAuthUrl() {
+function getAuthUrl(state) {
   const oauth2Client = getOAuthClient();
   return oauth2Client.generateAuthUrl({
     access_type: 'offline',
-    prompt: 'consent',
+    prompt: 'consent select_account',
+    state,
     scope: [
       'https://www.googleapis.com/auth/gmail.send',
       'https://www.googleapis.com/auth/gmail.readonly',
@@ -42,8 +43,9 @@ function buildAuthClient(user) {
   oauth2Client.setCredentials({
     access_token: user.access_token,
     refresh_token: user.refresh_token,
-    expiry_date: user.token_expiry
+    expiry_date: Number(user.expiry_date || user.token_expiry) || undefined
   });
+  if(user.gmail_account_id) oauth2Client.on('tokens',tokens=>require('./gmail-accounts').persistTokens(user,tokens).catch(()=>console.error('Gmail token persistence failed')));
   return oauth2Client;
 }
 
@@ -96,8 +98,10 @@ function buildMimeMessage({ from, to, subject, body, trackingPixelUrl, attachmen
     .replace(/=+$/, '');
 }
 
-async function sendEmail({ user, to, subject, body, trackingPixelUrl, attachment }) {
-  const auth = buildAuthClient(user);
+async function sendEmail({ user, account = null, logId = null, to, subject, body, trackingPixelUrl, attachment }) {
+  const {resolveAccount}=require('./gmail-accounts');
+  account = account || await resolveAccount(user.id);
+  const auth = buildAuthClient(account);
   const gmail = google.gmail({ version: 'v1', auth });
 
   // Get sender profile
@@ -111,7 +115,9 @@ async function sendEmail({ user, to, subject, body, trackingPixelUrl, attachment
     requestBody: { raw }
   });
 
+  if(logId) await require('./db').run('UPDATE email_log SET sender_account_id=$1,sender_email=$2 WHERE id=$3 AND user_id=$4',[account.gmail_account_id,from,logId,user.id]);
   return { 
+    senderAccountId: account.gmail_account_id,
     messageId: result.data.id, 
     threadId: result.data.threadId,
     from 

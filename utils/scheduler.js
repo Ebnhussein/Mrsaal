@@ -3,6 +3,7 @@ const {v4:uuidv4}=require('uuid');
 const {all,get,run}=require('./db');
 const {generateEmail,generateWhatsAppMessage}=require('./ai');
 const {sendEmail}=require('./gmail');
+const {resolveAccount}=require('./gmail-accounts');
 const {sendWhatsAppMessage}=require('./whatsapp');
 const {syncReplies}=require('./replyTracker');
 const BASE_URL=process.env.BASE_URL||`http://localhost:${process.env.PORT||3000}`;
@@ -29,7 +30,8 @@ async function tick(){
         const company={name:job.company_name,email:job.company_email,phone:job.phone,field:job.field,location:job.location};
         const channel=company.email?.includes('@')?'email':company.phone?'whatsapp':null;
         if(!channel)throw new Error('لا توجد وسيلة تواصل');
-        const params={cv:cv.content,company,instructions:tpl?.instructions,subjectTemplate:tpl?.subject_template,apiKey:user.gemini_key||null,modelName:user.gemini_model||null};
+        const account=channel==='email'?await resolveAccount(job.user_id,job.sender_account_id):null;
+        const params={userId:job.user_id,cv:cv.content,company,instructions:tpl?.instructions,subjectTemplate:tpl?.subject_template,apiKey:user.gemini_key||null,modelName:user.gemini_model||null};
         let subject=saved?.subject||'',body=saved?.body||'';
         if(!body.trim()){
           if(channel==='email'){const email=await generateEmail(params);subject=email.subject;body=email.body;}
@@ -37,13 +39,14 @@ async function tick(){
         }
         const attachment=cv.pdf_data?{data:cv.pdf_data,filename:cv.filename||'CV.pdf',mimeType:'application/pdf'}:null;
         const result=channel==='email'
-          ? await sendEmail({user,to:company.email,subject,body,trackingPixelUrl:`${BASE_URL}/track/open/${logId}.gif`,attachment})
+          ? await sendEmail({user,account,to:company.email,subject,body,trackingPixelUrl:`${BASE_URL}/track/open/${logId}.gif`,attachment})
           : await sendWhatsAppMessage(job.user_id,company.phone,body,attachment);
         delivered=true;
         await run(`INSERT INTO email_log(id,user_id,company_id,company_name,company_email,subject,body,status,message_id,thread_id,channel)
           VALUES($1,$2,$3,$4,$5,$6,$7,'sent',$8,$9,$10)
           ON CONFLICT(id) DO UPDATE SET subject=EXCLUDED.subject,body=EXCLUDED.body,status='sent',message_id=EXCLUDED.message_id,thread_id=EXCLUDED.thread_id,channel=EXCLUDED.channel,sent_at=EXTRACT(EPOCH FROM NOW()),reason=NULL`,
           [logId,job.user_id,job.company_id,company.name,channel==='email'?company.email:company.phone,subject,body,result.messageId,result.threadId||null,channel]);
+        if(account)await run('UPDATE email_log SET sender_account_id=$1,sender_email=$2 WHERE id=$3 AND user_id=$4',[account.gmail_account_id,account.email,logId,job.user_id]);
         await run("UPDATE scheduled_jobs SET status='sent' WHERE id=$1",[job.id]);
         await run("UPDATE companies SET status='sent',scheduled_at=NULL WHERE id=$1 AND user_id=$2",[job.company_id,job.user_id]);
         console.log(`Scheduled ${channel} sent`);
