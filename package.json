@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "أداة التقدم الذكي للوظائف",
   "main": "server.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
@@ -19,7 +22,10 @@
     "node-cron": "^3.0.3",
     "uuid": "^9.0.0",
     "dotenv": "^16.3.1",
-    "@google/genai": "latest"
+    "@google/genai": "latest",
+    "@whiskeysockets/baileys": "6.7.24",
+    "qrcode": "^1.5.4",
+    "pino": "^9.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
