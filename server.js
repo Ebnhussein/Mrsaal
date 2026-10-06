@@ -44,6 +44,7 @@ async function lazyInit() {
     const { initDB, pool } = require('./utils/db');
     await initDB();
     await require('./utils/connections-schema').ensureConnectionsSchema();
+    await require('./utils/helpdesk').ensureHelpdesk();
 
     const {
       ensureSchedulerSchema,
@@ -75,6 +76,8 @@ async function lazyInit() {
       }
     }));
 
+    app.use(require('./utils/helpdesk').monitor);
+    app.use('/api/tickets', require('./routes/tickets'));
     app.use('/auth', require('./routes/auth'));
     app.use('/api/companies', require('./routes/companies'));
     app.use('/api/cv', require('./routes/cv'));
