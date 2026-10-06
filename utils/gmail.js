@@ -98,7 +98,7 @@ function buildMimeMessage({ from, to, subject, body, trackingPixelUrl, attachmen
     .replace(/=+$/, '');
 }
 
-async function sendEmail({ user, account = null, logId = null, to, subject, body, trackingPixelUrl, attachment }) {
+async function sendEmailRequest({ user, account = null, logId = null, to, subject, body, trackingPixelUrl, attachment }) {
   const {resolveAccount}=require('./gmail-accounts');
   account = account || await resolveAccount(user.id);
   const auth = buildAuthClient(account);
@@ -123,5 +123,7 @@ async function sendEmail({ user, account = null, logId = null, to, subject, body
     from 
   };
 }
+
+async function sendEmail(args){try{return await sendEmailRequest(args);}catch(error){throw require('./gmail-errors').gmailError(error);}}
 
 module.exports = { getAuthUrl, getTokensFromCode, getUserInfo, sendEmail, buildAuthClient };
