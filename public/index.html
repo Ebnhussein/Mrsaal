@@ -268,6 +268,7 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
 @media(max-width:700px){#login-screen{padding:0;align-items:stretch;scrollbar-gutter:auto}.login-shell{flex:0 0 auto;min-height:100dvh;border-radius:0;align-self:stretch}.login-story,.login-form{border-radius:0;min-height:0}.login-form-body{margin:0 auto;padding:24px 0}.login-legal{padding-bottom:20px}.preview-actions{align-items:flex-start}}
 </style><style id="smart-setup-layout">.dashboard-bottom.workflow-single{grid-template-columns:1fr}.setup-empty{grid-column:1/-1;padding:32px;text-align:center;border:1px solid var(--border);background:var(--surface);border-radius:14px}.setup-empty strong{display:block;font-size:19px}.setup-empty p{font-size:14px;color:var(--text2);margin:12px 0 20px}@media(min-width:951px){.setup-grid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}}</style><link rel="stylesheet" href="/assets/writing.css">
 <link rel="stylesheet" href="/assets/tour.css">
+<script src="/assets/product-guide.js" defer></script>
 <script src="/assets/tour.js" defer></script>
 <link rel="stylesheet" href="/assets/support.css">
 <script src="/assets/support.js" defer></script>
@@ -292,11 +293,12 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
     <div class="page" id="page-settings"><div class="ph"><div><h1>الإعدادات</h1><p class="page-description">حسابك، قنواتك، وكل التفاصيل اللي بتجهّز رسالتك.</p></div></div><div class="setup-return" id="setup-return" hidden><span>بتجهّز حسابك لأول مرة؟ احفظ التعديل وارجع للخطوات.</span><button class="btn btn-secondary" onclick="nav('onboarding')">رجوع للإعداد السريع</button></div><div class="settings-shell"><nav class="settings-tabs" aria-label="أقسام الإعدادات"><button type="button" data-setting="account" onclick="selectSettings('account')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="16" cy="17" r="3"/></svg>الحساب والمظهر</button><button type="button" data-setting="cv" onclick="selectSettings('cv')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8m-8 4h5"/></svg>السيرة الذاتية</button><button type="button" data-setting="channels" onclick="selectSettings('channels')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11a9 9 0 0 1-9 9 10 10 0 0 1-4-1l-5 2 1-5a9 9 0 1 1 17-5Z"/><path d="M8 11h8"/></svg>قنوات التواصل</button><button type="button" data-setting="template" onclick="selectSettings('template')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>تفضيلات الرسالة</button><button type="button" data-setting="ai" onclick="selectSettings('ai')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg>الذكاء الاصطناعي</button></nav><div class="settings-content"><section class="settings-panel" id="settings-account" hidden><div class="section-heading"><h2>حسابك</h2><p>إعدادات الدخول والمظهر.</p></div><div class="card"><div class="profile-row"><div class="avatar" id="settings-avatar">م</div><div><h3 id="profile-name">حسابك</h3><p id="profile-email" dir="ltr"></p></div><span class="state-badge ready">Google متصل</span></div><p class="section-copy">الدخول وإرسال الإيميلات مرتبطين بحساب Google اللي سجلت بيه.</p></div><div class="card"><h3>المظهر</h3><p class="section-copy">اختار المظهر المناسب ليك. اختيارك بيتحفظ على الجهاز ده.</p><div class="theme-choices"><button class="theme-choice" data-choice="light" onclick="setAppTheme('light')">☀ فاتح</button><button class="theme-choice" data-choice="dark" onclick="setAppTheme('dark')">☾ داكن</button><button class="theme-choice" data-choice="system" onclick="setAppTheme('system')">◐ حسب الجهاز</button></div></div><div class="card"><h3>الإعداد السريع</h3><p class="section-copy">ارجع لكروت البداية في أي وقت.</p><button class="btn btn-secondary" onclick="startOnboarding()">عرض خطوات الإعداد</button></div><div class="card account-footer"><div class="row"><a href="/privacy.html" target="_blank" rel="noopener">الخصوصية</a><a href="/terms.html" target="_blank" rel="noopener">الشروط</a></div><a class="btn btn-danger" href="/auth/logout">تسجيل خروج</a></div></section><section class="settings-panel" id="settings-cv" hidden><div class="section-heading"><h2>السيرة الذاتية</h2><p>الذكاء الاصطناعي بيستخدم المعلومات اللي هنا لكتابة رسالتك.</p></div><div class="card">
           <div class="card-title">📄 سيرتك الذاتية (PDF)</div>
           <div class="upload-zone" id="cv-zone">
-            <input type="file" id="cv-file" accept=".pdf" onchange="uploadCV(event)">
+            <input type="file" id="cv-file" accept=".pdf,application/pdf,.txt,text/plain" aria-label="اختيار السيرة الذاتية PDF أو TXT" onchange="uploadCV(event)">
             <div class="upload-icon">📋</div>
             <div class="upload-title">ارفع سيرتك الذاتية</div>
             <div class="upload-sub">صيغة PDF فقط</div>
           </div>
+          <button type="button" class="btn btn-secondary" onclick="chooseUploadFile('cv-file')">الملف مش ظاهر؟ اختار من كل الملفات</button><p class="hint">لو الملف في Drive أو واتساب، نزّله على الجهاز الأول. PDF أو TXT حتى 20 MB. ملفات PDF المصوّرة تحتاج استخراج النص أولًا.</p>
           <div id="cv-status"></div>
           <div style="margin-top:14px">
             <div class="label">أو اكتب سيرتك الذاتية كنص</div>
@@ -346,11 +348,12 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
       <details id="import-panel" class="import-details"><summary><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"/></svg>استيراد شركات من Excel أو CSV<span>＋</span></summary><div class="card">
           <div class="card-title">📊 ملف الشركات (Excel)</div>
           <div class="upload-zone" id="xl-zone">
-            <input type="file" id="xl-file" accept=".xlsx,.xls,.csv" onchange="uploadExcel(event)">
+            <input type="file" id="xl-file" accept=".xlsx,.xls,.csv,.tsv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv,text/tab-separated-values" aria-label="اختيار ملف الشركات" onchange="uploadExcel(event)">
             <div class="upload-icon">📊</div>
             <div class="upload-title">ارفع ملف الشركات</div>
             <div class="upload-sub">Excel / CSV</div>
           </div>
+          <button type="button" class="btn btn-secondary" onclick="chooseUploadFile('xl-file')">الملف مش ظاهر؟ اختار من كل الملفات</button><p class="hint">لو الملف في Drive أو واتساب، نزّله على الجهاز الأول. XLSX أو XLS أو CSV حتى 10 MB. أول صف للعناوين، والبيانات من أول ورقة.</p>
           <div id="xl-status"></div>
           <div id="xl-map" style="display:none;margin-top:16px">
             <div class="card-title" style="margin-bottom:12px">🗂️ ربط الأعمدة</div>
@@ -376,7 +379,7 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
         <div class="stat-card"><div class="stat-num c-green" id="s-sent">0</div><div class="stat-lbl">أُرسل</div></div>
         <div class="stat-card"><div class="stat-num c-red" id="s-failed">0</div><div class="stat-lbl">فشل</div></div>
       </div>
-<div class="sender-box"><label>الإرسال من حساب Gmail</label><select class="select" data-gmail-sender aria-label="حساب Gmail للإرسال" onchange="gmailSelect(this.value).catch(connectionError)"><option value="">جاري تحميل الحسابات…</option></select><small>يخص رسائل الإيميل. الرسائل المجدولة تحتفظ بالحساب المختار وقت الجدولة.</small></div>      <div class="g2">
+<div class="sender-box"><label>الإرسال من حساب Gmail</label><select class="select" id="send-sender" data-gmail-sender aria-label="حساب Gmail للإرسال" onchange="gmailSelect(this.value).catch(connectionError)"><option value="">جاري تحميل الحسابات…</option></select><small>يخص رسائل الإيميل. الرسائل المجدولة تحتفظ بالحساب المختار وقت الجدولة.</small></div>      <div class="g2">
         <div class="card">
           <div class="card-title">🕐 الجدولة</div>
           <div class="field">
@@ -466,7 +469,7 @@ body{font-size:16px;line-height:1.7}.sidebar{background:var(--nav-surface);borde
       <div class="spin" style="width:28px;height:28px;margin:0 auto 12px"></div>
       <div style="font-size:13px;color:var(--text2)">الذكاء الاصطناعي يكتب الرسالة...</div>
     </div>
-    <div id="prev-form"><div class="sender-box"><label>الإرسال من حساب Gmail</label><select class="select" data-gmail-sender aria-label="حساب Gmail للإرسال" onchange="gmailSelect(this.value).catch(connectionError)"><option value="">جاري تحميل الحسابات…</option></select><small>يخص رسائل الإيميل. الرسائل المجدولة تحتفظ بالحساب المختار وقت الجدولة.</small></div>
+    <div id="prev-form"><div class="sender-box"><label>الإرسال من حساب Gmail</label><select class="select" id="preview-sender" data-gmail-sender aria-label="حساب Gmail للإرسال" onchange="gmailSelect(this.value).catch(connectionError)"><option value="">جاري تحميل الحسابات…</option></select><small>يخص رسائل الإيميل. الرسائل المجدولة تحتفظ بالحساب المختار وقت الجدولة.</small></div>
       <div class="field"><div class="label">📧 إلى</div><input class="input" id="prev-email" readonly style="direction:ltr;text-align:left"></div>
       <div class="field" id="prev-subject-field"><div class="label">الموضوع</div><input class="input" id="prev-subject"></div>
       <div class="writing-revision"><div class="row"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('shorten')">اختصرها</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('simplify')">خليها أبسط</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('casual')">قلل الرسمية</button><button class="btn btn-secondary" data-writing-control onclick="writingReference()">احفظها كمرجع لأسلوبي</button></div><label class="label" for="writing-note">ملاحظة على المسودة</label><div class="row"><input class="input" id="writing-note" placeholder="مثلًا: ابدأ بسبب التواصل على طول"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('custom')">طبّق ملاحظتي</button></div><p id="writing-review" class="hint" role="status" aria-live="polite"></p></div><div class="field"><div class="label" id="prev-body-label">نص الرسالة</div><textarea class="textarea" id="prev-body" dir="auto" rows="10"></textarea></div>
@@ -566,7 +569,15 @@ async function api(path, method='GET', body=null) {
   if(body&&method==='POST'&&['/api/email/send','/api/email/send-bulk'].includes(path)){if(gmailChanging)throw new Error('استنى تغيير حساب الإرسال يخلص');body={...body,senderAccountId:gmailActiveId};}
   const opts = { method, headers: {'Content-Type':'application/json'} };
   if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(path, opts);
+  let r;
+  const aiRequest=path==='/api/writing/generate'||path==='/api/writing/analyze'||path==='/api/email/generate';
+  const controller=aiRequest?new AbortController():null;
+  const timer=controller?setTimeout(()=>controller.abort(),105000):null;
+  if(controller)opts.signal=controller.signal;
+  try { r=await fetch(path,opts); }
+  catch(error){throw new Error(error.name==='AbortError'?'انتهت مهلة الكتابة. جرّب موديل أسرع من إعدادات الذكاء الاصطناعي.':'الاتصال اتقطع. خلي الصفحة مفتوحة وتأكد من الإنترنت ثم حاول تاني.');}
+  finally {if(timer)clearTimeout(timer);}
+
   if (!r.ok) {
     const e = await r.json().catch(()=>({error:r.statusText}));
     if (r.status===401) { document.getElementById('login-screen').style.display='flex'; throw new Error('انتهت الجلسة'); }
@@ -612,8 +623,12 @@ function pill(name, size) {
   return `<div class="file-pill"><div class="fname">📄 ${esc(name)}</div><div class="fsize">${size}</div></div>`;
 }
 
+function chooseUploadFile(id){const input=document.getElementById(id);const accept=input.accept;input.accept='';input.click();setTimeout(()=>input.accept=accept,1500);}
+
 async function uploadCV(e) {
   const file = e.target.files[0]; if(!file) return;
+  e.target.value='';
+  if(file.size>20*1024*1024){toast('حجم الـCV أكبر من 20 MB','error');return;}
   document.getElementById('cv-status').innerHTML = '<div style="margin-top:10px;font-size:13px;color:var(--text2)"><div class="spin" style="width:14px;height:14px;border-width:2px;border-top-color:var(--accent);display:inline-block;vertical-align:middle;margin-left:8px"></div> جاري التحليل...</div>';
   const fd = new FormData(); fd.append('cv', file);
   try {
@@ -622,7 +637,7 @@ async function uploadCV(e) {
     document.getElementById('cv-status').innerHTML = pill(file.name, (file.size/1024).toFixed(0)+' KB');
     cvReady=!!r.content?.trim();refreshWorkspace();toast('تم رفع السيرة وحفظها','success');
   } catch(err) {
-    document.getElementById('cv-status').innerHTML = `<div style="margin-top:10px;font-size:13px;color:var(--red)">❌ ${err.message}</div>`;
+    document.getElementById('cv-status').innerHTML = `<div style="margin-top:10px;font-size:13px;color:var(--red)">❌ ${esc(err.message)}</div>`;
     toast('خطأ: '+err.message,'error');
   }
 }
@@ -651,6 +666,8 @@ async function loadTemplate(){return writingLoad();}
 
 async function uploadExcel(e) {
   const file = e.target.files[0]; if(!file) return;
+  e.target.value='';
+  if(file.size>10*1024*1024){toast('حجم ملف الشركات أكبر من 10 MB','error');return;}
   document.getElementById('xl-status').innerHTML = '<div style="margin-top:10px;font-size:13px;color:var(--text2)">جاري القراءة...</div>';
   excelFile = null;
   document.getElementById('xl-map').style.display = 'none';
