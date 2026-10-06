@@ -11,6 +11,9 @@ let ready = false;
 let closing = false;
 
 app.set('trust proxy', 1);
+app.disable('x-powered-by');
+app.use(require('./middleware/security-headers'));
+app.get('/robots.txt',(req,res)=>res.type('text/plain').send('User-agent: *\nDisallow: /\n')); 
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({
@@ -96,7 +99,7 @@ async function lazyInit() {
     });
 
     app.get('*', (req, res) => {
-      res.sendFile(path.join(__dirname, 'public', 'index.html'));
+      res.status(404).type('text/plain').send('Not found');
     });
 
     app.use((error,req,res,next)=>{
