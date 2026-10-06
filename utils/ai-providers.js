@@ -2,6 +2,14 @@
 const {all}=require('./db');const {unseal}=require('./connection-secrets');
 const PROVIDERS={gemini:{name:'Google Gemini',base:'https://generativelanguage.googleapis.com/v1beta'},openrouter:{name:'OpenRouter',base:'https://openrouter.ai/api/v1'},openai:{name:'OpenAI',base:'https://api.openai.com/v1'},groq:{name:'Groq',base:'https://api.groq.com/openai/v1'}};
 function provider(id){if(!Object.hasOwn(PROVIDERS,id)){const e=new Error('منصة غير مدعومة');e.status=400;throw e;}return PROVIDERS[id];}
+// Runtime settings in Coolify. Bounds keep requests below the UI deadline.
+function timeoutSetting(name, fallback, minimum, maximum) {
+ const value=Number(process.env[name]);
+ return Number.isFinite(value)&&value>=minimum&&value<=maximum?Math.floor(value):fallback;
+}
+const MODEL_TIMEOUT_MS=timeoutSetting('AI_MODEL_TIMEOUT_MS',40000,5000,60000);
+const TOTAL_TIMEOUT_MS=timeoutSetting('AI_TOTAL_TIMEOUT_MS',75000,MODEL_TIMEOUT_MS,90000);
+const DISCOVERY_TIMEOUT_MS=20000;
 const ERROR_HINTS = {
  AUTH: 'المفتاح مرفوض. احفظ المفتاح الجديد ثم اختبره.',
  CREDITS: 'الرصيد أو حد الإنفاق غير كافٍ. راجع رصيد الحساب وحد المفتاح.',
@@ -28,7 +36,7 @@ function statusCode(status) {
  if(status===404||status>=500)return 'MODEL_UNAVAILABLE';
  if(status===400||status===413||status===422)return 'BAD_REQUEST';return 'UNKNOWN';
 }
-async function request(id,key,path,body,timeout=20000){
+async function request(id,key,path,body,timeout=DISCOVERY_TIMEOUT_MS){
  const p=provider(id);
  const headers=id==='gemini'?{'x-goog-api-key':key}:{Authorization:`Bearer ${key}`};
  headers['Content-Type']='application/json';
@@ -59,7 +67,7 @@ async function listModels(id,key,freeOnly=true){
  if(id==='openrouter'&&!result.some(m=>m.id==='openrouter/free'))result.push({id:'openrouter/free',name:'اختيار تلقائي من الموديلات المجانية',free:true});
  return result.sort((a,b)=>a.id.localeCompare(b.id));
 }
-async function generate(id,key,model,prompt,maxTokens=1200,timeout=20000){
+async function generate(id,key,model,prompt,maxTokens=1200,timeout=MODEL_TIMEOUT_MS){
  let text,finish;
  if(id==='gemini'){const data=await request(id,key,'/models/'+encodeURIComponent(model)+':generateContent',{contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:maxTokens}},timeout);const c=data.candidates?.[0];text=c?.content?.parts?.filter(p=>!p.thought).map(p=>p.text||'').join('');finish=c?.finishReason;}
  else if(id==='openai'){const data=await request(id,key,'/responses',{model,input:prompt,max_output_tokens:maxTokens,store:false},timeout);text=data.output?.filter(o=>o.type==='message').flatMap(o=>o.content||[]).filter(c=>c.type==='output_text').map(c=>c.text).join('');finish=data.status==='incomplete'?'length':data.status;}
@@ -71,12 +79,12 @@ async function callUserAI(userId,prompt,maxTokens,validate){
  const rows=await all('SELECT * FROM ai_connections WHERE user_id=$1 AND enabled=true ORDER BY priority,provider',[userId]);
  const chain=rows.flatMap(r=>(Array.isArray(r.selected_models)?r.selected_models:[]).map(model=>({row:r,model}))).slice(0,12);
  if(!chain.length)return null;
- const end=Date.now()+45000,failed=[],blocked=new Set();
+ const end=Date.now()+TOTAL_TIMEOUT_MS,failed=[],blocked=new Set();
  for(const {row,model}of chain){
   if(blocked.has(row.provider))continue;
   if(Date.now()>=end)break;
   try {
-   const text=await generate(row.provider,unseal(row.credentials).key,model,prompt,maxTokens,Math.min(20000,end-Date.now()));
+   const text=await generate(row.provider,unseal(row.credentials).key,model,prompt,maxTokens,Math.min(MODEL_TIMEOUT_MS,end-Date.now()));
    if(validate&&!validate(text))throw aiError('FORMAT');
    return text;
   } catch(e) {
