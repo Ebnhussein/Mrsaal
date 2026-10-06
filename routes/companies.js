@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const XLSX = require('xlsx');
+const {spreadsheetRows,column}=require('../utils/upload-files');
 const { v4: uuidv4 } = require('uuid');
 const { requireAuth } = require('../middleware/auth');
 const { get, all, run } = require('../utils/db');
@@ -32,29 +33,21 @@ router.post('/', requireAuth, async (req, res) => {
 router.post('/import', requireAuth, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'لا يوجد ملف' });
   try {
-    const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-    if (rows.length < 2) return res.status(400).json({ error: 'الملف فارغ' });
-    const headers = rows[0].map((h, i) => ({ index: i, name: String(h || `عمود ${i+1}`) }));
-    res.json({ headers, totalRows: rows.length - 1 });
+    const {rows,width,sheetName}=spreadsheetRows(req.file,XLSX);
+    const headers = Array.from({length:width},(_,i) => ({ index:i, name:String(rows[0][i] || `عمود ${i+1}`) }));
+    res.json({ headers, totalRows: rows.length - 1, sheetName });
   } catch (err) {
-    res.status(500).json({ error: 'خطأ في قراءة الملف: ' + err.message });
+    res.status(err.status||400).json({ error: 'خطأ في قراءة الملف: ' + err.message });
   }
 });
 
 router.post('/import/commit', requireAuth, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'لا يوجد ملف' });
   const { nameCol, emailCol, phoneCol, fieldCol, locationCol } = req.body;
-  const ni = parseInt(nameCol);
-  const ei = emailCol    != null && emailCol    !== '' ? parseInt(emailCol)    : -1;
-  const pi = phoneCol    != null && phoneCol    !== '' ? parseInt(phoneCol)    : -1;
-  const fi = fieldCol    != null && fieldCol    !== '' ? parseInt(fieldCol)    : -1;
-  const li = locationCol != null && locationCol !== '' ? parseInt(locationCol) : -1;
   try {
-    const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    const {rows,width}=spreadsheetRows(req.file,XLSX);
+    const ni=column(nameCol,width,true),ei=column(emailCol,width),pi=column(phoneCol,width),fi=column(fieldCol,width),li=column(locationCol,width);
+    if(ei<0&&pi<0)return res.status(400).json({error:'اختار عمود الإيميل أو الهاتف على الأقل.'});
     let added = 0, skipped = 0;
     for (const row of rows.slice(1).filter(r => r.some(c => c))) {
       const name  = String(row[ni] || '').trim();
@@ -78,7 +71,7 @@ router.post('/import/commit', requireAuth, upload.single('file'), async (req, re
     }
     res.json({ added, skipped });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(err.status||500).json({ error: err.message });
   }
 });
 

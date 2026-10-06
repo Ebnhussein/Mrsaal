@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const pdf = require('pdf-parse');
+const {cvKind,textFile}=require('../utils/upload-files');
 const { requireAuth } = require('../middleware/auth');
 const asyncHandler = require('../middleware/async-handler');
 const { get } = require('../utils/db');
@@ -13,9 +14,9 @@ router.get('/', asyncHandler(async(req,res)=>{
 }));
 router.post('/upload',upload.single('cv'),asyncHandler(async(req,res)=>{
  if(!req.file)return res.status(400).json({error:'لا يوجد ملف'});
- const isPDF=req.file.mimetype==='application/pdf';
+ const isPDF=cvKind(req.file)==='pdf';
  let text;
- try{text=isPDF?(await pdf(req.file.buffer)).text:req.file.buffer.toString('utf8');}
+ try{text=isPDF?(await pdf(req.file.buffer)).text:textFile(req.file.buffer);}
  catch{return res.status(400).json({error:'فشل قراءة ملف PDF. تأكد من سلامة الملف.'});}
  if(!text?.trim())return res.status(400).json({error:'الملف لا يحتوي على نص مقروء. ارفع PDF نصيًا أو أضف النص يدويًا. السيرة السابقة لم تتغير.'});
  const id=await replaceLatest('cv_profiles',req.session.userId,{content:text,filename:req.file.originalname,pdf_data:isPDF?req.file.buffer:null});
