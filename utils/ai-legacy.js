@@ -10,8 +10,8 @@ const DEFAULT_MODELS = [
   { provider: 'openrouter', model: 'openrouter/free' }
 ];
 
-const MODEL_TIMEOUT_MS = 30000;
-const TOTAL_TIMEOUT_MS = 90000;
+const MODEL_TIMEOUT_MS = 20000;
+const TOTAL_TIMEOUT_MS = 45000;
 
 function getModelChain(selectedGeminiModel) {
   let models;
