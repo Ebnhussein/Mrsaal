@@ -1,0 +1,1 @@
+(function(){let t='light';try{t=localStorage.getItem('mrsaal-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}catch{}document.documentElement.dataset.theme=t==='dark'?'dark':'light';})();
