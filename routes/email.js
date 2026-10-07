@@ -1,3 +1,4 @@
+const {checkToolAccess}=require('../utils/access-control');
 // routes/email.js
 const express = require('express');
 const router = express.Router();
@@ -93,6 +94,7 @@ router.post('/send', requireAuth, wrap(async (req, res) => {
 
   if (channel==='whatsapp') {
     try {
+      await checkToolAccess(req.session.userId);
       const result = await sendWhatsAppMessage(req.session.userId, company.phone, body, attachment);
       await run('UPDATE companies SET status=$1 WHERE id=$2', ['sent', companyId]);
       await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,subject,body,status,channel,message_id,thread_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
@@ -108,6 +110,7 @@ router.post('/send', requireAuth, wrap(async (req, res) => {
 
   const trackingUrl = `${BASE_URL}/track/open/${logId}.gif`;
   try {
+    await checkToolAccess(req.session.userId);
     const result = await sendEmail({ user, account, to: company.email, subject, body, trackingPixelUrl: trackingUrl, attachment });
     await run('UPDATE companies SET status=$1 WHERE id=$2', ['sent', companyId]);
     await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,subject,body,status,message_id,thread_id,channel) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
@@ -183,14 +186,16 @@ router.post('/send-bulk', requireAuth, wrap(async (req, res) => {
     try {
       if (channel === 'whatsapp') {
         const message = await generateWhatsAppMessage({ userId:req.session.userId, cv: cv.content, company, instructions: tpl?.instructions, apiKey, modelName });
-        const result = await sendWhatsAppMessage(req.session.userId, company.phone, message, attachment);
+        await checkToolAccess(req.session.userId);
+      const result = await sendWhatsAppMessage(req.session.userId, company.phone, message, attachment);
         await run('UPDATE companies SET status=$1 WHERE id=$2', ['sent', company.id]);
         await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,body,status,channel,message_id,thread_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
           [logId, req.session.userId, company.id, company.name, company.phone, message, 'sent', 'whatsapp',result.messageId,result.threadId]);
       } else {
         const email = await generateEmail({ userId:req.session.userId, cv: cv.content, company, instructions: tpl?.instructions, subjectTemplate: tpl?.subject_template, apiKey, modelName });
         const trackingUrl = `${BASE_URL}/track/open/${logId}.gif`;
-        const result = await sendEmail({ user, account, to: company.email, subject: email.subject, body: email.body, trackingPixelUrl: trackingUrl, attachment });
+        await checkToolAccess(req.session.userId);
+    const result = await sendEmail({ user, account, to: company.email, subject: email.subject, body: email.body, trackingPixelUrl: trackingUrl, attachment });
         await run('UPDATE companies SET status=$1 WHERE id=$2', ['sent', company.id]);
         await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,subject,body,status,message_id,thread_id,channel) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
           [logId, req.session.userId, company.id, company.name, company.email, email.subject, email.body, 'sent', result.messageId, result.threadId, 'email']);
