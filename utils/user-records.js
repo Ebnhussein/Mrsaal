@@ -6,7 +6,7 @@ const columns = {
   cv_profiles: ['content', 'filename', 'pdf_data']
 };
 // Replaces a user's current record atomically; a failed insert retains the old record.
-async function replaceLatest(table, userId, values) {
+async function replaceLatest(table, userId, values, options = {}) {
   if (!columns[table]) throw new Error('Unsupported user record');
   const fields = columns[table];
   const id = randomUUID();
@@ -18,6 +18,10 @@ async function replaceLatest(table, userId, values) {
       const error = new Error('انتهت جلسة الحساب. سجّل دخولك من جديد.');
       error.status = 401;
       throw error;
+    }
+    if (table === 'cv_profiles' && options.preservePDF) {
+      const previous = await client.query('SELECT filename,pdf_data FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1', [userId]);
+      if (previous.rows[0]?.pdf_data) values = {...values, filename:previous.rows[0].filename, pdf_data:previous.rows[0].pdf_data};
     }
     await client.query(`DELETE FROM ${table} WHERE user_id=$1`, [userId]);
     await client.query(

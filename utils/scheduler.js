@@ -7,7 +7,7 @@ const {sendEmail}=require('./gmail');
 const {resolveAccount}=require('./gmail-accounts');
 const {sendWhatsAppMessage}=require('./whatsapp');
 const {syncReplies}=require('./replyTracker');
-const BASE_URL=process.env.BASE_URL||`http://localhost:${process.env.PORT||3000}`;
+const BASE_URL=(process.env.BASE_URL||'https://mrsaal.ebnhussein.co').replace(/\/$/,'');
 let busy=false,syncBusy=false;
 const tasks=[];
 const {chooseChannel,skipReason}=require('../utils/delivery-channel');
@@ -75,7 +75,7 @@ async function tick(){
 function startScheduler(){
   if(tasks.length)return;
   tasks.push(cron.schedule('* * * * *',tick));
-  tasks.push(cron.schedule('*/5 * * * *',async()=>{
+  tasks.push(cron.schedule('*/1 * * * *',async()=>{
     if(syncBusy)return;syncBusy=true;
     try{await syncReplies();}catch(err){console.error('Gmail sync failed:',err.message);}finally{syncBusy=false;}
   }));

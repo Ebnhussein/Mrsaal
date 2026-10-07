@@ -49,53 +49,33 @@ function buildAuthClient(user) {
   return oauth2Client;
 }
 
-// Build RFC 2822 MIME message
-// Build RFC 2822 MIME message with optional attachment
+// Standards-compliant MIME: plain text, HTML alternative and exact original PDF.
 function buildMimeMessage({ from, to, subject, body, trackingPixelUrl, attachment }) {
-  const boundary = `__mrsaal_boundary_${Date.now()}__`;
-  const trackingPixel = trackingPixelUrl
-    ? `<br><div style="display:none"><img src="${trackingPixelUrl}" width="1" height="1" border="0" alt=""></div>`
-    : '';
-
-  const htmlBody = `<html><body style="font-family: sans-serif; line-height: 1.5; color: #333;">
-    ${body.replace(/\n/g, '<br>')}
-    ${trackingPixel}
-  </body></html>`;
-
-  let message = [
-    `From: ${from}`,
-    `To: ${to}`,
-    `Subject: =?UTF-8?B?${Buffer.from(subject).toString('base64')}?=`,
-    'MIME-Version: 1.0',
-    `Content-Type: multipart/mixed; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset=utf-8',
-    'Content-Transfer-Encoding: base64',
-    '',
-    Buffer.from(htmlBody).toString('base64'),
-    ''
-  ];
-
-  if (attachment && attachment.data) {
-    message.push(
-      `--${boundary}`,
-      `Content-Type: ${attachment.mimeType || 'application/pdf'}; name="${attachment.filename}"`,
-      `Content-Disposition: attachment; filename="${attachment.filename}"`,
-      'Content-Transfer-Encoding: base64',
-      '',
-      attachment.data.toString('base64'),
-      ''
-    );
+  const {randomUUID}=require('crypto');
+  for(const address of [from,to]) if(typeof address!=='string'||! /^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(address)) throw new Error('عنوان البريد غير صالح');
+  if(/[\r\n]/.test(String(subject)))throw new Error('موضوع البريد غير صالح');
+  const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fold=data=>Buffer.from(data).toString('base64').match(/.{1,76}/g)?.join('\r\n')||'';
+  const mixed='mixed_'+randomUUID(), alternative='alt_'+randomUUID();
+  const text=String(body||'').replace(/\r\n?/g,'\n');
+  const direction=/[\u0600-\u06ff]/.test(text)?'rtl':'ltr';
+  let pixel='';
+  if(trackingPixelUrl){const url=new URL(trackingPixelUrl);if(!['https:','http:'].includes(url.protocol))throw new Error('رابط التتبع غير صالح');pixel=`<img src="${escape(url.href)}" width="1" height="1" alt="" style="width:1px;height:1px;border:0">`;}
+  const html=`<!doctype html><html><body dir="${direction}" style="font-family:Arial,sans-serif;font-size:16px;line-height:1.8;color:#202124">${text.split(/\n[ \t]*\n/).map(x=>'<p style="margin:0 0 16px">'+escape(x).replace(/\n/g,'<br>')+'</p>').join('')}${pixel}</body></html>`;
+  // Split encoded words so Arabic subjects also stay within MIME header limits.
+  const words=Array.from(String(subject||''));const encoded=[];
+  while(words.length)encoded.push('=?UTF-8?B?'+Buffer.from(words.splice(0,12).join('')).toString('base64')+'?=');
+  const message=[`From: ${from}`,`To: ${to}`,`Subject: ${encoded.join('\r\n ')}`,`Date: ${new Date().toUTCString()}`,`Message-ID: <${randomUUID()}@${from.split('@')[1]}>`,'MIME-Version: 1.0',`Content-Type: multipart/mixed; boundary="${mixed}"`,'',`--${mixed}`,`Content-Type: multipart/alternative; boundary="${alternative}"`,''];
+  for(const [type,value]of [['text/plain',text],['text/html',html]])message.push(`--${alternative}`,`Content-Type: ${type}; charset=utf-8`,'Content-Transfer-Encoding: base64','',fold(value),'');
+  message.push(`--${alternative}--`,'');
+  if(attachment){
+    const bytes=attachment.data;
+    if(!Buffer.isBuffer(bytes)||!bytes.length)throw new Error('ملف السيرة الذاتية غير صالح. أعد رفع PDF.');
+    const filename=String(attachment.filename||'CV.pdf').replace(/[\r\n\x00-\x1f]/g,'').slice(0,150);
+    message.push(`--${mixed}`,'Content-Type: application/pdf','Content-Disposition: attachment;',` filename*=UTF-8\'\'${encodeURIComponent(filename).replace(/['()*]/g,c=>'%'+c.charCodeAt(0).toString(16))}`,'Content-Transfer-Encoding: base64','',fold(bytes),'');
   }
-
-  message.push(`--${boundary}--`);
-
-  return Buffer.from(message.join('\r\n'))
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
+  message.push(`--${mixed}--`,'');
+  return Buffer.from(message.join('\r\n')).toString('base64url');
 }
 
 async function sendEmailRequest({ user, account = null, logId = null, to, subject, body, trackingPixelUrl, attachment }) {
@@ -126,4 +106,4 @@ async function sendEmailRequest({ user, account = null, logId = null, to, subjec
 
 async function sendEmail(args){try{return await sendEmailRequest(args);}catch(error){throw require('./gmail-errors').gmailError(error);}}
 
-module.exports = { getAuthUrl, getTokensFromCode, getUserInfo, sendEmail, buildAuthClient };
+module.exports = { getAuthUrl, getTokensFromCode, getUserInfo, sendEmail, buildAuthClient, buildMimeMessage };
