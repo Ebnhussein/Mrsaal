@@ -334,6 +334,15 @@ function updateChannelSummary(){
  document.getElementById('channel-summary').textContent=`${queue.length-missing} شركة جاهزة ${channel==='email'?'للإيميل':'للواتساب'} · ${missing} شركة هتتخطى لنقص بيانات القناة. مفيش تحويل تلقائي.`;
  const sender=document.getElementById('send-sender')?.closest('.sender-box');if(sender)sender.hidden=channel==='whatsapp';
 }
+async function refreshPreviewAttachment(channel,id){
+  const el=document.getElementById('prev-attachment');el.hidden=channel!=='email';
+  if(el.hidden)return;el.textContent='جاري التحقق من مرفق السيرة…';
+  try{const cv=await api('/api/cv');if(previewChannel!==channel||prevCompanyId!==id)return;
+    el.replaceChildren();
+    if(cv?.has_attachment){el.append(document.createTextNode('سيُرفق PDF: '+(cv.filename||'CV.pdf')+' · '));const a=document.createElement('a');a.href='/api/cv/pdf';a.textContent='راجع الملف';a.target='_blank';a.rel='noopener';el.append(a);}
+    else el.textContent='بدون مرفق CV — السيرة محفوظة كنص فقط. ارفع PDF من الإعدادات لإرفاقه بالإيميل.';
+  }catch{if(previewChannel===channel&&prevCompanyId===id)el.textContent='تعذر التحقق من المرفق. راجع ملف السيرة في الإعدادات.';}
+}
 async function previewChangeChannel(channel){await previewOne(prevCompanyId,channel);}
 async function previewOne(id,channel=selectedDeliveryChannel()) {
   if(!ensureCV())return;
@@ -363,6 +372,7 @@ async function previewOne(id,channel=selectedDeliveryChannel()) {
   }
   document.getElementById('prev-loading').style.display='block';document.getElementById('prev-form').style.opacity='.4';
   document.getElementById('writing-review').textContent='جاري الكتابة ومراجعة المسودة…';
+  void refreshPreviewAttachment(channel,id);
   await genPreview(id);
 }
 let previewBatchActive=false;
@@ -520,7 +530,7 @@ function renderLog(){
   if(!log.length){container.innerHTML=`<div class="empty"><div class="empty-ico">📭</div><div class="empty-t">السجل فارغ</div><div class="empty-s">ستظهر هنا نتائج الإرسال</div></div>`;return;}
   const rows=log.map(l=>{
     const statusClass=l.replied?'replied':(l.open_count>0?'opened':l.status);
-    const statusText=l.replied?'تم الرد 💬':(l.channel==='whatsapp'?(l.whatsapp_read_at?'اتقرت ✓✓':l.whatsapp_delivered_at?'وصلت ✓✓':stLabel(l.status)):(l.open_count>0?'رُصد تحميل صورة التتبع':stLabel(l.status)));
+    const statusText=l.replied?'تم الرد 💬':(l.channel==='whatsapp'?(l.whatsapp_read_at?'اتقرت ✓✓':l.whatsapp_delivered_at?'وصلت ✓✓':stLabel(l.status)):(l.open_count>0?'تم رصد فتح البريد':stLabel(l.status)));
     return `<tr class="${l.replied?'row-replied':''}">
       <td><div style="font-weight:700">${esc(l.company_name)}</div><div style="font-size:12px;color:var(--text3)">${new Date(l.sent_at*1000).toLocaleString('ar')}</div></td>
       <td class="mono" style="font-size:13px">${esc(l.company_email||'غير متوفر')}<div class="hint">${l.channel==='whatsapp'?'واتساب':'إيميل'}</div></td>
@@ -549,14 +559,14 @@ function fillLogDetail(l){
   text('rd-icon',wa?'📱':'✉');
   text('rd-channel',wa?'واتساب':'إيميل');
   text('rd-recipient',l.company_email||'غير محدد');
-  text('rd-status',replied?'تم الرد':read?(wa?'اتقرت':'رُصد تحميل صورة التتبع'):stLabel(l.status));
+  text('rd-status',replied?'تم الرد':read?(wa?'اتقرت':'تم رصد فتح البريد'):stLabel(l.status));
   el('rd-status').className='report-chip'+(l.status==='failed'?' bad':l.status==='sent'?' good':'');
   const step=(id,label,time,done)=>{
     text('rd-'+id+'-label',label);text('rd-'+id+'-time',time);
     el('rd-'+id+'-step').classList.toggle('done',done);
   };
   step('sent',l.status==='sent'?'تم الإرسال':stLabel(l.status),reportDate(l.sent_at),l.status==='sent');
-  step('read',read?(wa?'اتقرت':'رُصد تحميل صورة التتبع'):(wa?'بانتظار تأكيد القراءة':'لم تُحمّل صورة التتبع بعد'),read?reportDate(wa?l.whatsapp_read_at:l.last_opened_at)||'وصل تأكيد القراءة':'عدم وصول تأكيد لا يعني إن الرسالة لم تُقرأ',read);
+  step('read',read?(wa?'اتقرت':'تم رصد فتح البريد'):(wa?'بانتظار تأكيد القراءة':'لم تُحمّل صورة التتبع بعد'),read?reportDate(wa?l.whatsapp_read_at:l.last_opened_at)||'وصل تأكيد القراءة':'عدم وصول تأكيد لا يعني إن الرسالة لم تُقرأ',read);
   step('reply',replied?'تم الرد':'لم يُرصد رد بعد',replied?reportDate(wa?l.whatsapp_reply_at:l.reply_received_at)||'تم تسجيل رد':'يظهر هنا عند رصد رد جديد',replied);
   el('rd-delivery').hidden=!wa;
   text('rd-delivery',l.whatsapp_delivered_at?'✓✓ وصلت للمستلم · '+reportDate(l.whatsapp_delivered_at):'لم يصل تأكيد تسليم من واتساب حتى الآن.');
