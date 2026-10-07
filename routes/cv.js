@@ -10,7 +10,7 @@ const { replaceLatest } = require('../utils/user-records');
 const upload = multer({storage:multer.memoryStorage(),limits:{fileSize:20*1024*1024}});
 router.use(requireAuth);
 router.get('/', asyncHandler(async(req,res)=>{
- res.json(await get('SELECT * FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1',[req.session.userId])||null);
+ res.json(await get('SELECT id,content,filename,created_at,(pdf_data IS NOT NULL) AS has_attachment FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1',[req.session.userId])||null);
 }));
 router.post('/upload',upload.single('cv'),asyncHandler(async(req,res)=>{
  if(!req.file)return res.status(400).json({error:'لا يوجد ملف'});
@@ -25,7 +25,7 @@ router.post('/upload',upload.single('cv'),asyncHandler(async(req,res)=>{
 router.post('/text',asyncHandler(async(req,res)=>{
  const {content,name}=req.body;
  if(typeof content!=='string'||!content.trim())return res.status(400).json({error:'المحتوى فارغ'});
- const id=await replaceLatest('cv_profiles',req.session.userId,{content:content.trim(),filename:typeof name==='string'?name:'manual',pdf_data:null});
+ const id=await replaceLatest('cv_profiles',req.session.userId,{content:content.trim(),filename:typeof name==='string'?name:'manual',pdf_data:null},{preservePDF:true});
  res.json({id,content:content.trim()});
 }));
 router.get('/template',asyncHandler(async(req,res)=>{

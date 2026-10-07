@@ -1,7 +1,7 @@
 'use strict';
 const router=require('express').Router();const path=require('path');const {all,get}=require('../utils/db');const wrap=require('../middleware/async-handler');const {render,escapeHTML}=require('../utils/site-template');const {isAdmin}=require('../utils/helpdesk');const {checkToolAccess}=require('../utils/access-control');
 const publicDir=path.join(__dirname,'../public');
-router.get('/',(req,res)=>{const q=new URLSearchParams();for(const k of ['error','linked'])if(typeof req.query[k]==='string')q.set(k,req.query[k].slice(0,80));res.redirect((req.session?.userId?'/app':q.has('error')?'/ar/login':'/ar/')+(q.size?'?'+q:' ' ).trim());});
+router.get('/',wrap(async(req,res)=>{const q=new URLSearchParams();for(const k of ['error','linked'])if(typeof req.query[k]==='string')q.set(k,req.query[k].slice(0,80));res.redirect((req.session?.userId?(q.has('linked')?'/app':await isAdmin(req.session.userId)?'/admin':'/app'):q.has('error')?'/ar/login':'/ar/')+(q.size?'?'+q:' ' ).trim());}));
 router.get('/app',wrap(async(req,res)=>{
  res.set({'Cache-Control':'no-store','X-Robots-Tag':'noindex'});
  if(!req.session?.userId)return res.redirect('/ar/login');
@@ -16,7 +16,7 @@ const pages=new Set(['product','blog','plans','help','login','about','contact','
 router.get('/:lang(ar|en)/blog/:slug',wrap(async(req,res)=>{const post=await get("SELECT * FROM website_posts WHERE slug=$1 AND status='published'",[req.params.slug]);if(!post)return res.status(404).send('Article not found');res.send(render(req.params.lang,'article',{post}));}));
 router.get('/:lang(ar|en)/:page?',wrap(async(req,res,next)=>{
  const page=req.params.page||'home';if(page!=='home'&&!pages.has(page))return next();
- if(page==='login'&&req.session?.userId)return res.redirect('/app');
+ if(page==='login'&&req.session?.userId)return res.redirect(await isAdmin(req.session.userId)?'/admin':'/app');
  
  const posts=page==='blog'?await all("SELECT slug,category,title_ar,title_en,excerpt_ar,excerpt_en FROM website_posts WHERE status='published' ORDER BY published_at DESC"):[];
  let html=render(req.params.lang,page,{posts});if(page==='login'&&req.query.error)html=html.replace('<main>','<main><div class="m-inline-notice" role="alert">'+(req.params.lang==='ar'?'تعذر تسجيل الدخول. حاول مرة أخرى؛ إذا استمرت المشكلة تواصل مع إدارة مرسال.':'Sign-in failed. Please try again or contact the Mrsaal administrator.')+'</div>');res.send(html);

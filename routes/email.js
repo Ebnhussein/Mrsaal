@@ -13,7 +13,7 @@ async function rememberSender(logId,userId,account){if(account)await run('UPDATE
 const { syncReplies } = require('../utils/replyTracker');
 const { sendWhatsAppMessage, requireConnected } = require('../utils/whatsapp');
 
-const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+const BASE_URL = (process.env.BASE_URL || 'https://mrsaal.ebnhussein.co').replace(/\/$/,'');
 
 const {hasEmail,hasPhone,chooseChannel,skipReason,destination}=require('../utils/delivery-channel');
 async function recordSkip(userId,company,channel,reason){
@@ -228,7 +228,7 @@ router.delete('/log', requireAuth, wrap(async (req, res) => {
 }));
 
 router.get('/sync-replies', requireAuth, wrap(async (req, res) => {
-  try { await syncReplies(); res.json({ ok: true }); }
+  try { const result=await syncReplies(req.session.userId); res.json({ ok: true, ...result }); }
   catch (err) { res.status(500).json({ error: err.message }); }
 }));
 
