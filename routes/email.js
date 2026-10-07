@@ -14,19 +14,25 @@ const { sendWhatsAppMessage, requireConnected } = require('../utils/whatsapp');
 
 const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
 
-function hasEmail(company) { return company.email && company.email.includes('@'); }
-function hasPhone(company) { return company.phone && String(company.phone).replace(/\D/g, '').length >= 7; }
+const {hasEmail,hasPhone,chooseChannel,skipReason,destination}=require('../utils/delivery-channel');
+async function recordSkip(userId,company,channel,reason){
+ await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,status,reason,channel) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+ [uuidv4(),userId,company.id,company.name,destination(company,channel)||'', 'skipped',reason,channel]);
+}
 
 router.post('/generate', requireAuth, wrap(async (req, res) => {
   const { companyId } = req.body;
   const company = await get('SELECT * FROM companies WHERE id=$1 AND user_id=$2', [companyId, req.session.userId]);
   if (!company) return res.status(404).json({ error: 'الشركة غير موجودة' });
+  const channel=chooseChannel(company,req.body.channel);
+  const reason=skipReason(company,channel);
+  if(reason){return res.json({skipped:true,status:'skipped',channel,reason});}
   const cv = await get('SELECT content FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1', [req.session.userId]);
   if (!cv) return res.status(400).json({ error: 'لا توجد سيرة ذاتية محفوظة' });
   const tpl = await get('SELECT * FROM templates WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1', [req.session.userId]);
   const userSettings = await get('SELECT gemini_key, gemini_model FROM users WHERE id=$1', [req.session.userId]);
   try {
-    if (hasEmail(company)) {
+    if (channel==='email') {
       const email = await generateEmail({
         userId:req.session.userId, cv: cv.content, company,
         instructions: tpl?.instructions,
@@ -36,7 +42,7 @@ router.post('/generate', requireAuth, wrap(async (req, res) => {
       });
       return res.json({ channel: 'email', ...email });
     }
-    if (hasPhone(company)) {
+    if (channel==='whatsapp') {
       const message = await generateWhatsAppMessage({
         userId:req.session.userId, cv: cv.content, company,
         instructions: tpl?.instructions,
@@ -55,6 +61,9 @@ router.post('/send', requireAuth, wrap(async (req, res) => {
   const { companyId, subject, body, scheduledAt } = req.body;
   const company = await get('SELECT * FROM companies WHERE id=$1 AND user_id=$2', [companyId, req.session.userId]);
   if (!company) return res.status(404).json({ error: 'الشركة غير موجودة' });
+  const channel=chooseChannel(company,req.body.channel);
+  const reason=skipReason(company,channel);
+  if(reason){await recordSkip(req.session.userId,company,channel,reason);return res.json({ok:true,skipped:true,status:'skipped',channel,reason});}
   const user = await get('SELECT * FROM users WHERE id=$1', [req.session.userId]);
   if (!user) return res.status(401).json({ error: 'المستخدم غير موجود' });
   const cv = await get('SELECT * FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1', [req.session.userId]);
@@ -63,27 +72,26 @@ router.post('/send', requireAuth, wrap(async (req, res) => {
   if (!hasEmail(company) && !hasPhone(company)) return res.status(400).json({ error: 'لا توجد وسيلة تواصل صالحة' });
   if (typeof body !== 'string' || !body.trim()) return res.status(400).json({ error: 'نص الرسالة مطلوب' });
   if (scheduledAt && (!Number.isFinite(new Date(scheduledAt).getTime()) || new Date(scheduledAt).getTime() <= Date.now())) return res.status(400).json({ error: 'اختار موعدًا صحيحًا في المستقبل' });
-  if (!hasEmail(company) && hasPhone(company)) {
+  if (channel==='whatsapp') {
     try { await requireConnected(req.session.userId); }
     catch (err) { return res.status(409).json({ error: err.message }); }
   }
 
-  const account=hasEmail(company)?await resolveAccount(req.session.userId,req.body.senderAccountId||null):null;
+  const account=channel==='email'?await resolveAccount(req.session.userId,req.body.senderAccountId||null):null;
   if (scheduledAt) {
     const tsMs = new Date(scheduledAt).getTime();
     const logId = uuidv4();
-    const channel = hasEmail(company) ? 'email' : 'whatsapp';
     await run('INSERT INTO scheduled_jobs (id,user_id,company_id,scheduled_at,log_id,sender_account_id) VALUES ($1,$2,$3,$4,$5,$6)', [uuidv4(), req.session.userId, companyId, tsMs, logId,account?.gmail_account_id||null]);
     await run('UPDATE companies SET status=$1, scheduled_at=$2 WHERE id=$3', ['scheduled', tsMs, companyId]);
     await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,subject,body,status,channel) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-      [logId, req.session.userId, companyId, company.name, company.email || company.phone, subject, body, 'scheduled', channel]);
+      [logId, req.session.userId, companyId, company.name, destination(company,channel), subject, body, 'scheduled', channel]);
     await rememberSender(logId,req.session.userId,account);
     return res.json({ ok: true, status: 'scheduled' });
   }
 
   const logId = uuidv4();
 
-  if (!hasEmail(company) && hasPhone(company)) {
+  if (channel==='whatsapp') {
     try {
       const result = await sendWhatsAppMessage(req.session.userId, company.phone, body, attachment);
       await run('UPDATE companies SET status=$1 WHERE id=$2', ['sent', companyId]);
@@ -125,30 +133,32 @@ router.post('/send-bulk', requireAuth, wrap(async (req, res) => {
   if (!cv) return res.status(400).json({ error: 'لا توجد سيرة ذاتية' });
   const attachment = cv.pdf_data ? { data: cv.pdf_data, filename: cv.filename||'CV.pdf', mimeType: 'application/pdf' } : null;
   const companies = (await Promise.all([...new Set(companyIds)].map(id => get('SELECT * FROM companies WHERE id=$1 AND user_id=$2', [id, req.session.userId])))).filter(Boolean);
-  if(companies.some(c=>!hasEmail(c) && hasPhone(c))) {
+  const channel=chooseChannel({},req.body.channel||'email');
+  const eligible=companies.filter(c=>!skipReason(c,channel));
+  if(channel==='whatsapp'&&eligible.length) {
     try {await requireConnected(req.session.userId);}
     catch(err){return res.status(409).json({error:err.message});}
   }
-  const account=companies.some(hasEmail)?await resolveAccount(req.session.userId,req.body.senderAccountId||null):null;
+  const account=channel==='email'&&eligible.length?await resolveAccount(req.session.userId,req.body.senderAccountId||null):null;
   const apiKey = user?.gemini_key || null;
   const modelName = user?.gemini_model || null;
 
   if (scheduleType === 'scheduled' && scheduledAt) {
     const tsMs = new Date(scheduledAt).getTime();
-    let scheduledCount=0;
+    let scheduledCount=0;const skippedItems=[];
     for (const c of companies) {
-      if(!hasEmail(c) && !hasPhone(c)) continue;
+      const reason=skipReason(c,channel);
+      if(reason){await recordSkip(req.session.userId,c,channel,reason);skippedItems.push({companyId:c.id,company:c.name,reason});continue;}
       const logId = uuidv4();
-      const channel = hasEmail(c) ? 'email' : 'whatsapp';
       await run('UPDATE companies SET status=$1, scheduled_at=$2 WHERE id=$3', ['scheduled', tsMs, c.id]);
       await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,status,channel) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-        [logId, req.session.userId, c.id, c.name, c.email||c.phone, 'scheduled', channel]);
+        [logId, req.session.userId, c.id, c.name, destination(c,channel), 'scheduled', channel]);
       await run('INSERT INTO scheduled_jobs (id,user_id,company_id,scheduled_at,log_id,sender_account_id) VALUES ($1,$2,$3,$4,$5,$6)',
         [uuidv4(), req.session.userId, c.id, tsMs, logId,channel==='email'?account.gmail_account_id:null]);
       if(channel==='email')await rememberSender(logId,req.session.userId,account);
       scheduledCount++;
     }
-    return res.json({ ok: true, scheduled: scheduledCount });
+    return res.json({ ok: true, scheduled: scheduledCount,skipped:skippedItems.length,skippedItems });
   }
 
   res.setHeader('Content-Type', 'text/event-stream');
@@ -161,14 +171,14 @@ router.post('/send-bulk', requireAuth, wrap(async (req, res) => {
   const send = data => !disconnected && res.write(`data: ${JSON.stringify(data)}\n\n`);
   const delay = ms => new Promise(r => setTimeout(r, ms));
   const delayMs = Math.min(300,Math.max(3,Number(delaySeconds)||3)) * 1000;
-  let sent = 0, failed = 0;
+  let sent = 0, failed = 0, skipped=0;
 
   for (let i = 0; i < companies.length; i++) {
     if(disconnected) break;
     const company = companies[i];
-    const channel = hasEmail(company) ? 'email' : (hasPhone(company) ? 'whatsapp' : null);
-    send({ type: 'progress', i: i+1, total: companies.length, company: company.name, channel });
-    if (!channel) { failed++; send({ type: 'failed', company: company.name, reason: 'لا يوجد إيميل أو رقم' }); continue; }
+    send({ type: 'progress', i: i+1, total: companies.length, company: company.name,companyId:company.id, channel });
+    const reason=skipReason(company,channel);
+    if(reason){await recordSkip(req.session.userId,company,channel,reason);skipped++;send({type:'skipped',company:company.name,companyId:company.id,channel,reason});continue;}
     const logId = uuidv4();
     try {
       if (channel === 'whatsapp') {
@@ -187,18 +197,18 @@ router.post('/send-bulk', requireAuth, wrap(async (req, res) => {
       }
       if(channel==='email')await rememberSender(logId,req.session.userId,account);
       sent++;
-      send({ type: 'sent', company: company.name, channel });
+      send({ type: 'sent', company: company.name,companyId:company.id, channel });
     } catch (err) {
       await run('UPDATE companies SET status=$1 WHERE id=$2', ['failed', company.id]);
       await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,status,reason,channel) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
-        [logId, req.session.userId, company.id, company.name, company.email||company.phone, 'failed', err.message, channel]);
+        [logId, req.session.userId, company.id, company.name, destination(company,channel), 'failed', err.message, channel]);
       if(channel==='email')await rememberSender(logId,req.session.userId,account);
       failed++;
-      send({ type: 'failed', company: company.name, reason: err.message });
+      send({ type: 'failed', company: company.name,companyId:company.id, reason: err.message });
     }
     if (i < companies.length - 1) await delay(delayMs);
   }
-  send({ type: 'done', sent, failed, total: companies.length });
+  send({ type: 'done', sent, failed, skipped, total: companies.length });
   res.end();
 }));
 
