@@ -1,3 +1,4 @@
+const {checkToolAccess}=require('./access-control');
 const cron=require('node-cron');
 const {v4:uuidv4}=require('uuid');
 const {all,get,run}=require('./db');
@@ -18,6 +19,7 @@ async function tick(){
       FROM scheduled_jobs sj JOIN companies c ON c.id=sj.company_id AND c.user_id=sj.user_id
       WHERE sj.status='pending' AND sj.scheduled_at <= $1 ORDER BY sj.scheduled_at LIMIT 50`,[Date.now()]);
     for(const job of jobs){
+      try{await checkToolAccess(job.user_id);}catch{continue;}
       const claimed=await run("UPDATE scheduled_jobs SET status='processing' WHERE id=$1 AND status='pending' RETURNING id",[job.id]);
       if(!claimed.rowCount)continue;
       const logId=job.log_id||uuidv4();
@@ -45,6 +47,7 @@ async function tick(){
           else body=await generateWhatsAppMessage(params);
         }
         const attachment=cv.pdf_data?{data:cv.pdf_data,filename:cv.filename||'CV.pdf',mimeType:'application/pdf'}:null;
+        await checkToolAccess(job.user_id);
         const result=channel==='email'
           ? await sendEmail({user,account,to:company.email,subject,body,trackingPixelUrl:`${BASE_URL}/track/open/${logId}.gif`,attachment})
           : await sendWhatsAppMessage(job.user_id,company.phone,body,attachment);
