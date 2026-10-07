@@ -9,13 +9,13 @@
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg"><link rel="stylesheet" href="/assets/app.css">
 <link rel="stylesheet" href="/assets/writing.css">
 <link rel="stylesheet" href="/assets/tour.css">
-<script src="/assets/product-guide.js?v=20261007-mail-compact-2" defer></script>
+<script src="/assets/product-guide.js?v=20261008-compose-1" defer></script>
 <script src="/assets/tour.js" defer></script>
-<link rel="stylesheet" href="/assets/support.css?v=20261007-mail-compact-2">
-<script src="/assets/support.js?v=20261007-mail-compact-2" defer></script>
+<link rel="stylesheet" href="/assets/support.css?v=20261008-compose-1">
+<script src="/assets/support.js?v=20261008-compose-1" defer></script>
 <link rel="stylesheet" href="/assets/connections.css">
 <script src="/assets/connections.js" defer></script>
-<link rel="stylesheet" href="/assets/layout.css">
+<link rel="stylesheet" href="/assets/layout.css?v=20261008-compose-1">
 <link rel="stylesheet" href="/assets/tickets.css">
 </head>
 <body>
@@ -200,33 +200,30 @@
 </div>
 
 <div class="overlay" id="preview-overlay">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="prev-company" tabindex="-1">
-    <div class="modal-hdr">
-      <div>
-        <div class="modal-title" id="prev-company">معاينة الإيميل</div>
-        <div class="modal-sub" id="prev-to"></div>
-      </div>
+  <section class="modal compose-modal" role="dialog" aria-modal="true" aria-labelledby="prev-company" aria-describedby="compose-description" tabindex="-1">
+    <header class="modal-hdr compose-header">
+      <div><p class="compose-eyebrow">مراجعة قبل الإرسال</p><h2 class="modal-title" id="prev-company">معاينة الرسالة</h2><p class="modal-sub" id="prev-to"></p></div>
       <button class="modal-close" onclick="closePrev()" aria-label="إغلاق معاينة الرسالة">✕</button>
-    </div>
-    <div class="field"><label class="label" for="preview-channel">قناة هذه الرسالة</label><select class="select" id="preview-channel" onchange="previewChangeChannel(this.value)"><option value="email">الإيميل</option><option value="whatsapp">الواتساب</option></select><p class="hint">تغيير القناة يولّد مسودة جديدة. راجع النص قبل الإرسال.</p></div>
-    <div id="prev-loading" style="text-align:center;padding:40px;display:none">
-      <div class="spin" style="width:28px;height:28px;margin:0 auto 12px"></div>
-      <div style="font-size:13px;color:var(--text2)">الذكاء الاصطناعي يكتب الرسالة...</div>
-    </div>
-    <div id="prev-form"><div class="sender-box"><label>الإرسال من حساب Gmail</label><select class="select" id="preview-sender" data-gmail-sender aria-label="حساب Gmail للإرسال" onchange="gmailSelect(this.value).catch(connectionError)"><option value="">جاري تحميل الحسابات…</option></select><small>يخص رسائل الإيميل. الرسائل المجدولة تحتفظ بالحساب المختار وقت الجدولة.</small></div>
-      <div class="field"><div class="label">📧 إلى</div><input class="input" id="prev-email" readonly style="direction:ltr;text-align:left"></div>
-      <div class="field" id="prev-subject-field"><div class="label">الموضوع</div><input class="input" id="prev-subject"></div>
-      <div class="writing-revision"><div class="row"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('shorten')">اختصرها</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('simplify')">خليها أبسط</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('casual')">قلل الرسمية</button><button class="btn btn-secondary" data-writing-control onclick="writingReference()">احفظها كمرجع لأسلوبي</button></div><label class="label" for="writing-note">ملاحظة على المسودة</label><div class="row"><input class="input" id="writing-note" placeholder="مثلًا: ابدأ بسبب التواصل على طول"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('custom')">طبّق ملاحظتي</button></div><p id="writing-review" class="hint" role="status" aria-live="polite"></p></div><div class="field"><p class="hint" id="prev-attachment" role="status" aria-live="polite"></p><div class="label" id="prev-body-label">نص الرسالة</div><textarea class="textarea" id="prev-body" dir="auto" rows="10"></textarea></div>
-      <div class="row">
-        <button class="btn btn-primary" id="btn-confirm" onclick="confirmSend()">✉️ إرسال</button>
-        <button class="btn btn-secondary" onclick="MrsaalTour.start('preview')">ⓘ اشرح المعاينة</button><button class="btn btn-secondary" data-writing-control onclick="regenerate()">🔄 إعادة الكتابة</button>
-        <button class="btn btn-secondary" onclick="skipCo()">⏭️ تخطي</button>
-        <div id="prev-send-status" style="font-size:12px;color:var(--text2)"></div>
+    </header>
+    <div class="compose-scroll">
+      <p id="compose-description" class="compose-description">راجع المستلم والمرفق، وعدّل المسودة بطريقتك قبل الإرسال.</p>
+      <div class="compose-channel field"><label class="label" for="preview-channel">قناة الإرسال</label><select class="select" id="preview-channel" onchange="previewChangeChannel(this.value)"><option value="email">الإيميل</option><option value="whatsapp">واتساب</option></select><p class="hint">تغيير القناة يولّد مسودة جديدة.</p></div>
+      <div id="prev-loading" class="compose-loading" role="status" style="display:none"><div class="spin"></div><span>الذكاء الاصطناعي يكتب المسودة ويراجعها…</span></div>
+      <div id="prev-form">
+        <div class="compose-addresses">
+          <div class="sender-box"><label class="label" for="preview-sender">من حساب Gmail</label><select class="select" id="preview-sender" data-gmail-sender aria-label="حساب Gmail للإرسال" onchange="gmailSelect(this.value).catch(connectionError)"><option value="">جاري تحميل الحسابات…</option></select><small>الحساب المختار يُستخدم للإرسال والجدولة.</small></div>
+          <div class="field compose-recipient"><label class="label" for="prev-email">إلى المستلم</label><input class="input" id="prev-email" readonly dir="ltr"></div>
+        </div>
+        <div class="field" id="prev-subject-field"><label class="label" for="prev-subject">موضوع الإيميل</label><input class="input" id="prev-subject" placeholder="عنوان واضح ومختصر" dir="auto"></div>
+        <p class="compose-attachment hint" id="prev-attachment" role="status" aria-live="polite"></p>
+        <div class="field compose-editor"><label class="label" id="prev-body-label" for="prev-body">نص الرسالة</label><textarea class="textarea" id="prev-body" dir="auto" rows="8" placeholder="ستظهر المسودة هنا. تقدر تعدّلها قبل الإرسال."></textarea><p class="hint">استخدم سطرًا فارغًا بين الفقرات لرسالة سهلة القراءة.</p></div>
+        <details class="writing-revision compose-refine"><summary>تحسين المسودة بالذكاء الاصطناعي <span>اختياري</span></summary><div class="compose-refine-content"><div class="row"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('shorten')">اختصرها</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('simplify')">خليها أبسط</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('casual')">قلل الرسمية</button><button class="btn btn-secondary" data-writing-control onclick="writingReference()">احفظها كمرجع لأسلوبي</button></div><label class="label" for="writing-note">ملاحظة محددة على المسودة</label><div class="row"><input class="input" id="writing-note" placeholder="مثلًا: ابدأ بسبب التواصل على طول"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('custom')">طبّق ملاحظتي</button></div></div></details>
+        <p id="writing-review" class="hint compose-review" role="status" aria-live="polite"></p>
       </div>
     </div>
-  </div>
+    <footer class="compose-footer"><div id="prev-send-status" role="status" aria-live="polite"></div><div class="compose-actions"><button class="btn btn-primary" id="btn-confirm" onclick="confirmSend()">إرسال الرسالة</button><button class="btn btn-secondary" data-writing-control onclick="regenerate()">إعادة الكتابة</button><button class="btn btn-secondary" onclick="skipCo()">تخطي الشركة</button><button class="btn compose-help" onclick="MrsaalTour.start('preview')">شرح المعاينة</button></div></footer>
+  </section>
 </div>
-
 
 <div class="overlay" id="report-detail-overlay">
   <section class="modal report-modal" role="dialog" aria-modal="true" aria-labelledby="rd-company" aria-describedby="rd-description" tabindex="-1">
@@ -272,9 +269,9 @@
 <div class="toast" id="toast"></div>
 
 <script src="/assets/writing.js"></script>
-<script src="/assets/app.js?v=20261007-mail-compact-2"></script>
+<script src="/assets/app.js?v=20261008-compose-1"></script>
 
 
-<script src="/assets/workspace.js"></script><script src="/assets/tickets.js?v=20261007-mail-compact-2"></script>
+<script src="/assets/workspace.js"></script><script src="/assets/tickets.js?v=20261008-compose-1"></script>
 </body>
 </html>
