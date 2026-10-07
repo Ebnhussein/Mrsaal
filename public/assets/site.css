@@ -15,3 +15,82 @@
 .m-site{min-height:100vh;border-radius:0;font-family:'IBM Plex Sans Arabic','Inter',sans-serif;--m-bg:#f7f9f6;--m-surface:#fff;--m-ink:#172f24;--m-sub:#445d4e;--m-line:#ccd9cf;--m-soft:#eaf2eb;--m-green:#176242;--m-on:#fff;--m-pill:#dcebdd;cursor:auto}.m-site[data-theme="dark"]{--m-bg:#101c16;--m-surface:#192a20;--m-ink:#f2f7f3;--m-sub:#becfc2;--m-line:#3d5545;--m-soft:#263d2d;--m-green:#a1ddb4;--m-on:#10291a;--m-pill:#304e39}body{margin:0;background:#f7f9f6}.m-site button,.m-site summary{cursor:pointer}.m-site button:disabled{cursor:default;opacity:.7}a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--m-green);outline-offset:4px}.m-route{display:none}.m-menu{display:none}.m-shell{width:100%}.m-reading article{white-space:normal}.m-reading p{white-space:pre-wrap}.admin-table{overflow:auto}.admin-table table{width:100%;border-collapse:collapse}td,th{padding:12px;border-bottom:1px solid var(--m-line);text-align:start;vertical-align:top}.admin-panel{padding:25px;background:var(--m-surface);border:1px solid var(--m-line);border-radius:12px;margin:20px 0}.admin-panel label{display:block;margin:12px 0}.admin-panel input,.admin-panel textarea,.admin-panel select{width:100%;padding:12px;background:var(--m-bg);color:var(--m-ink);border:1px solid var(--m-line);border-radius:8px}.admin-panel textarea{min-height:150px}.admin-tabs{display:flex;gap:12px;flex-wrap:wrap}.admin-panel button{margin:5px}.m-links a[aria-current]{color:var(--m-green);font-weight:700}@media(max-width:900px){.m-links{display:none}.m-menu{display:inline-flex}.m-header{flex-wrap:wrap}.m-tools{gap:5px}.m-tools>.m-button{padding:8px 11px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 
 .tickets-launch{display:none}.tickets-dialog{width:min(680px,calc(100vw - 32px));max-height:85dvh;border:1px solid var(--m-line);border-radius:16px;background:var(--m-surface);color:var(--m-ink)}.tickets-dialog::backdrop{background:#0008}.tickets-shell header,.tickets-tabs{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px}.tickets-content{padding:16px;overflow:auto;max-height:60dvh}.tickets-content label{display:block;margin:12px 0}.tickets-dialog .btn{padding:10px 15px;border:1px solid var(--m-line);border-radius:8px;background:var(--m-soft);color:var(--m-ink);font:inherit}.tickets-content input,.tickets-content textarea,.tickets-content select{width:100%;box-sizing:border-box;padding:12px;background:var(--m-bg);color:var(--m-ink);border:1px solid var(--m-line);font:inherit}.ticket-message p{white-space:pre-wrap}.m-reading article h2{margin:28px 0 12px}.m-reading article p{margin-bottom:20px}
+
+/* Readable production scale for website pages, desktop/tablet/mobile. */
+.m-site,.m-site[data-theme="light"],.m-site[data-theme="dark"]{font-size:17px;line-height:1.75;border-radius:0}
+.m-site .m-frame{width:100%;max-width:1280px;margin-inline:auto}
+.m-site main{min-height:0}
+.m-site .m-header{padding:24px 5%;gap:24px}
+.m-site .m-brand{font-size:26px;gap:12px}
+.m-site .m-brand small{font-size:11px;letter-spacing:2px}
+.m-site .m-mark,.m-site .m-mark img{width:40px;height:44px}
+.m-site .m-links{gap:22px;font-size:15px}
+.m-site .m-tools{gap:8px}
+.m-site .m-button{font-size:16px;line-height:1.4;min-height:48px;padding:12px 22px}
+.m-site .m-notice{font-size:13px;padding:10px 20px}
+.m-site .m-hero{padding:72px 5%}
+.m-site .m-columns{grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:clamp(28px,4vw,64px)}
+.m-site .m-columns>*,.m-site .m-header>*,.m-site .m-login-page>*{min-width:0}
+.m-site h1{font-size:clamp(34px,4.1vw,58px);line-height:1.35;letter-spacing:0;text-wrap:balance}
+.m-site h2{font-size:clamp(26px,2.7vw,36px);line-height:1.45}
+.m-site h3{font-size:21px;line-height:1.5}
+.m-site .m-eyebrow,.m-site .m-overline{font-size:14px;line-height:1.6}
+.m-site .m-desc,.m-site .m-page-heading p{font-size:18px;line-height:1.85;max-width:620px}
+.m-site .m-desc{margin:24px 0 30px!important}
+.m-site .m-fine,.m-site .m-live-note{font-size:14px;line-height:1.7}
+.m-site .m-actions{gap:12px}
+.m-site .m-preview{transform:none;width:100%}
+.m-site .m-app-head{padding:18px 22px;font-size:15px}
+.m-site .m-app-content{padding:22px}
+.m-site .m-tabs button{font-size:14px;min-height:44px;padding:9px 16px}
+.m-site .m-company-row{font-size:16px;padding:18px 0;gap:14px}
+.m-site .m-company-row small{font-size:13px;line-height:1.7;margin-top:3px}
+.m-site .m-badge{font-size:13px;line-height:1.6;padding:6px 10px;white-space:normal}
+.m-site .m-msg{font-size:15px;line-height:1.9;padding:22px;margin:18px 0}
+.m-site .m-home-latest{font-size:15px;padding:22px 5%;gap:16px}
+.m-site .m-section{padding:56px 5%}
+.m-site .m-section-title p,.m-site .m-feature p,.m-site .m-path p,.m-site .m-help-content p,.m-site .m-login-panel p,.m-site .m-login-story p,.m-site .m-reading p,.m-site .m-paper p,.m-site .m-blog-item p{font-size:16px;line-height:1.85}
+.m-site .m-path{padding:28px}
+.m-site .m-workflow strong{font-size:18px;line-height:1.6}
+.m-site .m-workflow p{font-size:15px;line-height:1.8}
+.m-site .m-workflow span{font-size:14px}
+.m-site .m-plan ul,.m-site .m-inline-notice,.m-site .m-faq details p{font-size:16px}
+.m-site .m-faq summary,.m-site .m-help-content summary{font-size:17px;line-height:1.7}
+.m-site .m-page-heading{padding:56px 5% 16px}
+.m-site .m-reading{grid-template-columns:minmax(0,1fr) minmax(190px,.28fr);padding:24px 5% 56px;gap:32px}
+.m-site .m-reading article{padding:clamp(22px,3vw,40px)}
+.m-site .m-reading aside,.m-site .m-example{font-size:16px}
+.m-site .m-login-page{padding:48px 5% 64px;gap:32px}
+.m-site .m-login-story .m-workflow{grid-template-columns:1fr 1fr;gap:24px}
+.m-site .m-footgrid{padding:40px 5%;font-size:16px;gap:32px}
+.m-site .m-footgrid strong{font-size:18px}
+.m-site .m-footer{padding:24px 5%;font-size:14px}
+.m-site .m-nav-expanded{font-size:16px}
+@media(max-width:1050px){
+.m-site .m-links{display:none}.m-site .m-menu{display:inline-flex}
+.m-site .m-header{padding:20px 5%;gap:18px}.m-site .m-hero{padding:48px 5%}
+.m-site .m-columns{gap:28px}.m-site .m-desc{font-size:17px}
+}
+@media(max-width:800px){
+.m-site .m-columns,.m-site .m-reading,.m-site .m-login-page{grid-template-columns:minmax(0,1fr)}
+.m-site .m-columns{gap:36px}.m-site h1{font-size:clamp(34px,5.5vw,46px)}
+.m-site .m-preview{max-width:620px;margin-inline:auto}.m-site .m-hero{padding:44px 5%}
+.m-site .m-section{padding:40px 5%}.m-site .m-path-cards{grid-template-columns:minmax(0,1fr)}
+.m-site .m-reading aside{border-top:1px solid var(--m-line)}
+}
+@media(max-width:480px){
+.m-site{font-size:16px}.m-site .m-header{padding:16px 5%;gap:12px}
+.m-site .m-brand{font-size:23px;gap:9px}.m-site .m-mark,.m-site .m-mark img{width:34px;height:38px}
+.m-site .m-tools{gap:5px}.m-site .m-tools>.m-button{font-size:14px;min-height:44px;padding:9px 12px}
+.m-site h1{font-size:34px;line-height:1.45}.m-site h2{font-size:27px}.m-site h3{font-size:20px}
+.m-site .m-desc,.m-site .m-page-heading p{font-size:17px}.m-site .m-hero{padding:36px 5%}
+.m-site .m-notice{font-size:12px}.m-site .m-app-head,.m-site .m-app-content{padding:16px}
+.m-site .m-app-head{align-items:flex-start}.m-site .m-company-row{flex-wrap:wrap;font-size:15px}
+.m-site .m-company-row>span:first-child{flex:1 1 140px;min-width:0}
+.m-site .m-msg{padding:16px}.m-site .m-badge{font-size:12px}
+.m-site .m-page-heading{padding:36px 5% 12px}.m-site .m-actions{align-items:stretch}
+.m-site .m-actions .m-button{flex:1 1 140px}
+.m-site .m-login-panel,.m-site .m-login-story,.m-site .admin-panel{padding:20px}
+.m-site .m-workflow,.m-site .m-login-story .m-workflow{grid-template-columns:minmax(0,1fr);gap:24px}
+.m-site .m-footgrid{gap:24px}
+}
