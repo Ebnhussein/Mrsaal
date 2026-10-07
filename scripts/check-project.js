@@ -16,7 +16,7 @@ function checkProject(root=path.resolve(__dirname,'..')){
  if(!fs.existsSync(index))errors.push('public/index.html is missing');
  else{
   const html=fs.readFileSync(index,'utf8');
-  for(const match of html.matchAll(/(?:src|href)=["'](\/assets\/[^"']+)["']/g))if(!fs.existsSync(path.join(root,'public',match[1])))errors.push('Missing public asset: '+match[1]);
+  for(const match of html.matchAll(/(?:src|href)=["'](\/assets\/[^"']+)["']/g))if(!fs.existsSync(path.join(root,'public',match[1].split(/[?#]/)[0])))errors.push('Missing public asset: '+match[1]);
   for(const match of html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g))try{new vm.Script(match[1]);}catch(e){errors.push('Inline script: '+e.message);}
   if(html.includes('window.fetch='))errors.push('Production HTML contains mocked fetch');
  }
