@@ -224,3 +224,23 @@ body.m-site[data-theme="dark"]{--m-bg:#111b16;--m-surface:#19251e;--m-ink:#eff4e
 @media(max-width:520px){body.m-site{--gutter:20px}.m-header{padding-block:15px;gap:12px;flex-wrap:wrap}.m-brand{font-size:23px}.m-mark,.m-mark img{width:30px;height:32px}.m-tools{gap:3px}.m-tools>.m-button{padding:8px 10px;min-height:40px;font-size:12px}.m-tools>.m-primary{display:none}.m-header .m-brand small{font-size:8px}.m-notice{font-size:11px}.m-hero{padding-top:36px}.m-hero h1{font-size:33px;line-height:1.45}.m-site:lang(en) .m-hero h1{font-size:34px;letter-spacing:-1px;line-height:1.2}.m-hero .m-eyebrow{font-size:11px}.m-desc{font-size:16px}.m-hero .m-actions{gap:8px}.m-hero .m-actions .m-button{font-size:14px;padding:11px 18px;min-height:46px}.m-windowbar{padding:10px 12px;gap:8px;font-size:9px}.m-demo-label{font-size:9px}.m-window-dots{display:none}.m-app-head{flex-direction:column;align-items:start;gap:12px;padding:18px}.m-tabs{width:100%}.m-tabs button{flex:1;font-size:12px;min-height:40px}.m-demo-body{grid-template-columns:minmax(0,1fr);padding:18px;gap:18px}.m-company-list .m-company-row{font-size:14px}.m-company-row small{font-size:11px}.m-msg{font-size:14px}.m-msg p{font-size:14px}.m-list-status{margin-top:12px}.m-demo-bottom{font-size:10px;padding:10px 14px}.m-proof{gap:12px 20px;font-size:11px;padding-block:24px}.m-section-intro{padding-bottom:8px}.m-site h2,.m-feature-copy h2{font-size:28px}.m-feature-row{padding-block:36px}.m-feature-art{padding:18px}.m-mini-title{padding:15px;font-size:12px}.m-mini-table>div:not(.m-mini-title),.m-delivery-preview>div:not(.m-mini-title){padding:15px;font-size:11px;gap:8px}.m-mini-table small,.m-delivery-preview small{font-size:9px}.m-mini-paper{padding:20px}.m-feature-grid{grid-template-columns:minmax(0,1fr);gap:28px}.m-section-title{flex-direction:column;gap:18px}.m-workflow{gap:26px 20px}.m-workflow strong{font-size:15px}.m-workflow p{font-size:13px}.m-bottom{flex-direction:column;padding:26px;gap:24px}.m-bottom .m-button{width:100%}.m-bottom h2{font-size:26px}.m-footgrid{grid-template-columns:1fr 1fr;gap:34px 24px;padding-block:40px}.m-footgrid>div:first-child{grid-column:1/-1}.m-footgrid p{max-width:none}.m-footer{font-size:11px;gap:14px}.m-page-heading h1{font-size:32px}.m-page-heading p{font-size:16px}.m-reading{padding-block:28px 48px}.m-reading p{font-size:16px;line-height:1.95}.m-login-story h1{font-size:32px}.m-login-panel,.m-help-content,.admin-panel{padding:22px}.m-login-story .m-workflow{gap:20px}.m-login-panel p{font-size:13px}.m-faq{gap:26px}.m-faq summary,.m-help-content summary{font-size:15px}.m-faq details p,.m-help-content details p{font-size:14px}}
 @media(max-width:360px){body.m-site{--gutter:16px}.m-header{gap:12px}.m-tools{flex-wrap:wrap}.m-hero h1{font-size:30px}.m-workflow,.m-login-story .m-workflow{grid-template-columns:minmax(0,1fr)}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* Small feedback, with no layout changes or hidden content. */
+.m-button,.m-tabs button,.m-path,.m-plan,.m-links a,.m-footgrid a{transition:transform 180ms ease,background-color 180ms ease,border-color 180ms ease,color 180ms ease,box-shadow 180ms ease}
+.m-button:active,.m-tabs button:active{transform:scale(.98)}
+.m-feature-art .m-mini-table,.m-feature-art .m-mini-paper,.m-feature-art .m-delivery-preview{transition:transform 280ms cubic-bezier(.22,1,.36,1)}
+.m-links a{position:relative}
+.m-links a::after{content:'';position:absolute;inset-inline:0;bottom:1px;height:2px;border-radius:2px;background:var(--m-green);transform:scaleX(0);transform-origin:center;transition:transform 180ms ease}
+.m-links a[aria-current]::after,.m-links a:focus-visible::after{transform:scaleX(1)}
+@media(hover:hover) and (pointer:fine){
+ .m-button:hover{transform:translateY(-2px);box-shadow:0 5px 14px #17392312}
+ .m-button.m-primary:hover{box-shadow:0 7px 20px #176b4726}
+ .m-path:hover,.m-plan:hover{transform:translateY(-4px);border-color:var(--m-green);box-shadow:var(--m-shadow)}
+ .m-feature-art:hover .m-mini-table,.m-feature-art:hover .m-mini-paper,.m-feature-art:hover .m-delivery-preview{transform:translateY(-3px)}
+ .m-links a:hover::after{transform:scaleX(1)}
+}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ .m-site *, .m-site *::before,.m-site *::after{animation:none!important;transition:none!important}
+ .m-button:hover,.m-button:active,.m-tabs button:active,.m-path:hover,.m-plan:hover,.m-feature-art:hover .m-mini-table,.m-feature-art:hover .m-mini-paper,.m-feature-art:hover .m-delivery-preview{transform:none}
+}
