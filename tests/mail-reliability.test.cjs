@@ -7,7 +7,7 @@ test('MIME parses as plain/HTML alternatives and byte-identical PDF with Arabic 
  const raw=mail.buildMimeMessage({from:'sender@gmail.com',to:'jobs@example.com',subject:'طلب تقديم أحمد حسين',body:'أهلًا <script>\nالسطر الثاني\n\nفقرة تانية',trackingPixelUrl:'https://mrsaal.ebnhussein.co/track/open/id.gif',attachment:{data:bytes,filename:'سيرتي.pdf'}});
  const code=`import sys,email,json,base64\nfrom email.policy import default\nm=email.message_from_bytes(base64.urlsafe_b64decode(sys.stdin.read()+'==='),policy=default)\np=list(m.walk())\nprint(json.dumps({'subject':str(m['Subject']),'filename':p[-1].get_filename(),'pdf':base64.b64encode(p[-1].get_payload(decode=True)).decode(),'plain':p[2].get_content(),'html':p[3].get_content(),'types':[x.get_content_type() for x in p],'defects':[str(x.defects) for x in p]}))`;
  const parsed=JSON.parse(execFileSync('python3',['-c',code],{input:raw,encoding:'utf8'}));
- assert.deepEqual(parsed.types,['multipart/mixed','multipart/alternative','text/plain','text/html','application/pdf']);assert.equal(parsed.pdf,bytes.toString('base64'));assert.equal(parsed.filename,'سيرتي.pdf');assert.equal(parsed.subject,'طلب تقديم أحمد حسين');assert(parsed.plain.includes('\n\nفقرة'));assert(parsed.html.includes('&lt;script&gt;'));assert(parsed.html.includes('dir="rtl"'));assert(!parsed.html.includes('display:none'));assert(parsed.defects.every(x=>x==='[]'));
+ assert.deepEqual(parsed.types,['multipart/mixed','multipart/alternative','text/plain','text/html','application/pdf']);assert.equal(parsed.pdf,bytes.toString('base64'));assert.equal(parsed.filename,'سيرتي.pdf');assert.equal(parsed.subject,'طلب تقديم أحمد حسين');assert(parsed.plain.includes('\n\nفقرة'));assert(parsed.html.includes('&lt;script&gt;'));assert(parsed.html.includes('dir="rtl"'));assert(parsed.html.includes('max-width:600px'));assert(!parsed.html.includes('display:none'));assert(parsed.defects.every(x=>x==='[]'));
  const decoded=Buffer.from(raw,'base64url').toString();assert(decoded.split('\r\n').every(l=>l.length<=998));
 });
 test('MIME rejects header injection and unusable attachment rather than silently dropping CV',()=>{
@@ -35,4 +35,13 @@ test('reply synchronization is owner-scoped, checks full thread, updates latest 
 });
 test('admin login landing redirects to admin; linking accounts stays in tool',async()=>{
  let handler;const api=load('routes/site.js',{express:{Router:()=>({get:(route,fn)=>{if(route==='/')handler=fn;}})},path,'../utils/db':{},'../middleware/async-handler':f=>f,'../utils/site-template':{},'../utils/helpdesk':{isAdmin:async id=>id==='admin'},'../utils/access-control':{}});let location;const response={redirect:x=>location=x};await handler({session:{userId:'admin'},query:{}},response);assert.equal(location,'/admin');await handler({session:{userId:'admin'},query:{linked:'gmail'}},response);assert.equal(location,'/app?linked=gmail');
+});
+test('original PDF download is authenticated and scoped to the session owner',async()=>{
+ const handlers=new Map(),guards=[];let params,record={pdf_data:Buffer.from('%PDF-original')};
+ const multer=()=>({single:()=>()=>{}});multer.memoryStorage=()=>({});
+ load('routes/cv.js',{express:{Router:()=>({use:f=>guards.push(f),get:(r,...f)=>handlers.set(r,f.at(-1)),post(){}})},multer,'pdf-parse':()=>{},'../utils/upload-files':{},'../middleware/auth':{requireAuth:(req,res,next)=>{if(req.session?.userId)next();else res.status(401).json({error:'login required'});}},'../middleware/async-handler':f=>f,'../utils/db':{get:async(sql,p)=>{assert(sql.includes('WHERE user_id=$1'));params=p;return record;}},'../utils/user-records':{}});
+ let status=200,sent,headers;const res={status:n=>{status=n;return res;},json:x=>sent=x,set:x=>headers=x,send:x=>sent=x};
+ let next=false;guards[0]({},res,()=>next=true);assert.equal(status,401);assert.equal(next,false);assert(!params);
+ await handlers.get('/pdf')({session:{userId:'owner'}},res);assert.equal(params[0],'owner');assert.equal(sent,record.pdf_data);assert.equal(headers['Cache-Control'],'private, no-store');
+ record=null;await handlers.get('/pdf')({session:{userId:'owner'}},res);assert.equal(status,404);
 });
