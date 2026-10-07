@@ -47,6 +47,7 @@ async function lazyInit() {
     const { initDB, pool } = require('./utils/db');
     await initDB();
     await require('./utils/connections-schema').ensureConnectionsSchema();
+    await require('./utils/replyTracker').ensureReplySchema();
     await require('./utils/helpdesk').ensureHelpdesk();
     await require('./utils/website-schema').ensureWebsiteSchema();
 
