@@ -115,14 +115,14 @@
     </div>
 
     <div class="page" id="page-send">
-      <div class="ph"><div><h1>راجع. ابعت. وتابع.</h1><p class="page-description">اختار الشركات وتوقيت الإرسال. قناة التواصل بتتحدد حسب بيانات الشركة.</p></div></div>
+      <div class="ph"><div><h1>راجع. ابعت. وتابع.</h1><p class="page-description">اختار الشركات وتوقيت الإرسال. اختار الإيميل أو الواتساب. الشركة اللي ناقصها بيانات القناة المختارة هتتخطى من غير إرسال.</p></div></div>
       <div class="g4" style="margin-bottom:20px">
         <div class="stat-card"><div class="stat-num c-blue" id="s-total">0</div><div class="stat-lbl">إجمالي</div></div>
         <div class="stat-card"><div class="stat-num c-yellow" id="s-pending">0</div><div class="stat-lbl">انتظار</div></div>
         <div class="stat-card"><div class="stat-num c-green" id="s-sent">0</div><div class="stat-lbl">أُرسل</div></div>
         <div class="stat-card"><div class="stat-num c-red" id="s-failed">0</div><div class="stat-lbl">فشل</div></div>
       </div>
-<div class="sender-box"><label>الإرسال من حساب Gmail</label><select class="select" id="send-sender" data-gmail-sender aria-label="حساب Gmail للإرسال" onchange="gmailSelect(this.value).catch(connectionError)"><option value="">جاري تحميل الحسابات…</option></select><small>يخص رسائل الإيميل. الرسائل المجدولة تحتفظ بالحساب المختار وقت الجدولة.</small></div>      <div class="g2">
+<div class="card"><div class="field"><label class="label" for="send-channel">قناة الإرسال لهذه الدفعة</label><select class="select" id="send-channel" onchange="updateChannelSummary()"><option value="email">الإيميل</option><option value="whatsapp">الواتساب</option></select></div><p class="hint" id="channel-summary" role="status" aria-live="polite">اختار قناة الإرسال؛ مش هنحوّل للقناة التانية تلقائيًا.</p><p class="hint">وجود رقم لا يضمن أنه مسجّل على واتساب؛ تعذر التسليم له بيتسجل كفشل إرسال.</p></div><div class="sender-box"><label>الإرسال من حساب Gmail</label><select class="select" id="send-sender" data-gmail-sender aria-label="حساب Gmail للإرسال" onchange="gmailSelect(this.value).catch(connectionError)"><option value="">جاري تحميل الحسابات…</option></select><small>يخص رسائل الإيميل. الرسائل المجدولة تحتفظ بالحساب المختار وقت الجدولة.</small></div>      <div class="g2">
         <div class="card">
           <div class="card-title">🕐 الجدولة</div>
           <div class="field">
@@ -149,12 +149,12 @@
               معاينة كل رسالة قبل الإرسال
             </label>
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
-              <input type="checkbox" id="opt-skip-sent" checked style="accent-color:var(--accent);width:15px;height:15px">
-              تخطي الشركات المرسل إليها مسبقاً
+              <input type="checkbox" id="opt-skip-sent" onchange="updateChannelSummary()" checked style="accent-color:var(--accent);width:15px;height:15px">
+              تخطي الشركات المرسل إليها على نفس القناة
             </label>
             <div class="field" style="margin-bottom:0">
               <div class="label">إرسال لـ</div>
-              <select class="select" id="send-filter" aria-label="الشركات المستهدفة">
+              <select class="select" id="send-filter" onchange="updateChannelSummary()" aria-label="الشركات المستهدفة">
                 <option value="all">كل الشركات</option>
                 <option value="selected">المحددة فقط</option>
                 <option value="pending">في الانتظار فقط</option>
@@ -208,6 +208,7 @@
       </div>
       <button class="modal-close" onclick="closePrev()" aria-label="إغلاق معاينة الرسالة">✕</button>
     </div>
+    <div class="field"><label class="label" for="preview-channel">قناة هذه الرسالة</label><select class="select" id="preview-channel" onchange="previewChangeChannel(this.value)"><option value="email">الإيميل</option><option value="whatsapp">الواتساب</option></select><p class="hint">تغيير القناة يولّد مسودة جديدة. راجع النص قبل الإرسال.</p></div>
     <div id="prev-loading" style="text-align:center;padding:40px;display:none">
       <div class="spin" style="width:28px;height:28px;margin:0 auto 12px"></div>
       <div style="font-size:13px;color:var(--text2)">الذكاء الاصطناعي يكتب الرسالة...</div>
