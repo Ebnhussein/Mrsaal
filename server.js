@@ -13,7 +13,7 @@ let closing = false;
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
 app.use(require('./middleware/security-headers'));
-app.get('/robots.txt',(req,res)=>res.type('text/plain').send('User-agent: *\nDisallow: /\n')); 
+app.get('/robots.txt',(req,res)=>res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://mrsaal.ebnhussein.co/sitemap.xml\n')); 
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({
@@ -21,7 +21,10 @@ app.use(express.urlencoded({
   limit: '50mb'
 }));
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.get('/privacy.html',(req,res)=>res.redirect(301,'/ar/privacy'));
+app.get('/terms.html',(req,res)=>res.redirect(301,'/ar/terms'));
+app.get('/index.html', (req,res)=>res.redirect('/app'));
+app.use(express.static(path.join(__dirname, 'public'), {index:false}));
 
 app.get('/health', (req, res) => {
   res.status(ready ? 200 : 503)
@@ -45,6 +48,7 @@ async function lazyInit() {
     await initDB();
     await require('./utils/connections-schema').ensureConnectionsSchema();
     await require('./utils/helpdesk').ensureHelpdesk();
+    await require('./utils/website-schema').ensureWebsiteSchema();
 
     const {
       ensureSchedulerSchema,
@@ -76,7 +80,10 @@ async function lazyInit() {
       }
     }));
 
+    app.use(require('./utils/access-control').gate);
     app.use(require('./utils/helpdesk').monitor);
+    app.use('/api/admin', require('./routes/admin'));
+    app.use(require('./routes/site'));
     app.use('/api/tickets', require('./routes/tickets'));
     app.use('/auth', require('./routes/auth'));
     app.use('/api/companies', require('./routes/companies'));
