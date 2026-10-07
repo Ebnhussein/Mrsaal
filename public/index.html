@@ -9,10 +9,10 @@
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg"><link rel="stylesheet" href="/assets/app.css">
 <link rel="stylesheet" href="/assets/writing.css">
 <link rel="stylesheet" href="/assets/tour.css">
-<script src="/assets/product-guide.js?v=20261007-mail-1" defer></script>
+<script src="/assets/product-guide.js?v=20261007-mail-compact-2" defer></script>
 <script src="/assets/tour.js" defer></script>
-<link rel="stylesheet" href="/assets/support.css?v=20261007-mail-1">
-<script src="/assets/support.js?v=20261007-mail-1" defer></script>
+<link rel="stylesheet" href="/assets/support.css?v=20261007-mail-compact-2">
+<script src="/assets/support.js?v=20261007-mail-compact-2" defer></script>
 <link rel="stylesheet" href="/assets/connections.css">
 <script src="/assets/connections.js" defer></script>
 <link rel="stylesheet" href="/assets/layout.css">
@@ -188,7 +188,7 @@
         <div class="stat-card"><div class="stat-num c-blue" id="r-total">0</div><div class="stat-lbl">إجمالي</div></div>
         <div class="stat-card"><div class="stat-num c-green" id="r-sent">0</div><div class="stat-lbl">تم الإرسال ✅</div></div>
         <div class="stat-card"><div class="stat-num c-red" id="r-failed">0</div><div class="stat-lbl">فشل ❌</div></div>
-        <div class="stat-card"><div class="stat-num c-orange" id="r-opens">0</div><div class="stat-lbl">رُصد تحميل التتبع 👁</div></div>
+        <div class="stat-card"><div class="stat-num c-orange" id="r-opens">0</div><div class="stat-lbl">فتح البريد 👁</div></div>
       </div>
       <div class="card">
         <div class="card-title">سجل الإرسال</div><p class="section-copy">افتح التفاصيل لعرض الرسالة والخط الزمني. فتح الإيميل مؤشر تتبع؛ قراءة واتساب تعتمد على تأكيد الخدمة.</p>
@@ -216,7 +216,7 @@
     <div id="prev-form"><div class="sender-box"><label>الإرسال من حساب Gmail</label><select class="select" id="preview-sender" data-gmail-sender aria-label="حساب Gmail للإرسال" onchange="gmailSelect(this.value).catch(connectionError)"><option value="">جاري تحميل الحسابات…</option></select><small>يخص رسائل الإيميل. الرسائل المجدولة تحتفظ بالحساب المختار وقت الجدولة.</small></div>
       <div class="field"><div class="label">📧 إلى</div><input class="input" id="prev-email" readonly style="direction:ltr;text-align:left"></div>
       <div class="field" id="prev-subject-field"><div class="label">الموضوع</div><input class="input" id="prev-subject"></div>
-      <div class="writing-revision"><div class="row"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('shorten')">اختصرها</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('simplify')">خليها أبسط</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('casual')">قلل الرسمية</button><button class="btn btn-secondary" data-writing-control onclick="writingReference()">احفظها كمرجع لأسلوبي</button></div><label class="label" for="writing-note">ملاحظة على المسودة</label><div class="row"><input class="input" id="writing-note" placeholder="مثلًا: ابدأ بسبب التواصل على طول"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('custom')">طبّق ملاحظتي</button></div><p id="writing-review" class="hint" role="status" aria-live="polite"></p></div><div class="field"><div class="label" id="prev-body-label">نص الرسالة</div><textarea class="textarea" id="prev-body" dir="auto" rows="10"></textarea></div>
+      <div class="writing-revision"><div class="row"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('shorten')">اختصرها</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('simplify')">خليها أبسط</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('casual')">قلل الرسمية</button><button class="btn btn-secondary" data-writing-control onclick="writingReference()">احفظها كمرجع لأسلوبي</button></div><label class="label" for="writing-note">ملاحظة على المسودة</label><div class="row"><input class="input" id="writing-note" placeholder="مثلًا: ابدأ بسبب التواصل على طول"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('custom')">طبّق ملاحظتي</button></div><p id="writing-review" class="hint" role="status" aria-live="polite"></p></div><div class="field"><p class="hint" id="prev-attachment" role="status" aria-live="polite"></p><div class="label" id="prev-body-label">نص الرسالة</div><textarea class="textarea" id="prev-body" dir="auto" rows="10"></textarea></div>
       <div class="row">
         <button class="btn btn-primary" id="btn-confirm" onclick="confirmSend()">✉️ إرسال</button>
         <button class="btn btn-secondary" onclick="MrsaalTour.start('preview')">ⓘ اشرح المعاينة</button><button class="btn btn-secondary" data-writing-control onclick="regenerate()">🔄 إعادة الكتابة</button>
@@ -272,9 +272,9 @@
 <div class="toast" id="toast"></div>
 
 <script src="/assets/writing.js"></script>
-<script src="/assets/app.js?v=20261007-mail-1"></script>
+<script src="/assets/app.js?v=20261007-mail-compact-2"></script>
 
 
-<script src="/assets/workspace.js"></script><script src="/assets/tickets.js?v=20261007-mail-1"></script>
+<script src="/assets/workspace.js"></script><script src="/assets/tickets.js?v=20261007-mail-compact-2"></script>
 </body>
 </html>
