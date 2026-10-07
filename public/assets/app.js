@@ -37,7 +37,7 @@ async function loadAll() {
 }
 
 async function api(path, method='GET', body=null) {
-  if(body&&method==='POST'&&['/api/email/send','/api/email/send-bulk'].includes(path)){if(gmailChanging)throw new Error('استنى تغيير حساب الإرسال يخلص');body={...body,senderAccountId:gmailActiveId};}
+  if(body&&method==='POST'&&['/api/email/send','/api/email/send-bulk'].includes(path)){if(body.channel!=='whatsapp'&&gmailChanging)throw new Error('استنى تغيير حساب الإرسال يخلص');body={...body,senderAccountId:gmailActiveId};}
   const opts = { method, headers: {'Content-Type':'application/json'} };
   if (body) opts.body = JSON.stringify(body);
   let r;
@@ -301,6 +301,7 @@ async function deleteSelected() {
 }
 
 function updateSendStats() {
+  updateChannelSummary();
   const t=companies.length,s=companies.filter(c=>c.status==='sent').length,
         f=companies.filter(c=>c.status==='failed').length,p=companies.filter(c=>c.status==='pending').length;
   document.getElementById('s-total').textContent=t;
@@ -314,35 +315,66 @@ function toggleSched() {
   document.getElementById('sched-dt').style.display=v==='scheduled'?'block':'none';
 }
 
-async function previewOne(id) {
+let previewChannel='email',batchChannel='email';
+function companyChannelReason(c,channel){
+ if(channel==='email')return typeof c.email==='string'&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email.trim())?null:'لا يوجد إيميل صالح';
+ const digits=String(c.phone||'').replace(/\D/g,'');return digits.length>=7&&digits.length<=15?null:'لا يوجد رقم صالح';
+}
+function selectedDeliveryChannel(){return document.getElementById('send-channel')?.value||'email';}
+function deliveryQueue(channel){
+ const filter=document.getElementById('send-filter').value,skip=document.getElementById('opt-skip-sent').checked;
+ return companies.filter(c=>!(filter==='selected'&&!c.selected)&&!(filter==='pending'&&c.status!=='pending')&&
+  !(skip&&log.some(l=>l.company_id===c.id&&l.channel===channel&&l.status==='sent')));
+}
+function updateChannelSummary(){
+ const channel=selectedDeliveryChannel(),queue=deliveryQueue(channel),missing=queue.filter(c=>companyChannelReason(c,channel)).length;
+ document.getElementById('channel-summary').textContent=`${queue.length-missing} شركة جاهزة ${channel==='email'?'للإيميل':'للواتساب'} · ${missing} شركة هتتخطى لنقص بيانات القناة. مفيش تحويل تلقائي.`;
+ const sender=document.getElementById('send-sender')?.closest('.sender-box');if(sender)sender.hidden=channel==='whatsapp';
+}
+async function previewChangeChannel(channel){await previewOne(prevCompanyId,channel);}
+async function previewOne(id,channel=selectedDeliveryChannel()) {
   if(!ensureCV())return;
-  prevCompanyId=id;
+  prevCompanyId=id;previewChannel=channel;
   const co=companies.find(c=>c.id===id); if(!co) return;
+  document.getElementById('preview-channel').value=channel;
   document.getElementById('prev-company').textContent=co.name;
-  const isWhatsApp = !co.email && !!co.phone;
-  document.getElementById('prev-to').textContent=(isWhatsApp?'واتساب: ':'إيميل: ')+(co.email||co.phone||'');
+  const isWhatsApp=channel==='whatsapp',recipient=isWhatsApp?co.phone:co.email;
+  document.getElementById('prev-to').textContent=(isWhatsApp?'واتساب: ':'إيميل: ')+(recipient||'غير متوفر');
+  document.querySelector('#prev-form .sender-box').hidden=isWhatsApp;
   document.getElementById('prev-subject-field').style.display=isWhatsApp?'none':'';
   document.getElementById('prev-body-label').textContent=isWhatsApp?'رسالة واتساب':'نص الإيميل';
-  document.getElementById('prev-email').value=co.email||co.phone||'';
-  document.getElementById('prev-subject').value='';
-  document.getElementById('prev-body').value='';
-  document.getElementById('prev-loading').style.display='block';
-  document.getElementById('prev-form').style.opacity='.4';
+  document.getElementById('prev-email').value=recipient||'';
+  document.getElementById('prev-subject').value='';document.getElementById('prev-body').value='';
   document.getElementById('preview-overlay').classList.add('open');
   document.getElementById('prev-send-status').textContent='';
+  const reason=companyChannelReason(co,channel);
+  if(reason){
+    previewRequest++;document.getElementById('btn-confirm').disabled=true;
+    document.getElementById('prev-loading').style.display='none';document.getElementById('prev-form').style.opacity='1';writingBusy(false);
+    document.getElementById('writing-review').textContent='تخطي: '+reason+' للقناة المختارة. اختار القناة التانية لو حابب.';
+    if(sendQueue.length||previewBatchActive){
+      try{await api('/api/email/send','POST',{companyId:id,channel});await loadLog();toast(co.name+' — تخطي: '+reason,'info');closePrev(false);processNextInQueue();}
+      catch(e){document.getElementById('prev-send-status').textContent=e.message;}
+    }
+    return;
+  }
+  document.getElementById('prev-loading').style.display='block';document.getElementById('prev-form').style.opacity='.4';
   document.getElementById('writing-review').textContent='جاري الكتابة ومراجعة المسودة…';
   await genPreview(id);
 }
+let previewBatchActive=false;
 
 let previewRequest = 0;
 async function genPreview(id) {
   const requestId = ++previewRequest;
+  document.getElementById('preview-channel').disabled=true;
   document.getElementById('btn-confirm').disabled=true;
   writingBusy(true);
   document.getElementById('prev-send-status').textContent='';
   try {
-    const r=await api('/api/writing/generate','POST',{companyId:id});
+    const r=await api('/api/writing/generate','POST',{companyId:id,channel:previewChannel});
     if(requestId!==previewRequest || id!==prevCompanyId) return;
+    if(r.skipped){document.getElementById('writing-review').textContent=r.reason;return;}
     document.getElementById('prev-subject').value=r.subject||'';
     document.getElementById('prev-body').value=r.body||''; writingReview(r);
     document.querySelector('#prev-form .sender-box').hidden=r.channel==='whatsapp';
@@ -356,12 +388,12 @@ async function genPreview(id) {
   } finally {
     if(requestId===previewRequest && id===prevCompanyId){
       document.getElementById('prev-loading').style.display='none';
-      document.getElementById('prev-form').style.opacity='1'; writingBusy(false);
+      document.getElementById('prev-form').style.opacity='1'; writingBusy(false);document.getElementById('preview-channel').disabled=false;
     }
   }
 }
 
-function closePrev(){previewRequest++;document.getElementById('preview-overlay').classList.remove('open')}
+function closePrev(cancel=true){previewRequest++;if(cancel){sendQueue=[];previewBatchActive=false;}document.getElementById('preview-overlay').classList.remove('open')}
 
 async function regenerate() {
   document.getElementById('prev-loading').style.display='block';
@@ -375,20 +407,20 @@ async function confirmSend() {
   if(btn.disabled)return;
   if(!document.getElementById('prev-body').value.trim()){toast('اكتب نص الرسالة أولاً','error');return;}
   const status=document.getElementById('prev-send-status');
-  btn.disabled=true; btn.innerHTML='<div class="spin"></div> جاري الإرسال...';
+  btn.disabled=true;document.getElementById('preview-channel').disabled=true; btn.innerHTML='<div class="spin"></div> جاري الإرسال...';
   const schedType=document.getElementById('sched-type').value;
   const scheduledAt=schedType==='scheduled'?document.getElementById('send-dt').value:null;
   try {
-    await api('/api/email/send','POST',{
-      companyId:prevCompanyId,
+    const result=await api('/api/email/send','POST',{
+      companyId:prevCompanyId,channel:previewChannel,
       subject:document.getElementById('prev-subject').value,
       body:document.getElementById('prev-body').value,
       scheduledAt
     });
     const co=companies.find(c=>c.id===prevCompanyId);
-    if(co) co.status=scheduledAt?'scheduled':'sent';
-    renderCompanies(); updateSendStats(); closePrev();
-    didSend=true; await loadLog(); toast(scheduledAt?'تم الجدولة':'تم الإرسال','success');
+    if(co&&!result.skipped) co.status=scheduledAt?'scheduled':'sent';
+    renderCompanies(); updateSendStats(); closePrev(false);
+    didSend=true; await loadLog(); toast(result.skipped?result.reason:(scheduledAt?'تم الجدولة':'تم الإرسال'),result.skipped?'info':'success');
   } catch(err) {
     const co=companies.find(c=>c.id===prevCompanyId);
     if(co) co.status='failed';
@@ -396,42 +428,36 @@ async function confirmSend() {
     status.textContent='❌ '+err.message; status.style.color='var(--red)';
     toast('فشل: '+err.message,'error');
   } finally {
-    btn.disabled=false; btn.innerHTML='إرسال'; if(didSend&&sendQueue.length)processNextInQueue();
+    btn.disabled=false;document.getElementById('preview-channel').disabled=false; btn.innerHTML='إرسال'; if(didSend&&previewBatchActive)processNextInQueue();
   }
 }
 
 async function skipCo() {
   if(prevCompanyId){const co=companies.find(c=>c.id===prevCompanyId);if(co)co.status='skipped';renderCompanies();updateSendStats();}
-  closePrev();
-  if(sendQueue.length) processNextInQueue();
+  closePrev(false);
+  if(previewBatchActive) processNextInQueue();
 }
 
 async function startSend() {
-  if(gmailChanging){toast('استنى تغيير حساب الإرسال يخلص','info');return;}
+  if(selectedDeliveryChannel()==='email'&&gmailChanging){toast('استنى تغيير حساب الإرسال يخلص','info');return;}
   if(!ensureCV())return;
-  const filter=document.getElementById('send-filter').value;
-  const skipSent=document.getElementById('opt-skip-sent').checked;
+  const channel=selectedDeliveryChannel();batchChannel=channel;
   const previewMode=document.getElementById('opt-preview').checked;
-  let queue=companies.filter(c=>{
-    if(filter==='selected'&&!c.selected) return false;
-    if(filter==='pending'&&c.status!=='pending') return false;
-    if(skipSent&&c.status==='sent') return false;
-    return true;
-  });
+  const queue=deliveryQueue(channel);
   if(!queue.length){toast('مفيش شركات مناسبة للاختيارات الحالية','info');return;}
-  if(queue.some(c=>!c.email&&c.phone)&&waState!=='connected'){toast('القائمة فيها شركات واتساب. اربط واتساب أو اختار شركات الإيميل فقط.','error');openSettings('channels');return;}
+  if(channel==='whatsapp'&&queue.some(c=>!companyChannelReason(c,channel))&&waState!=='connected'){toast('اربط واتساب قبل إرسال هذه الدفعة.','error');openSettings('channels');return;}
   const schedType=document.getElementById('sched-type').value;
   if(schedType==='scheduled') {
     const dt=document.getElementById('send-dt').value;
     if(!dt){toast('حدد التاريخ والوقت','error');return;}
     try {
-      const r=await api('/api/email/send-bulk','POST',{companyIds:queue.map(c=>c.id),scheduleType:'scheduled',scheduledAt:dt});
-      queue.forEach(c=>c.status='scheduled'); renderCompanies(); updateSendStats();
-      toast(`🕐 تمت جدولة ${r.scheduled} رسالة`,'success');
+      const r=await api('/api/email/send-bulk','POST',{channel,companyIds:queue.map(c=>c.id),scheduleType:'scheduled',scheduledAt:dt});
+      queue.filter(c=>!companyChannelReason(c,channel)).forEach(c=>c.status='scheduled'); renderCompanies(); updateSendStats();
+      await loadLog();toast(`تمت جدولة ${r.scheduled} رسالة · تخطي ${r.skipped||0}`,'success');
     } catch(err){toast(err.message,'error');}
     return;
   }
-  if(previewMode){sendQueue=queue.map(c=>c.id);processNextInQueue();return;}
+  if(previewMode){previewBatchActive=true;sendQueue=queue.map(c=>c.id);processNextInQueue();return;}
   stopFlag=false;
   document.getElementById('btn-send').style.display='none';
   document.getElementById('btn-stop').style.display='';
@@ -439,7 +465,7 @@ async function startSend() {
   document.getElementById('prog-bar').style.width='0%';
   const ids=queue.map(c=>c.id);
   const delay=parseInt(document.getElementById('delay-s').value)||5;
-  const r=await fetch('/api/email/send-bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyIds:ids,scheduleType:'now',delaySeconds:delay,senderAccountId:gmailActiveId})});
+  const r=await fetch('/api/email/send-bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel,companyIds:ids,scheduleType:'now',delaySeconds:delay,senderAccountId:gmailActiveId})});
   if(!r.ok){
     const error=await r.json().catch(()=>({error:'تعذر بدء الإرسال'}));
     toast(error.error||'تعذر بدء الإرسال','error');
@@ -457,9 +483,10 @@ async function startSend() {
       try{
         const ev=JSON.parse(line.slice(5).trim());
         if(ev.type==='progress'){document.getElementById('prog-text').textContent=`جاري إرسال رسالة إلى ${ev.company}...`;document.getElementById('prog-detail').textContent=`${ev.i} / ${ev.total}`;document.getElementById('prog-bar').style.width=`${(ev.i/ev.total)*100}%`;}
-        else if(ev.type==='sent'){const co=companies.find(c=>c.name===ev.company);if(co)co.status='sent';renderCompanies();updateSendStats();toast('✅ '+ev.company,'success');}
-        else if(ev.type==='failed'){const co=companies.find(c=>c.name===ev.company);if(co)co.status='failed';renderCompanies();updateSendStats();}
-        else if(ev.type==='done'){document.getElementById('prog-text').textContent=`✅ اكتمل — أُرسل: ${ev.sent}، فشل: ${ev.failed}`;document.getElementById('prog-bar').style.width='100%';toast(`🎉 اكتمل: ${ev.sent} رسالة`,'success');await loadLog();}
+        else if(ev.type==='sent'){const co=companies.find(c=>c.id===ev.companyId);if(co)co.status='sent';renderCompanies();updateSendStats();toast('✅ '+ev.company,'success');}
+        else if(ev.type==='skipped'){document.getElementById('prog-text').textContent=ev.company+' — '+ev.reason;}
+        else if(ev.type==='failed'){const co=companies.find(c=>c.id===ev.companyId);if(co)co.status='failed';renderCompanies();updateSendStats();}
+        else if(ev.type==='done'){document.getElementById('prog-text').textContent=`✅ اكتمل — أُرسل: ${ev.sent}، تخطي: ${ev.skipped||0}، فشل: ${ev.failed}`;document.getElementById('prog-bar').style.width='100%';toast(`🎉 اكتمل: ${ev.sent} رسالة`,'success');await loadLog();}
       }catch{}
     }
   }
@@ -470,12 +497,12 @@ async function startSend() {
 function stopSend(){stopFlag=true;toast('تم طلب الإيقاف...','info');}
 
 function processNextInQueue(){
-  if(!sendQueue.length){toast('🎉 تمت المعاينة الكاملة','success');return;}
-  const id=sendQueue.shift(); prevCompanyId=id; previewOne(id);
+  if(!sendQueue.length){previewBatchActive=false;toast('تمت مراجعة الدفعة','success');return;}
+  const id=sendQueue.shift(); prevCompanyId=id; previewOne(id,batchChannel);
 }
 
 async function loadLog(){
-  try{log=await api('/api/email/log');renderLog();refreshWorkspace();if(activeLogId){const item=log.find(x=>x.id===activeLogId);if(item)fillLogDetail(item);else closeLogDetail();}}catch{}
+  try{log=await api('/api/email/log');renderLog();updateChannelSummary();refreshWorkspace();if(activeLogId){const item=log.find(x=>x.id===activeLogId);if(item)fillLogDetail(item);else closeLogDetail();}}catch{}
 }
 
 function renderLog(){
@@ -493,8 +520,8 @@ function renderLog(){
     const statusText=l.replied?'تم الرد 💬':(l.channel==='whatsapp'?(l.whatsapp_read_at?'اتقرت ✓✓':l.whatsapp_delivered_at?'وصلت ✓✓':stLabel(l.status)):(l.open_count>0?`فُتح ${l.open_count} مرة`:stLabel(l.status)));
     return `<tr class="${l.replied?'row-replied':''}">
       <td><div style="font-weight:700">${esc(l.company_name)}</div><div style="font-size:12px;color:var(--text3)">${new Date(l.sent_at*1000).toLocaleString('ar')}</div></td>
-      <td class="mono" style="font-size:13px">${esc(l.company_email)}</td>
-      <td><span class="log-status ${statusClass}">${statusText}</span>${l.replied&&l.reply_text?`<div class="reply-preview">${esc(l.reply_text)}</div>`:''}</td>
+      <td class="mono" style="font-size:13px">${esc(l.company_email||'غير متوفر')}<div class="hint">${l.channel==='whatsapp'?'واتساب':'إيميل'}</div></td>
+      <td><span class="log-status ${statusClass}">${statusText}</span>${l.status==='skipped'&&l.reason?`<div class="hint">${esc(l.reason)}</div>`:''}${l.replied&&l.reply_text?`<div class="reply-preview">${esc(l.reply_text)}</div>`:''}</td>
       <td><button class="btn btn-secondary" style="padding:4px 8px;font-size:12px" onclick="viewLogDetail('${l.id}')">تفاصيل</button></td>
     </tr>`;
   }).join('');
