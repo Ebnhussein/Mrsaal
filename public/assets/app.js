@@ -335,12 +335,12 @@ function updateChannelSummary(){
  const sender=document.getElementById('send-sender')?.closest('.sender-box');if(sender)sender.hidden=channel==='whatsapp';
 }
 async function refreshPreviewAttachment(channel,id){
-  const el=document.getElementById('prev-attachment');el.hidden=channel!=='email';
+  const el=document.getElementById('prev-attachment');el.hidden=false;
   if(el.hidden)return;el.textContent='جاري التحقق من مرفق السيرة…';
   try{const cv=await api('/api/cv');if(previewChannel!==channel||prevCompanyId!==id)return;
     el.replaceChildren();
     if(cv?.has_attachment){el.append(document.createTextNode('سيُرفق PDF: '+(cv.filename||'CV.pdf')+' · '));const a=document.createElement('a');a.href='/api/cv/pdf';a.textContent='راجع الملف';a.target='_blank';a.rel='noopener';el.append(a);}
-    else el.textContent='بدون مرفق CV — السيرة محفوظة كنص فقط. ارفع PDF من الإعدادات لإرفاقه بالإيميل.';
+    else el.textContent='بدون مرفق CV — السيرة محفوظة كنص فقط. ارفع PDF من الإعدادات لإرفاقه بالرسالة.';
   }catch{if(previewChannel===channel&&prevCompanyId===id)el.textContent='تعذر التحقق من المرفق. راجع ملف السيرة في الإعدادات.';}
 }
 async function previewChangeChannel(channel){await previewOne(prevCompanyId,channel);}
@@ -355,9 +355,12 @@ async function previewOne(id,channel=selectedDeliveryChannel()) {
   document.querySelector('#prev-form .sender-box').hidden=isWhatsApp;
   document.getElementById('prev-subject-field').style.display=isWhatsApp?'none':'';
   document.getElementById('prev-body-label').textContent=isWhatsApp?'رسالة واتساب':'نص الإيميل';
+  document.querySelector('#preview-overlay .modal').dataset.channel=channel;
   document.getElementById('prev-email').value=recipient||'';
   document.getElementById('prev-subject').value='';document.getElementById('prev-body').value='';
-  document.getElementById('preview-overlay').classList.add('open');
+  const overlay=document.getElementById('preview-overlay');
+  if(!overlay.classList.contains('open')){previewFocus=document.activeElement;previewOverflow=document.body.style.overflow;}
+  overlay.classList.add('open');document.body.style.overflow='hidden';overlay.querySelector('.modal').focus({preventScroll:true});
   document.getElementById('prev-send-status').textContent='';
   const reason=companyChannelReason(co,channel);
   if(reason){
@@ -375,7 +378,7 @@ async function previewOne(id,channel=selectedDeliveryChannel()) {
   void refreshPreviewAttachment(channel,id);
   await genPreview(id);
 }
-let previewBatchActive=false;
+let previewBatchActive=false, previewFocus=null, previewOverflow='';
 
 let previewRequest = 0;
 async function genPreview(id) {
@@ -393,6 +396,7 @@ async function genPreview(id) {
     document.querySelector('#prev-form .sender-box').hidden=r.channel==='whatsapp';
     document.getElementById('prev-subject-field').style.display=r.channel==='whatsapp'?'none':'';
     document.getElementById('prev-body-label').textContent=r.channel==='whatsapp'?'رسالة واتساب':'نص الإيميل';
+  document.querySelector('#preview-overlay .modal').dataset.channel=r.channel;
     document.getElementById('btn-confirm').disabled=!r.body?.trim();
   } catch(err) {
     if(requestId!==previewRequest || id!==prevCompanyId) return;
@@ -406,7 +410,7 @@ async function genPreview(id) {
   }
 }
 
-function closePrev(cancel=true){previewRequest++;if(cancel){sendQueue=[];previewBatchActive=false;}document.getElementById('preview-overlay').classList.remove('open')}
+function closePrev(cancel=true){previewRequest++;if(cancel){sendQueue=[];previewBatchActive=false;}document.getElementById('preview-overlay').classList.remove('open');document.body.style.overflow=previewOverflow;if(previewFocus?.isConnected)previewFocus.focus({preventScroll:true});}
 
 async function regenerate() {
   document.getElementById('prev-loading').style.display='block';
@@ -675,3 +679,14 @@ setInterval(async()=>{
   refreshingReports=true;
   try{if(Date.now()-lastReplySync>30000){lastReplySync=Date.now();await api('/api/email/sync-replies').catch(()=>{});}await loadLog();}finally{refreshingReports=false;}
 },5000);
+
+const composeOverlay=document.getElementById('preview-overlay');
+composeOverlay.addEventListener('click',event=>{if(event.target===composeOverlay)closePrev();});
+composeOverlay.addEventListener('keydown',event=>{
+ if(event.key==='Escape'){event.preventDefault();closePrev();return;}
+ if(event.key!=='Tab')return;
+ const controls=[...composeOverlay.querySelectorAll('button,input,textarea,select,a[href],summary')].filter(el=>!el.disabled&&el.getClientRects().length);
+ const first=controls[0],last=controls.at(-1);if(!first)return;
+ if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+ else if(!event.shiftKey&&(document.activeElement===last||document.activeElement===composeOverlay.querySelector('.modal'))){event.preventDefault();first.focus();}
+});
