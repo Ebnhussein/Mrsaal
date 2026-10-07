@@ -11,13 +11,14 @@ async function checkAuth() {
     const r = await api('/auth/status');
     document.getElementById('app-loading').style.display = 'none';
     if (!r.loggedIn) {
-      document.getElementById('login-screen').style.display = 'flex';
+      window.location.replace('/ar/login');
       setGmail(false, 'غير متصل', 'سجّل دخولك أولاً');
     } else {
       document.getElementById('login-screen').style.display='none'; document.querySelector('.app').classList.add('active');
       setGmail(true, r.name || 'Gmail متصل', r.email);
       dataLoaded=false;cvReady=false;templateReady=false;waState='unknown';currentUser=r;
       window.MrsaalTickets?.refreshAccess();
+      if(!document.getElementById('public-site-link')){const a=document.createElement('a');a.id='public-site-link';a.href='/ar/';a.textContent='موقع مرسال';a.className='btn btn-secondary';document.querySelector('.sidebar')?.append(a);}
       await loadAll();
       await loadWhatsAppStatus();
       dataLoaded=true;

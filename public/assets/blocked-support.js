@@ -1,0 +1,1 @@
+'use strict';window.toast=(message)=>{let p=document.getElementById('blocked-note');if(!p){p=document.createElement('p');p.id='blocked-note';p.setAttribute('role','status');document.querySelector('main').append(p);}p.textContent=message;};document.getElementById('blocked-support')?.addEventListener('click',()=>window.MrsaalTickets?.open());
