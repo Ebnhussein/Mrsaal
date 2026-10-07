@@ -61,7 +61,16 @@ function buildMimeMessage({ from, to, subject, body, trackingPixelUrl, attachmen
   const direction=/[\u0600-\u06ff]/.test(text)?'rtl':'ltr';
   let pixel='';
   if(trackingPixelUrl){const url=new URL(trackingPixelUrl);if(!['https:','http:'].includes(url.protocol))throw new Error('رابط التتبع غير صالح');pixel=`<img src="${escape(url.href)}" width="1" height="1" alt="" style="width:1px;height:1px;border:0">`;}
-  const html=`<!doctype html><html><body dir="${direction}" style="font-family:Arial,sans-serif;font-size:16px;line-height:1.8;color:#202124">${text.split(/\n[ \t]*\n/).map(x=>'<p style="margin:0 0 16px">'+escape(x).replace(/\n/g,'<br>')+'</p>').join('')}${pixel}</body></html>`;
+  // Keep the submitted plain text intact. Only the HTML presentation gains paragraphs.
+  let paragraphs=text.split(/\n[ \t]*\n/);
+  if(paragraphs.length===1&&!text.includes('\n')&&text.length>280){
+    const sentences=text.split(/(?<=[.!?؟])\s+(?=[\p{L}])/u);
+    const grouped=[];let current='';
+    for(const sentence of sentences){if(current.length>180){grouped.push(current);current='';}current+=(current?' ':'')+sentence;}
+    if(current)grouped.push(current);paragraphs=grouped;
+  }
+  const content=paragraphs.map(x=>'<p dir="'+direction+'" style="margin:0 0 20px;line-height:1.9;overflow-wrap:break-word">'+escape(x).replace(/\n/g,'<br>')+'</p>').join('');
+  const html=`<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body dir="${direction}" style="margin:0;padding:20px 8px;background:#ffffff;color:#202124"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;margin:0 auto"><tr><td dir="${direction}" style="padding:4px 12px;font-family:Arial,Tahoma,sans-serif;font-size:16px;line-height:1.9;text-align:${direction==='rtl'?'right':'left'}">${content}${pixel}</td></tr></table></body></html>`;
   // Split encoded words so Arabic subjects also stay within MIME header limits.
   const words=Array.from(String(subject||''));const encoded=[];
   while(words.length)encoded.push('=?UTF-8?B?'+Buffer.from(words.splice(0,12).join('')).toString('base64')+'?=');
@@ -72,7 +81,7 @@ function buildMimeMessage({ from, to, subject, body, trackingPixelUrl, attachmen
     const bytes=attachment.data;
     if(!Buffer.isBuffer(bytes)||!bytes.length)throw new Error('ملف السيرة الذاتية غير صالح. أعد رفع PDF.');
     const filename=String(attachment.filename||'CV.pdf').replace(/[\r\n\x00-\x1f]/g,'').slice(0,150);
-    message.push(`--${mixed}`,'Content-Type: application/pdf','Content-Disposition: attachment;',` filename*=UTF-8\'\'${encodeURIComponent(filename).replace(/['()*]/g,c=>'%'+c.charCodeAt(0).toString(16))}`,'Content-Transfer-Encoding: base64','',fold(bytes),'');
+    message.push(`--${mixed}`,`Content-Type: application/pdf; name="=?UTF-8?B?${Buffer.from(filename).toString('base64')}?="`,'Content-Disposition: attachment;',` filename*=UTF-8\'\'${encodeURIComponent(filename).replace(/['()*]/g,c=>'%'+c.charCodeAt(0).toString(16))}`,'Content-Transfer-Encoding: base64','',fold(bytes),'');
   }
   message.push(`--${mixed}--`,'');
   return Buffer.from(message.join('\r\n')).toString('base64url');
