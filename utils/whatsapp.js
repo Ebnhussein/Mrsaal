@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const {buildWhatsAppContent}=require('./whatsapp-content');
 const { all, get, run } = require('./db');
 const QRCode = require('qrcode');
 const pino = require('pino');
@@ -167,6 +168,7 @@ async function sendWhatsAppMessage(userId,phone,body,attachment) {
   if(typeof body!=='string' || !body.trim()) throw new Error('نص رسالة واتساب مطلوب');
   const number=String(phone||'').replace(/^00/,'').replace(/\D/g,'');
   if(!/^[1-9]\d{7,14}$/.test(number)) throw new Error('رقم واتساب لازم يحتوي على كود الدولة');
+  const content=buildWhatsAppContent(body,attachment);
   const entry=await requireConnected(userId);
   const work=entry.sendQueue.then(async()=>{
     if(entry.cancelled || entry.status!=='connected') throw new Error('واتساب غير متصل');
@@ -174,9 +176,6 @@ async function sendWhatsAppMessage(userId,phone,body,attachment) {
     const target=results?.find(x=>x.exists);
     if(!target) throw new Error('الرقم غير مسجل على واتساب');
     // إرسال الـCV والنص في رسالة واحدة لتجنب نجاح النص وفشل المرفق.
-    const content=attachment?.data
-      ? {document:attachment.data,mimetype:attachment.mimeType||'application/pdf',fileName:attachment.filename||'CV.pdf',caption:body.trim()}
-      : {text:body.trim()};
     const result=await entry.sock.sendMessage(target.jid,content);
     return {messageId:result?.key?.id||null,threadId:result?.key?.remoteJid||target.jid};
   });
