@@ -119,6 +119,7 @@ async function saveCV() {
   if(!content) { toast('السيرة فارغة','error'); return; }
   try {
     await api('/api/cv/text','POST',{content});
+    await loadCV();
     document.getElementById('cv-saved-note').style.display='';
     setTimeout(()=>document.getElementById('cv-saved-note').style.display='none',3000);
     cvReady=true;refreshWorkspace();toast('تم حفظ السيرة','success');
@@ -128,6 +129,7 @@ async function saveCV() {
 async function loadCV() {
   try {
     const cv = await api('/api/cv');
+    if(cv)document.getElementById('cv-status').innerHTML=pill(cv.filename||'نص السيرة',cv.has_attachment?'PDF محفوظ ويُرفق تلقائيًا بالإيميل':'نص فقط — ارفع PDF لإرفاقه بالإيميل');
     cvReady=!!cv?.content?.trim(); if(cvReady) document.getElementById('cv-text').value=cv.content; refreshWorkspace();
   } catch {}
 }
@@ -518,11 +520,11 @@ function renderLog(){
   if(!log.length){container.innerHTML=`<div class="empty"><div class="empty-ico">📭</div><div class="empty-t">السجل فارغ</div><div class="empty-s">ستظهر هنا نتائج الإرسال</div></div>`;return;}
   const rows=log.map(l=>{
     const statusClass=l.replied?'replied':(l.open_count>0?'opened':l.status);
-    const statusText=l.replied?'تم الرد 💬':(l.channel==='whatsapp'?(l.whatsapp_read_at?'اتقرت ✓✓':l.whatsapp_delivered_at?'وصلت ✓✓':stLabel(l.status)):(l.open_count>0?`فُتح ${l.open_count} مرة`:stLabel(l.status)));
+    const statusText=l.replied?'تم الرد 💬':(l.channel==='whatsapp'?(l.whatsapp_read_at?'اتقرت ✓✓':l.whatsapp_delivered_at?'وصلت ✓✓':stLabel(l.status)):(l.open_count>0?'رُصد تحميل صورة التتبع':stLabel(l.status)));
     return `<tr class="${l.replied?'row-replied':''}">
       <td><div style="font-weight:700">${esc(l.company_name)}</div><div style="font-size:12px;color:var(--text3)">${new Date(l.sent_at*1000).toLocaleString('ar')}</div></td>
       <td class="mono" style="font-size:13px">${esc(l.company_email||'غير متوفر')}<div class="hint">${l.channel==='whatsapp'?'واتساب':'إيميل'}</div></td>
-      <td><span class="log-status ${statusClass}">${statusText}</span>${l.status==='skipped'&&l.reason?`<div class="hint">${esc(l.reason)}</div>`:''}${l.replied&&l.reply_text?`<div class="reply-preview">${esc(l.reply_text)}</div>`:''}</td>
+      <td><span class="log-status ${statusClass}">${statusText}</span>${l.status==='skipped'&&l.reason?`<div class="hint">${esc(l.reason)}</div>`:''}${l.replied&&l.reply_text?`<div class="reply-preview" dir="auto">${esc(l.reply_text)}</div>`:''}</td>
       <td><button class="btn btn-secondary" style="padding:4px 8px;font-size:12px" onclick="viewLogDetail('${l.id}')">تفاصيل</button></td>
     </tr>`;
   }).join('');
@@ -547,15 +549,15 @@ function fillLogDetail(l){
   text('rd-icon',wa?'📱':'✉');
   text('rd-channel',wa?'واتساب':'إيميل');
   text('rd-recipient',l.company_email||'غير محدد');
-  text('rd-status',replied?'تم الرد':read?(wa?'اتقرت':'تم رصد فتح'):stLabel(l.status));
+  text('rd-status',replied?'تم الرد':read?(wa?'اتقرت':'رُصد تحميل صورة التتبع'):stLabel(l.status));
   el('rd-status').className='report-chip'+(l.status==='failed'?' bad':l.status==='sent'?' good':'');
   const step=(id,label,time,done)=>{
     text('rd-'+id+'-label',label);text('rd-'+id+'-time',time);
     el('rd-'+id+'-step').classList.toggle('done',done);
   };
   step('sent',l.status==='sent'?'تم الإرسال':stLabel(l.status),reportDate(l.sent_at),l.status==='sent');
-  step('read',read?(wa?'اتقرت':'تم رصد فتح'):'بانتظار تأكيد القراءة',read?reportDate(wa?l.whatsapp_read_at:l.last_opened_at)||'وصل تأكيد القراءة':'عدم وصول تأكيد لا يعني إن الرسالة لم تُقرأ',read);
-  step('reply',replied?'تم الرد':'لم يُرصد رد بعد',replied?reportDate(l.whatsapp_reply_at)||'تم تسجيل رد':'يظهر هنا عند رصد رد جديد',replied);
+  step('read',read?(wa?'اتقرت':'رُصد تحميل صورة التتبع'):(wa?'بانتظار تأكيد القراءة':'لم تُحمّل صورة التتبع بعد'),read?reportDate(wa?l.whatsapp_read_at:l.last_opened_at)||'وصل تأكيد القراءة':'عدم وصول تأكيد لا يعني إن الرسالة لم تُقرأ',read);
+  step('reply',replied?'تم الرد':'لم يُرصد رد بعد',replied?reportDate(wa?l.whatsapp_reply_at:l.reply_received_at)||'تم تسجيل رد':'يظهر هنا عند رصد رد جديد',replied);
   el('rd-delivery').hidden=!wa;
   text('rd-delivery',l.whatsapp_delivered_at?'✓✓ وصلت للمستلم · '+reportDate(l.whatsapp_delivered_at):'لم يصل تأكيد تسليم من واتساب حتى الآن.');
   el('rd-subject').hidden=!l.subject;
@@ -565,8 +567,8 @@ function fillLogDetail(l){
   el('rd-reply-section').hidden=!replied;
   text('rd-reply',l.reply_text||'تم رصد رد بدون نص محفوظ.');
   el('rd-error').hidden=!l.reason;text('rd-error',l.reason);
-  el('rd-note').hidden=!(wa&&!l.message_id);
-  text('rd-note','هذه رسالة قديمة بدون معرّف؛ لا يمكن تتبع قراءتها.');
+  el('rd-note').hidden=wa&&!!l.message_id;
+  text('rd-note',wa?'هذه رسالة قديمة بدون معرّف؛ لا يمكن تتبع قراءتها.':'تتبع البريد يعتمد على تحميل صورة صغيرة. حجب الصور أو وضع السبام قد يمنع الرصد، وتحميل الصورة لا يثبت القراءة. الردود تُراجع كل دقيقة، وأثناء فتح التقارير كل ٣٠ ثانية؛ آخر ٣٠ يومًا.');
 }
 function viewLogDetail(id){
   const l=log.find(x=>x.id===id);if(!l)return;
@@ -617,7 +619,7 @@ function exportCSV(){
 
 async function loadSettings(){try{await providersLoad();}catch(e){toast(e.message,'error');}}
 async function syncNow(){
-  try{await api('/api/email/sync-replies');toast('تم التزامن ✅','success');}
+  try{const result=await api('/api/email/sync-replies');await loadLog();toast(result.failed?'تعذر فحص بعض الرسائل. راجع ربط Gmail.':result.checked?`تم فحص ${result.checked} محادثة · ردود جديدة: ${result.updated||0}`:'لا توجد رسائل تحتاج فحصًا الآن. المراجعة الأخيرة كانت منذ أقل من ٣٠ ثانية أو لا توجد رسائل خلال آخر ٣٠ يومًا.',result.failed?'error':'success');}
   catch(err){toast(err.message,'error');}
 }
 
@@ -657,9 +659,9 @@ async function disconnectWhatsApp(){
 waTimer=setInterval(loadWhatsAppStatus,4000);
 loadWhatsAppStatus();
 
-let refreshingReports=false;
+let refreshingReports=false, lastReplySync=0;
 setInterval(async()=>{
-  if(refreshingReports || !document.querySelector('.app.active') || !document.querySelector('#page-report.active'))return;
+  if(document.hidden || refreshingReports || !document.querySelector('.app.active') || !document.querySelector('#page-report.active'))return;
   refreshingReports=true;
-  try{await loadLog();}finally{refreshingReports=false;}
+  try{if(Date.now()-lastReplySync>30000){lastReplySync=Date.now();await api('/api/email/sync-replies').catch(()=>{});}await loadLog();}finally{refreshingReports=false;}
 },5000);
