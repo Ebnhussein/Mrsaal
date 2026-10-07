@@ -9,6 +9,7 @@ const {syncReplies}=require('./replyTracker');
 const BASE_URL=process.env.BASE_URL||`http://localhost:${process.env.PORT||3000}`;
 let busy=false,syncBusy=false;
 const tasks=[];
+const {chooseChannel,skipReason}=require('../utils/delivery-channel');
 async function ensureSchedulerSchema(){await run('ALTER TABLE scheduled_jobs ADD COLUMN IF NOT EXISTS log_id TEXT');}
 async function tick(){
   if(busy)return;busy=true;
@@ -28,8 +29,14 @@ async function tick(){
         const saved=job.log_id?await get('SELECT * FROM email_log WHERE id=$1 AND user_id=$2',[job.log_id,job.user_id]):null;
         if(!user||!cv)throw new Error('المستخدم أو السيرة الذاتية غير موجود');
         const company={name:job.company_name,email:job.company_email,phone:job.phone,field:job.field,location:job.location};
-        const channel=company.email?.includes('@')?'email':company.phone?'whatsapp':null;
-        if(!channel)throw new Error('لا توجد وسيلة تواصل');
+        const channel=chooseChannel(company,saved?.channel);
+        const reason=skipReason(company,channel);
+        if(reason){
+          await run("UPDATE scheduled_jobs SET status='skipped' WHERE id=$1",[job.id]);
+          if(job.log_id)await run("UPDATE email_log SET status='skipped',reason=$1 WHERE id=$2 AND user_id=$3",[reason,job.log_id,job.user_id]);
+          await run("UPDATE companies SET status='pending',scheduled_at=NULL WHERE id=$1 AND user_id=$2 AND status='scheduled'",[job.company_id,job.user_id]);
+          continue;
+        }
         const account=channel==='email'?await resolveAccount(job.user_id,job.sender_account_id):null;
         const params={userId:job.user_id,cv:cv.content,company,instructions:tpl?.instructions,subjectTemplate:tpl?.subject_template,apiKey:user.gemini_key||null,modelName:user.gemini_model||null};
         let subject=saved?.subject||'',body=saved?.body||'';
