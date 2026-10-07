@@ -9,6 +9,12 @@ const { get } = require('../utils/db');
 const { replaceLatest } = require('../utils/user-records');
 const upload = multer({storage:multer.memoryStorage(),limits:{fileSize:20*1024*1024}});
 router.use(requireAuth);
+router.get('/pdf',asyncHandler(async(req,res)=>{
+ const cv=await get('SELECT filename,pdf_data FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1',[req.session.userId]);
+ if(!cv?.pdf_data)return res.status(404).json({error:'لا يوجد PDF محفوظ. أعد رفع السيرة بصيغة PDF.'});
+ res.set({'Content-Type':'application/pdf','Content-Disposition':'attachment; filename="CV.pdf"','Cache-Control':'private, no-store'});
+ res.send(cv.pdf_data);
+}));
 router.get('/', asyncHandler(async(req,res)=>{
  res.json(await get('SELECT id,content,filename,created_at,(pdf_data IS NOT NULL) AS has_attachment FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1',[req.session.userId])||null);
 }));
@@ -20,7 +26,7 @@ router.post('/upload',upload.single('cv'),asyncHandler(async(req,res)=>{
  catch{return res.status(400).json({error:'فشل قراءة ملف PDF. تأكد من سلامة الملف.'});}
  if(!text?.trim())return res.status(400).json({error:'الملف لا يحتوي على نص مقروء. ارفع PDF نصيًا أو أضف النص يدويًا. السيرة السابقة لم تتغير.'});
  const id=await replaceLatest('cv_profiles',req.session.userId,{content:text,filename:req.file.originalname,pdf_data:isPDF?req.file.buffer:null});
- res.json({id,content:text,filename:req.file.originalname});
+ res.json({id,content:text,filename:req.file.originalname,has_attachment:isPDF});
 }));
 router.post('/text',asyncHandler(async(req,res)=>{
  const {content,name}=req.body;
