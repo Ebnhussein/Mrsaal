@@ -1,4 +1,5 @@
 'use strict';
+const {withRecovery,retryAfter,hardQuota}=require('./ai-retry');
 const {all}=require('./db');const {unseal}=require('./connection-secrets');
 const PROVIDERS={gemini:{name:'Google Gemini',base:'https://generativelanguage.googleapis.com/v1beta'},openrouter:{name:'OpenRouter',base:'https://openrouter.ai/api/v1'},openai:{name:'OpenAI',base:'https://api.openai.com/v1'},groq:{name:'Groq',base:'https://api.groq.com/openai/v1'}};
 function provider(id){if(!Object.hasOwn(PROVIDERS,id)){const e=new Error('منصة غير مدعومة');e.status=400;throw e;}return PROVIDERS[id];}
@@ -13,7 +14,9 @@ const DISCOVERY_TIMEOUT_MS=20000;
 const ERROR_HINTS = {
  AUTH: 'المفتاح مرفوض. احفظ المفتاح الجديد ثم اختبره.',
  CREDITS: 'الرصيد أو حد الإنفاق غير كافٍ. راجع رصيد الحساب وحد المفتاح.',
- RATE_LIMIT: 'وصلت المنصة لحد الاستخدام. انتظر أو اختر منصة بديلة.',
+ RATE_LIMIT: 'المنصة قيّدت عدد الطلبات مؤقتًا. انتظر موعد إعادة المحاولة أو اختر بديلًا.',
+ QUOTA: 'وصل الحساب للحد اليومي. انتظر تجدد الحصة أو استخدم منصة أخرى.',
+ TEMPORARY: 'الموديل مزدحم أو المنصة غير متاحة مؤقتًا؛ جرّب بديلًا.',
  FORBIDDEN: 'الطلب محظور. راجع صلاحيات المفتاح وإعدادات الخصوصية وسياسة المنصة.',
  MODEL_UNAVAILABLE: 'الموديل غير متاح. حدّث قائمة الموديلات واختر بديلًا.',
  BAD_REQUEST: 'المنصة رفضت إعدادات الطلب. جرّب موديلًا آخر أو قلّل حجم المحتوى.',
@@ -33,7 +36,7 @@ function statusCode(status) {
  if(status===401)return 'AUTH';if(status===402)return 'CREDITS';
  if(status===403)return 'FORBIDDEN';if(status===429)return 'RATE_LIMIT';
  if(status===408||status===504)return 'TIMEOUT';
- if(status===404||status>=500)return 'MODEL_UNAVAILABLE';
+ if(status===404)return 'MODEL_UNAVAILABLE';if(status>=500)return 'TEMPORARY';
  if(status===400||status===413||status===422)return 'BAD_REQUEST';return 'UNKNOWN';
 }
 async function request(id,key,path,body,timeout=DISCOVERY_TIMEOUT_MS){
@@ -54,7 +57,7 @@ async function request(id,key,path,body,timeout=DISCOVERY_TIMEOUT_MS){
  if(!response.ok||data?.error){
   const embedded=Number(data?.error?.code);
   const status=embedded>=400&&embedded<=599?embedded:Number(response.status);
-  throw aiError(statusCode(status),status);
+  const code=status===429&&hardQuota(data)?'QUOTA':data?.error?.metadata?.reason==='in_flight_budget_exhausted'?'TEMPORARY':statusCode(status);const error=aiError(code,status);error.retryAfterMs=retryAfter(response.headers);throw error;
  }
  if(!data)throw aiError('INVALID_RESPONSE');return data;
 }
@@ -84,7 +87,7 @@ async function callUserAI(userId,prompt,maxTokens,validate){
   if(blocked.has(row.provider))continue;
   if(Date.now()>=end)break;
   try {
-   const text=await generate(row.provider,unseal(row.credentials).key,model,prompt,maxTokens,Math.min(MODEL_TIMEOUT_MS,end-Date.now()));
+   const text=await withRecovery(()=>generate(row.provider,unseal(row.credentials).key,model,prompt,maxTokens,Math.min(MODEL_TIMEOUT_MS,Math.max(1,end-Date.now()))),end);
    if(validate&&!validate(text))throw aiError('FORMAT');
    return text;
   } catch(e) {
@@ -95,10 +98,10 @@ async function callUserAI(userId,prompt,maxTokens,validate){
    // No key, prompt, CV or raw provider response is logged or returned.
    console.warn('User AI provider failed:',JSON.stringify({provider:row.provider,model:safeModel,code,status:e.status||0}));
    // A rejected key cannot be fixed by choosing another model with that key.
-   if(code==='AUTH')blocked.add(row.provider);
+   if(['AUTH','QUOTA','CREDITS'].includes(code))blocked.add(row.provider);
   }
  }
- throw new Error('تعذر توليد الرسالة. '+failed.slice(0,3).join(' | '));
+ throw new Error('تعذر تنفيذ طلب الذكاء الاصطناعي. '+(failed.slice(0,3).join(' | ')||ERROR_HINTS.TIMEOUT));
 }
 
 module.exports={PROVIDERS,provider,listModels,generate,callUserAI,usable};

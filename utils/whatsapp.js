@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const retryStore=require('./whatsapp-retry-store');
 const {buildWhatsAppContent}=require('./whatsapp-content');
 const { all, get, run } = require('./db');
 const QRCode = require('qrcode');
@@ -36,6 +37,7 @@ function unseal(value, BufferJSON) {
 function ensureSchema() {
   return schemaPromise ||= (async()=>{
     await ensureTrackingSchema();
+    await retryStore.ensureRetrySchema();
     return run(`CREATE TABLE IF NOT EXISTS whatsapp_auth (
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     key_id TEXT NOT NULL, encrypted_value TEXT NOT NULL,
@@ -90,10 +92,12 @@ async function openSocket(userId,entry) {
   if(entry.cancelled || stopping) return;
   const auth=await authState(userId,lib,entry);
   if(entry.cancelled || stopping) return;
-  const sock=lib.default({auth:auth.state,logger:pino({level:'silent'}),
+  entry.deviceCache=retryStore.deviceCache();
+  const sock=lib.default({auth:auth.state,logger:pino({level:'silent'}),userDevicesCache:entry.deviceCache,
     printQRInTerminal:false,markOnlineOnConnect:false,syncFullHistory:false,
     shouldSyncHistoryMessage:()=>false,connectTimeoutMs:30000,
-    getMessage:async()=>undefined});
+    maxMsgRetryCount:5,
+    getMessage:async key=>{try{return await retryStore.getMessage(userId,key,lib.proto);}catch(error){console.warn('WhatsApp retry lookup failed:',error.code||'STORE_ERROR');return undefined;}}});
   entry.sock=sock;
   attachTracking(sock,userId,entry);
   sock.ev.on('creds.update',()=>{auth.saveCreds().catch(()=>{
@@ -154,7 +158,11 @@ async function disconnect(userId,forget=true) {
     await entry.writes.catch(()=>{});
     sessions.delete(userId);
   }
-  if(forget) {await ensureSchema();await run('DELETE FROM whatsapp_auth WHERE user_id=$1',[userId]);}
+  if(forget) {
+    await ensureSchema();
+    await run('DELETE FROM whatsapp_sent_messages WHERE user_id=$1',[userId]);
+    await run('DELETE FROM whatsapp_auth WHERE user_id=$1',[userId]);
+  }
 }
 async function requireConnected(userId) {
   let entry=sessions.get(userId);
@@ -176,7 +184,13 @@ async function sendWhatsAppMessage(userId,phone,body,attachment) {
     const target=results?.find(x=>x.exists);
     if(!target) throw new Error('الرقم غير مسجل على واتساب');
     // إرسال الـCV والنص في رسالة واحدة لتجنب نجاح النص وفشل المرفق.
-    const result=await entry.sock.sendMessage(target.jid,content);
+    const lib=await library();
+    // Build and persist the complete encrypted-message payload before relaying it.
+    // A recipient device can then request the same message ID for re-encryption.
+    const result=await lib.generateWAMessage(target.jid,content,{userJid:entry.sock.user.id,upload:entry.sock.waUploadToServer,logger:pino({level:'silent'})});
+    await retryStore.saveMessage(userId,result,lib.proto);
+    entry.deviceCache?.flushAll();
+    await entry.sock.relayMessage(target.jid,result.message,{messageId:result.key.id,useUserDevicesCache:false});
     return {messageId:result?.key?.id||null,threadId:result?.key?.remoteJid||target.jid};
   });
   entry.sendQueue=work.catch(()=>{});

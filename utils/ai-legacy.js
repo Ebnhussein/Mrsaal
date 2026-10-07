@@ -1,4 +1,5 @@
 const { GoogleGenAI } = require('@google/genai');
+const {withRecovery,retryAfter,hardQuota}=require('./ai-retry');
 
 // =====================================================
 // قائمة الموديلات الافتراضية — ضيف أو رتّب الموديلات هنا.
@@ -72,9 +73,10 @@ function getModelChain(selectedGeminiModel) {
   });
 }
 
-function makeError(code) {
+function makeError(code, type=null) {
   const error = new Error('AI request failed');
   error.status = Number(code) || 0;
+  error.code=type||(error.status===429?'RATE_LIMIT':error.status>=500?'TEMPORARY':'UNKNOWN');
   return error;
 }
 
@@ -93,7 +95,7 @@ async function requestGemini({
   });
 
   if (response.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
-    throw makeError(0);
+    throw makeError(0,'TRUNCATED');
   }
 
   return response.text;
@@ -137,13 +139,15 @@ async function requestOpenRouter({
     const data = await response.json().catch(() => null);
 
     if (!response.ok || data?.error) {
-      throw makeError(data?.error?.code || response.status);
+      const error=makeError(data?.error?.code || response.status);
+      error.code=error.status===429?(hardQuota(data)?'QUOTA':'RATE_LIMIT'):error.status>=500?'TEMPORARY':'UNKNOWN';
+      error.retryAfterMs=retryAfter(response.headers);throw error;
     }
 
     const choice = data?.choices?.[0];
 
     if (choice?.finish_reason === 'length') {
-      throw makeError(0);
+      throw makeError(0,'TRUNCATED');
     }
 
     return choice?.message?.content;
@@ -165,6 +169,7 @@ async function callGemini(
   const models = getModelChain(modelName);
   const deadline = Date.now() + TOTAL_TIMEOUT_MS;
   const blockedProviders = new Set();
+  const failures=[];
 
   const keys = {
     gemini: apiKey || process.env.GEMINI_API_KEY,
@@ -188,28 +193,27 @@ async function callGemini(
         ? requestGemini
         : requestOpenRouter;
 
-      const text = await request({
-        prompt,
-        maxTokens,
-        model,
-        apiKey: key,
-        timeout
-      });
+      const text = await withRecovery(async()=>{
+        try{return await request({prompt,maxTokens,model,apiKey:key,timeout:Math.min(timeout,Math.max(1,deadline-Date.now()))});}
+        catch(error){if(!error.code||typeof error.code==='number'){const status=Number(error.status||error.code)||0;error.code=status===429?'RATE_LIMIT':status>=500?'TEMPORARY':error.name==='TypeError'?'NETWORK':'UNKNOWN';}throw error;}
+      },deadline);
 
       if (typeof text !== 'string' || !text.trim()) {
-        throw makeError(0);
+        throw makeError(0,'EMPTY');
       }
 
       const result = text.trim();
 
       if (validate && !validate(result)) {
-        throw makeError(0);
+        throw makeError(0,'FORMAT');
       }
 
       console.log(`✅ AI succeeded: ${provider} / ${model}`);
       return result;
     } catch (error) {
       const status = Number(error.status || error.code) || 0;
+      const reason=error.code==='FORMAT'?'الرد وصل بتنسيق غير صالح':error.code==='TRUNCATED'?'الرد اتقطع قبل اكتماله':error.code==='EMPTY'?'الموديل لم يرجع نصًا':error.code==='QUOTA'?'الحد اليومي مستهلك':status===429?'تقييد مؤقت لعدد الطلبات':status===401||status===403?'راجع صلاحيات المفتاح':status===404?'الموديل غير متاح':error.name==='AbortError'||error.name==='TimeoutError'?'انتهت مهلة الرد':status>=500?'الموديل مزدحم مؤقتًا':'تعذر استلام رد صالح أو الاتصال';
+      failures.push(`${provider} / ${model}: ${reason}`);
 
       // اللوج لا يحتوي على المفاتيح أو السيرة الذاتية.
       console.warn(
@@ -218,6 +222,7 @@ async function callGemini(
 
       // لو المفتاح مرفوض، نتخطى باقي موديلات نفس المزود.
       if (
+        error.code === 'QUOTA' ||
         status === 401 ||
         status === 403 ||
         (
@@ -233,7 +238,7 @@ async function callGemini(
   }
 
   throw new Error(
-    'الموديلات المتاحة لم تستطع توليد رد صالح. راجع المفاتيح وحدود الاستخدام أو حاول لاحقًا.'
+    'تعذر تنفيذ طلب الذكاء الاصطناعي. '+(failures.slice(0,3).join(' | ')||'لم يتم ضبط مفتاح لمنصة متاحة.')
   );
 }
 
