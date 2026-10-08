@@ -1,278 +1,262 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+
+<html dir="rtl" lang="ar">
 <head><script src="/assets/theme-init.js"></script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>مرسال — مساحتك لفرصتك الجاية</title>
-
-
-<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg"><link rel="stylesheet" href="/assets/app.css">
-<link rel="stylesheet" href="/assets/writing.css">
-<link rel="stylesheet" href="/assets/tour.css">
-<script src="/assets/product-guide.js?v=20261008-ai-reliability-2" defer></script>
-<script src="/assets/tour.js" defer></script>
-<link rel="stylesheet" href="/assets/support.css?v=20261008-ai-reliability-2">
-<script src="/assets/support.js?v=20261008-ai-reliability-2" defer></script>
-<link rel="stylesheet" href="/assets/connections.css">
-<script src="/assets/connections.js" defer></script>
-<link rel="stylesheet" href="/assets/layout.css?v=20261008-ai-reliability-2">
-<link rel="stylesheet" href="/assets/tickets.css">
-<link rel="stylesheet" href="/assets/stitch.css?v=20261008-stitch-1">
-</head>
-<body>
-
+<link href="/assets/favicon.svg" rel="icon" type="image/svg+xml"/><link href="/assets/app.css" rel="stylesheet"/>
+<link href="/assets/writing.css" rel="stylesheet"/>
+<link href="/assets/tour.css" rel="stylesheet"/>
+<script defer="" src="/assets/product-guide.js?v=20261008-ai-reliability-2"></script>
+<script defer="" src="/assets/tour.js"></script>
+<link href="/assets/support.css?v=20261008-ai-reliability-2" rel="stylesheet"/>
+<script defer="" src="/assets/support.js?v=20261008-ai-reliability-2"></script>
+<link href="/assets/connections.css" rel="stylesheet"/>
+<script defer="" src="/assets/connections.js"></script>
+<link href="/assets/layout.css?v=20261008-ai-reliability-2" rel="stylesheet"/>
+<link href="/assets/tickets.css" rel="stylesheet"/>
+<link href="/assets/stitch.css?v=20261008-stitch-1" rel="stylesheet"/>
+<link href="/assets/workspace-redesign.css?v=tool-stitch-1" rel="stylesheet"/><script defer="" src="/assets/workspace-locale.js?v=tool-stitch-1"></script><script defer="" src="/assets/workspace-redesign.js?v=tool-stitch-1"></script></head>
+<body class="mrsaal-workspace stitch-workspace">
 <div id="app-loading" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px">
-  <div class="spin" style="width:40px;height:40px;border-width:3px"></div>
-  <div style="font-size:14px;color:var(--text2);font-weight:600">جاري التحميل...</div>
+<div class="spin" style="width:40px;height:40px;border-width:3px"></div>
+<div style="font-size:14px;color:var(--text2);font-weight:600">جاري التحميل...</div>
 </div>
-
-<div id="login-screen"><div class="login-shell"><section class="login-story"><a class="login-brand" href="#"><div class="brand-lockup"><svg class="meem-mark" viewBox="0 -5 110 105" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 80V54C14 35 28 31 43 40L72 56C87 64 96 56 96 42V23C96 7 82 2 69 13L54 26" fill="none" stroke="currentColor" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/></svg><div><div class="brand-word">مرسال</div><div class="brand-caption" lang="en">Mrsaal</div></div></div></a><div class="login-story-copy"><span class="eyebrow">خطوتك الجاية تبدأ برسالة</span><h1>خبرتك تستاهل<br>توصل للمكان الصح.</h1><p>جهّز سيرتك الذاتية، اختار الشركات، واكتب رسالة تعبر عنك. مرسال يجمع خطوات التقديم والمتابعة في مساحة واحدة.</p></div><div class="login-journey"><div><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8m-8 4h5"/></svg><span>سيرتك الذاتية</span></div><i>←</i><div><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg><span>رسالة مناسبة</span></div><i>←</i><div><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3v18h17M8 16v-5m5 5V7m5 9v-8"/></svg><span>متابعة واضحة</span></div></div><div class="login-preview"><div class="mini-card-head"><span class="mini-dot"></span><strong>رسالتك، خطوة بخطوة</strong><span class="state-badge ready">تم الرد</span></div><div class="mini-message"><span class="message-avatar">م</span><p>مرحبًا بفريقكم، يسعدني مشاركة خبرتي والتعرف على فرص التعاون...</p></div><div class="mini-timeline"><span>✓ تم الإرسال</span><span>✓ تم التسليم</span><span>↩ وصل رد</span></div></div><small class="login-story-foot">رسالة تبدأ تواصل. ومتابعة تساعدك تعرف الخطوة الجاية.</small></section><section class="login-form"><div class="login-form-top"><span class="eyebrow">مرسال / حسابك</span><button class="theme-button" onclick="toggleMrsaalTheme()"><span class="theme-label">المظهر</span></button></div><div class="login-form-body"><span class="login-welcome-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg></span><h2>أهلًا بيك في مرسال</h2><p>سجّل دخولك أو ابدأ حساب جديد بنفس الخطوة.</p><div class="auth-error" id="auth-error" role="alert" hidden></div><a href="/auth/google" class="btn-google"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>كمّل باستخدام Google</span></a><div class="login-divider"><span>وبعد الدخول؟</span></div><ol class="login-steps"><li><span>01</span><div><strong>جهّز حسابك على مهلك</strong><small>CV وواتساب وتفضيلات الرسالة، مع إمكانية التخطي.</small></div></li><li><span>02</span><div><strong>اختار فرصك</strong><small>استورد الشركات وراجع بيانات التواصل.</small></div></li><li><span>03</span><div><strong>راجع رسالتك قبل الإرسال</strong><small>عدّل النص وتابع النتائج من التقارير.</small></div></li></ol><div class="login-security"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg><p>تسجيل آمن عن طريق Google. مرسال مش بيطلب كلمة مرور حسابك. هتظهر لك الصلاحيات المطلوبة في شاشة Google.</p></div></div><footer class="login-legal"><a href="/privacy.html">سياسة الخصوصية</a><span>·</span><a href="/terms.html">شروط الخدمة</a></footer></section></div></div>
-
+<div id="login-screen"><div class="login-shell"><section class="login-story"><a class="login-brand" href="#"><div class="brand-lockup"><svg aria-hidden="true" class="meem-mark" viewbox="0 -5 110 105" xmlns="http://www.w3.org/2000/svg"><path d="M14 80V54C14 35 28 31 43 40L72 56C87 64 96 56 96 42V23C96 7 82 2 69 13L54 26" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="18"></path></svg><div><div class="brand-word">مرسال</div><div class="brand-caption" lang="en">Mrsaal</div></div></div></a><div class="login-story-copy"><span class="eyebrow">خطوتك الجاية تبدأ برسالة</span><h1>خبرتك تستاهل<br/>توصل للمكان الصح.</h1><p>جهّز سيرتك الذاتية، اختار الشركات، واكتب رسالة تعبر عنك. مرسال يجمع خطوات التقديم والمتابعة في مساحة واحدة.</p></div><div class="login-journey"><div><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"></path><path d="M14 3v6h6M8 13h8m-8 4h5"></path></svg><span>سيرتك الذاتية</span></div><i>←</i><div><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><rect height="14" rx="2" width="18" x="3" y="5"></rect><path d="m3 6 9 7 9-7"></path></svg><span>رسالة مناسبة</span></div><i>←</i><div><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M4 3v18h17M8 16v-5m5 5V7m5 9v-8"></path></svg><span>متابعة واضحة</span></div></div><div class="login-preview"><div class="mini-card-head"><span class="mini-dot"></span><strong>رسالتك، خطوة بخطوة</strong><span class="state-badge ready">تم الرد</span></div><div class="mini-message"><span class="message-avatar">م</span><p>مرحبًا بفريقكم، يسعدني مشاركة خبرتي والتعرف على فرص التعاون...</p></div><div class="mini-timeline"><span>✓ تم الإرسال</span><span>✓ تم التسليم</span><span>↩ وصل رد</span></div></div><small class="login-story-foot">رسالة تبدأ تواصل. ومتابعة تساعدك تعرف الخطوة الجاية.</small></section><section class="login-form"><div class="login-form-top"><span class="eyebrow">مرسال / حسابك</span><button class="theme-button" onclick="toggleMrsaalTheme()"><span class="theme-label">المظهر</span></button></div><div class="login-form-body"><span class="login-welcome-icon"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"></path></svg></span><h2>أهلًا بيك في مرسال</h2><p>سجّل دخولك أو ابدأ حساب جديد بنفس الخطوة.</p><div class="auth-error" hidden="" id="auth-error" role="alert"></div><a class="btn-google" href="/auth/google"><svg height="20" viewbox="0 0 48 48" width="20"><path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"></path><path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"></path><path d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" fill="#FBBC05"></path><path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" fill="#34A853"></path></svg><span>كمّل باستخدام Google</span></a><div class="login-divider"><span>وبعد الدخول؟</span></div><ol class="login-steps"><li><span>01</span><div><strong>جهّز حسابك على مهلك</strong><small>CV وواتساب وتفضيلات الرسالة، مع إمكانية التخطي.</small></div></li><li><span>02</span><div><strong>اختار فرصك</strong><small>استورد الشركات وراجع بيانات التواصل.</small></div></li><li><span>03</span><div><strong>راجع رسالتك قبل الإرسال</strong><small>عدّل النص وتابع النتائج من التقارير.</small></div></li></ol><div class="login-security"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="m5 12 4 4L19 6"></path></svg><p>تسجيل آمن عن طريق Google. مرسال مش بيطلب كلمة مرور حسابك. هتظهر لك الصلاحيات المطلوبة في شاشة Google.</p></div></div><footer class="login-legal"><a href="/privacy.html">سياسة الخصوصية</a><span>·</span><a href="/terms.html">شروط الخدمة</a></footer></section></div></div>
 <div class="app">
-  <aside class="sidebar"><a class="logo" href="#" onclick="nav('home');return false" aria-label="مرسال — الرئيسية"><div class="brand-lockup"><svg class="meem-mark" viewBox="0 -5 110 105" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 80V54C14 35 28 31 43 40L72 56C87 64 96 56 96 42V23C96 7 82 2 69 13L54 26" fill="none" stroke="currentColor" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/></svg><div><div class="brand-word">مرسال</div><div class="brand-caption" lang="en">Mrsaal</div></div></div></a><div class="sidebar-caption">مساحة العمل</div><nav class="nav" aria-label="التنقل الرئيسي"><button type="button" class="nav-item" data-page="home" onclick="nav('home')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1Z"/></svg><span>الرئيسية</span></button><button type="button" class="nav-item" data-page="companies" onclick="nav('companies')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"/></svg><span>الشركات</span><span class="nav-badge" id="nb-companies">0</span></button><button type="button" class="nav-item" data-page="send" onclick="nav('send')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 3-7 18-4-7-7-4 18-7ZM10 14 21 3"/></svg><span>الإرسال</span></button><button type="button" class="nav-item" data-page="report" onclick="nav('report')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3v18h17M8 16v-5m5 5V7m5 9v-8"/></svg><span>التقارير</span><span class="nav-badge" id="nb-report">0</span></button><button type="button" class="nav-item" data-page="settings" onclick="nav('settings')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="16" cy="17" r="3"/></svg><span>الإعدادات</span></button></nav><div class="sidebar-tip"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg><strong>رسالة مناسبة لكل فرصة</strong><p>راجع الرسالة قبل ما تبعتها، وخلي صوتك حاضر.</p></div><div class="sidebar-footer"><button class="account-button" onclick="openSettings('account')"><span class="avatar" id="sidebar-avatar">م</span><span class="account-text"><strong id="gmail-label">جاري الفحص...</strong><small id="gmail-sub">—</small></span><span class="gdot" id="gdot"></span></button></div></aside>
-
-  <main class="main">
-    <header class="workspace-bar"><div class="workspace-location">مرسال <span>/</span> <strong id="workspace-current">الرئيسية</strong></div><div class="workspace-actions"><button class="theme-button tour-launch" onclick="MrsaalTour.start()">ⓘ اشرحلي الصفحة</button><button class="theme-button" onclick="toggleMrsaalTheme()" aria-label="تغيير المظهر"><span class="theme-label">المظهر</span></button><button class="account-top" onclick="openSettings('account')" aria-label="إعدادات حسابك"><span class="avatar" id="top-avatar">م</span></button></div></header>
-
-    <div class="page" id="page-settings"><div class="ph"><div><h1>الإعدادات</h1><p class="page-description">حسابك، قنواتك، وكل التفاصيل اللي بتجهّز رسالتك.</p></div></div><div class="setup-return" id="setup-return" hidden><span>بتجهّز حسابك لأول مرة؟ احفظ التعديل وارجع للخطوات.</span><button class="btn btn-secondary" onclick="nav('onboarding')">رجوع للإعداد السريع</button></div><div class="settings-shell"><nav class="settings-tabs" aria-label="أقسام الإعدادات"><button type="button" data-setting="account" onclick="selectSettings('account')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="16" cy="17" r="3"/></svg>الحساب والمظهر</button><button type="button" data-setting="cv" onclick="selectSettings('cv')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8m-8 4h5"/></svg>السيرة الذاتية</button><button type="button" data-setting="channels" onclick="selectSettings('channels')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11a9 9 0 0 1-9 9 10 10 0 0 1-4-1l-5 2 1-5a9 9 0 1 1 17-5Z"/><path d="M8 11h8"/></svg>قنوات التواصل</button><button type="button" data-setting="template" onclick="selectSettings('template')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>تفضيلات الرسالة</button><button type="button" data-setting="ai" onclick="selectSettings('ai')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg>الذكاء الاصطناعي</button></nav><div class="settings-content"><section class="settings-panel" id="settings-account" hidden><div class="section-heading"><h2>حسابك</h2><p>إعدادات الدخول والمظهر.</p></div><div class="card"><div class="profile-row"><div class="avatar" id="settings-avatar">م</div><div><h3 id="profile-name">حسابك</h3><p id="profile-email" dir="ltr"></p></div><span class="state-badge ready">Google متصل</span></div><p class="section-copy">حساب الدخول مستقل عن حساب Gmail اللي تختاره للإرسال. تقدر تربط أكتر من بريد من قنوات التواصل.</p></div><div class="card"><h3>المظهر</h3><p class="section-copy">اختار المظهر المناسب ليك. اختيارك بيتحفظ على الجهاز ده.</p><div class="theme-choices"><button class="theme-choice" data-choice="light" onclick="setAppTheme('light')">☀ فاتح</button><button class="theme-choice" data-choice="dark" onclick="setAppTheme('dark')">☾ داكن</button><button class="theme-choice" data-choice="system" onclick="setAppTheme('system')">◐ حسب الجهاز</button></div></div><div class="card"><h3>الإعداد السريع</h3><p class="section-copy">ارجع لكروت البداية في أي وقت.</p><button class="btn btn-secondary" onclick="startOnboarding()">عرض خطوات الإعداد</button></div><div class="card account-footer"><div class="row"><a href="/privacy.html" target="_blank" rel="noopener">الخصوصية</a><a href="/terms.html" target="_blank" rel="noopener">الشروط</a></div><a class="btn btn-danger" href="/auth/logout">تسجيل خروج</a></div></section><section class="settings-panel" id="settings-cv" hidden><div class="section-heading"><h2>السيرة الذاتية</h2><p>الذكاء الاصطناعي بيستخدم المعلومات اللي هنا لكتابة رسالتك.</p></div><div class="card">
-          <div class="card-title">📄 سيرتك الذاتية (PDF)</div>
-          <div class="upload-zone" id="cv-zone">
-            <input type="file" id="cv-file" accept=".pdf,application/pdf,.txt,text/plain" aria-label="اختيار السيرة الذاتية PDF أو TXT" onchange="uploadCV(event)">
-            <div class="upload-icon">📋</div>
-            <div class="upload-title">ارفع سيرتك الذاتية</div>
-            <div class="upload-sub">PDF أو TXT حتى 20 MB</div>
-          </div>
-          <button type="button" class="btn btn-secondary" onclick="chooseUploadFile('cv-file')">الملف مش ظاهر؟ اختار من كل الملفات</button><p class="hint">لو الملف في Drive أو واتساب، نزّله على الجهاز الأول. PDF أو TXT حتى 20 MB. ملفات PDF المصوّرة تحتاج استخراج النص أولًا.</p>
-          <div id="cv-status"></div>
-          <div style="margin-top:14px">
-            <div class="label">أو اكتب سيرتك الذاتية كنص</div>
-            <p class="hint" style="margin-bottom:8px">رفع PDF بيحفظه مباشرة. زر حفظ النص يستبدل النسخة المرفوعة بنص بدون مرفق PDF.</p><textarea class="textarea" id="cv-text" aria-label="نص السيرة الذاتية" rows="7" placeholder="اسمك، مجالك، خبراتك، مهاراتك..."></textarea>
-          </div>
-          <div class="row" style="margin-top:12px">
-            <button class="btn btn-primary" onclick="saveCV()">💾 حفظ السيرة</button>
-            <span id="cv-saved-note" style="font-size:12px;color:var(--green);display:none">✅ محفوظة</span>
-          </div>
-        </div></section><section class="settings-panel" id="settings-channels" hidden><div class="section-heading"><h2>قنوات التواصل</h2><p>اربط حسابات Gmail واختار حساب الإرسال، أو استخدم واتساب.</p></div><div class="card" id="gmail-channel-card"><div class="connections-header"><div><h3>حسابات Gmail</h3><p class="section-copy">اختار الميل اللي هتبعت منه. إضافة ميل لا تغيّر حساب مرسال أو الشركات.</p><p id="channel-email" dir="ltr"></p></div><a class="btn btn-primary" href="/auth/google/link">＋ إضافة حساب Google</a></div><div id="gmail-accounts" class="connections-list" role="region" aria-label="حسابات الإرسال">جاري تحميل الحسابات…</div></div><div class="card" style="margin-bottom:20px">
-        <div class="card-title">📱 ربط واتساب</div>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:12px">اربط حسابك من واتساب ← الأجهزة المرتبطة ← ربط جهاز. كل مستخدم له جلسة منفصلة.</p>
-        <div id="wa-status" role="status" aria-live="polite">جارٍ قراءة حالة الاتصال...</div>
-        <img id="wa-qr" alt="رمز ربط واتساب" style="display:none;width:280px;max-width:100%;margin:16px auto;border-radius:12px">
-        <div class="row" style="margin-top:12px">
-          <button id="wa-connect" class="btn btn-primary" onclick="connectWhatsApp()">ربط واتساب / إعادة الاتصال</button>
-          <button id="wa-disconnect" class="btn btn-secondary" onclick="disconnectWhatsApp()">فصل الربط</button>
-          <button class="btn btn-secondary" onclick="loadWhatsAppStatus()">تحديث الحالة</button>
-        </div>
-      </div></section><section class="settings-panel" id="settings-template" hidden><div class="section-heading"><h2>أسلوبي في الكتابة</h2><p>رسالة تشبهك، مبنية على خبرتك، وبهدف واضح.</p></div><p id="writing-status" role="status" aria-live="polite"></p><div id="writing-editor"><div class="card"><div class="card-title">١ — عايز تقول إيه؟</div><div class="g2"><div class="field"><label class="label" for="ws-language">لغة الرسائل</label><select class="select" id="ws-language"><option value="egyptian">مصري مهذب</option><option value="arabic">عربي فصحى بسيط</option><option value="gulf">خليجي</option><option value="english">English</option></select></div><div class="field"><label class="label" for="ws-goal">هدف التواصل</label><select class="select" id="ws-goal"><option value="opportunity">السؤال عن فرص</option><option value="advertised">التقديم على وظيفة معلنة</option><option value="followup">متابعة تواصل سابق</option></select></div><div class="field"><label class="label" for="ws-role">الدور اللي بتدور عليه — اختياري</label><input class="input" id="ws-role" value=""></div><div class="field"><label class="label" for="ws-cta">الخطوة اللي عايزها من الطرف التاني</label><input class="input" id="ws-cta" value=""></div></div><p class="hint">اختار وظيفة معلنة أو متابعة فقط لو ده حصل فعلًا. خبراتك ومهاراتك مصدرها السي في المحفوظ.</p></div><div class="card"><div class="card-title">٢ — طريقتك أنت</div><p class="section-copy">ضيف مثالين أو تلاتة كتبتهم بنفسك. هيستخدمهم لفهم أسلوبك، مش لنقل بياناتهم للرسائل. الأمثلة هتتبعت لمزوّد الذكاء الاصطناعي عند التحليل والكتابة؛ احذف منها أي بيانات مش محتاج تشاركها.</p><div class="field"><label class="label" for="ws-example-0">مثال 1</label><textarea class="textarea" id="ws-example-0" rows="3"></textarea></div><div class="field"><label class="label" for="ws-example-1">مثال 2</label><textarea class="textarea" id="ws-example-1" rows="3"></textarea></div><div class="field"><label class="label" for="ws-example-2">مثال 3 — اختياري</label><textarea class="textarea" id="ws-example-2" rows="3"></textarea></div><button class="btn btn-secondary" id="ws-analyze" onclick="writingAnalyze()">افهم أسلوبي بالـAI</button><div id="ws-suggestion-box" hidden><p class="hint">اقتراح قابل للتعديل؛ مش هيتطبق غير لما تعتمده.</p><div class="field"><label class="label" for="ws-suggestion">وصف الأسلوب المقترح</label><textarea class="textarea" id="ws-suggestion" rows="3"></textarea></div><button class="btn btn-primary" onclick="writingAccept()">اعتمد الوصف</button></div><div class="field"><label class="label" for="ws-summary">أسلوبي المعتمد — تقدر تكتبه بنفسك</label><textarea class="textarea" id="ws-summary" rows="3"></textarea></div><div class="field"><label class="label" for="ws-forbidden">عبارات مش عايزها — كل عبارة في سطر</label><textarea class="textarea" id="ws-forbidden" rows="3"></textarea></div><div class="field"><label class="label" for="tpl-instructions">تعليمات إضافية — اختياري</label><textarea class="textarea" id="tpl-instructions" rows="3"></textarea></div><p class="hint">اختيارات اللغة والقناة لها الأولوية لو تعارضت مع التعليمات أو الأمثلة.</p></div><div class="card"><div class="card-title">٣ — لكل قناة طريقتها</div><div class="field"><label class="label" for="ws-mode">طريقة الكتابة</label><select class="select" id="ws-mode"><option value="ai">كتابة بالـAI مع مراجعة</option><option value="template">قالب ثابت بمتغيرات فقط</option></select></div><div class="field"><label class="label" for="tpl-subject">عنوان الإيميل — اختياري، الـAI يقترح عنوان لو سيبته فاضي</label><input class="input" id="tpl-subject" value=""></div><div class="g2"><div class="writing-channel"><h3>الإيميل</h3><div class="field"><label class="label" for="ws-email-tone">النبرة</label><select class="select" id="ws-email-tone"><option value="professional">مهني وبسيط</option><option value="friendly">ودّي ومحترم</option><option value="direct">مباشر</option></select></div><div class="field"><label class="label" for="ws-email-length">الطول</label><select class="select" id="ws-email-length"><option value="short">قصير</option><option value="medium">متوسط</option></select></div><div class="field"><label class="label" for="ws-email-opening">بداية مفضلة — اختياري</label><input class="input" id="ws-email-opening" value=""></div><div class="field"><label class="label" for="ws-email-closing">نهاية مفضلة — اختياري</label><input class="input" id="ws-email-closing" value=""></div><div class="field"><label class="label" for="ws-email-template">نص القالب الثابت</label><textarea class="textarea" id="ws-email-template" rows="3"></textarea></div></div><div class="writing-channel"><h3>الواتساب</h3><div class="field"><label class="label" for="ws-whatsapp-tone">النبرة</label><select class="select" id="ws-whatsapp-tone"><option value="professional">مهني وبسيط</option><option value="friendly">ودّي ومحترم</option><option value="direct">مباشر</option></select></div><div class="field"><label class="label" for="ws-whatsapp-length">الطول</label><select class="select" id="ws-whatsapp-length"><option value="short">قصير</option><option value="medium">متوسط</option></select></div><div class="field"><label class="label" for="ws-whatsapp-opening">بداية مفضلة — اختياري</label><input class="input" id="ws-whatsapp-opening" value=""></div><div class="field"><label class="label" for="ws-whatsapp-closing">نهاية مفضلة — اختياري</label><input class="input" id="ws-whatsapp-closing" value=""></div><div class="field"><label class="label" for="ws-whatsapp-template">نص القالب الثابت</label><textarea class="textarea" id="ws-whatsapp-template" rows="3"></textarea></div></div></div><p class="hint">القالب الثابت يدعم {company_name} و{field} و{role}. اكتب اسمك بنفسك. هيحافظ على نصك، وتقدر تطلب تعديل بالـAI من المعاينة.</p></div><div class="writing-actions"><button class="btn btn-primary" id="ws-save" onclick="saveTemplate()">حفظ أسلوبي</button><button class="btn btn-secondary" onclick="writingTry()">حفظ وتجربة على شركة</button><button class="btn btn-secondary" onclick="nav('companies')">اختيار شركة من القائمة</button></div><div class="card"><div class="field"><label class="label" for="ws-test-company">شركة لتجربة الرسالة</label><select class="select" id="ws-test-company"><option value="">اختار شركة</option></select></div><p class="hint">التجربة تولّد مسودة فقط؛ مفيش إرسال إلا بزر الإرسال المعتاد بعد مراجعتك.</p></div></div></section><section class="settings-panel" id="settings-ai" hidden><div class="section-heading"><h2>منصات الذكاء الاصطناعي</h2><p>اربط المفتاح، اجلب الموديلات، اختبر اختيارك ثم احفظ.</p></div><div class="connections-notice">كل منصة لها مفتاح مستقل. الأولوية الأقل تبدأ أولًا، ثم الموديل الأساسي وبدائله داخل المنصة. لو مفيش منصة شخصية مفعّلة بموديل، يستخدم مرسال إعدادات السيرفر الحالية. التفعيل قد يستهلك رصيد منصتك؛ اختبار الاتصال نفسه طلب توليد قصير.</div><div id="ai-providers" class="provider-grid">جاري تحميل المنصات…</div></section></div></div></div>
-
-    <div class="page active" id="page-home">
- <div class="ph"><div><div class="eyebrow">مساحة عملك</div><h1>أهلًا، <span id="welcome-name">بيك</span> <span class="wave">✦</span></h1><p class="page-description">كل خطوة في تقديمك، من أول رسالة لحد أول رد.</p></div><button class="btn btn-primary" onclick="nav('companies')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"/></svg>إدارة الشركات</button></div>
- <div class="metrics"><div class="metric"><span class="metric-label">الشركات عندك</span><strong id="home-companies">—</strong><small>فرصك في مكان واحد</small></div><div class="metric"><span class="metric-label">رسائل اتبعتت</span><strong id="home-sent">—</strong><small>من سجل الإرسال</small></div><div class="metric"><span class="metric-label">ردود وصلتك</span><strong id="home-replies">—</strong><small>ردود مرصودة من الخدمة</small></div><div class="metric"><span class="metric-label">جاهزة للإرسال</span><strong id="home-pending">—</strong><small>CV موجود وقناة التواصل متاحة</small></div></div>
- <section class="next-step" id="home-next-block" hidden><div><span class="eyebrow">خطوتك الجاية</span><h2 id="next-title">جهّز سيرتك الذاتية</h2><p id="next-copy">ابدأ بخبراتك ومهاراتك عشان الرسالة تعبّر عنك.</p></div><button id="next-action" class="btn btn-primary" onclick="editSetup('cv')">ابدأ دلوقتي<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button></section>
- <section id="home-readiness" hidden><div class="section-heading inline-heading"><div><h2>حسابك جاهز قد إيه؟</h2><p>كمّل اللي محتاجه دلوقتي، والباقي وقت ما تحب.</p></div><button class="text-button" onclick="startOnboarding()">عرض الإعداد السريع ←</button></div>
- <div class="setup-grid" id="home-setup-cards"></div></section>
- <div class="dashboard-bottom" id="home-bottom"><section class="card"><div class="section-heading inline-heading"><h2>آخر نشاط</h2><button class="text-button" onclick="nav('report')">كل التقارير ←</button></div><div id="home-activity" class="activity-list"></div></section><section class="card workflow-card" id="home-workflow" hidden><h2>خطوات متبقية</h2><ol id="home-workflow-steps"></ol></section></div>
- </div><div class="page" id="page-onboarding"><div class="onboarding-heading"><span class="eyebrow">خلّينا نجهّز أول رسالة</span><h1>بداية بسيطة. وفرص أكتر.</h1><p>3 خطوات تساعدك تبدأ. كل خطوة ممكن تتخطاها وتكمّلها بعدين من الإعدادات.</p><div class="onboard-progress"><span id="onboard-counter">0 من 3 مكتمل</span><div class="prog-wrap"><div class="prog-bar" id="onboard-bar"></div></div></div></div><div class="setup-grid" id="onboard-cards"></div><div class="onboard-footer"><p>تخطي الإعداد مش بيحذف أي حاجة من حسابك.</p><div class="row"><button class="btn btn-secondary" onclick="finishOnboarding(true)">تخطي دلوقتي</button><button class="btn btn-primary" onclick="finishOnboarding(false)">افتح مساحة العمل<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button></div></div><div class="help-note"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>حساب Google متصل. ربط واتساب مطلوب بس لو هتبعت على واتساب.</div></div>
-
-    <div class="page" id="page-companies">
-      <div class="ph">
-        <div class="ph-title">الشركات <span class="ph-sub" id="companies-count">0 شركة</span></div>
-        <div class="row">
-          <select class="select" id="filter-status" aria-label="فلتر حالة الشركات" onchange="filterCompanies()" style="width:auto;font-size:12px;padding:7px 12px">
-            <option value="all">كل الحالات</option>
-            <option value="pending">انتظار</option>
-            <option value="sent">تم الإرسال</option>
-            <option value="failed">فشل</option>
-            <option value="scheduled">مجدول</option>
-          </select>
-          <button class="btn btn-secondary" onclick="bulkSelect(true)">☑️ الكل</button>
-          <button class="btn btn-secondary" onclick="bulkSelect(false)">⬜ لا شيء</button>
-          <button class="btn btn-danger" onclick="deleteSelected()">🗑️ حذف</button>
-        </div>
-      </div>
-      <div class="row template-download"><a class="btn btn-secondary" href="/templates/companies-template.xlsx" download>تنزيل نموذج الشركات Excel</a><span class="hint">املأ ورقة «الشركات»؛ الأمثلة في ورقة منفصلة لا تُستورد.</span></div><details id="import-panel" class="import-details"><summary><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"/></svg>استيراد شركات من Excel أو CSV<span>＋</span></summary><div class="card">
-          <div class="card-title">📊 ملف الشركات (Excel)</div>
-          <div class="upload-zone" id="xl-zone">
-            <input type="file" id="xl-file" accept=".xlsx,.xls,.csv,.tsv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv,text/tab-separated-values" aria-label="اختيار ملف الشركات" onchange="uploadExcel(event)">
-            <div class="upload-icon">📊</div>
-            <div class="upload-title">ارفع ملف الشركات</div>
-            <div class="upload-sub">Excel / CSV</div>
-          </div>
-          <button type="button" class="btn btn-secondary" onclick="chooseUploadFile('xl-file')">الملف مش ظاهر؟ اختار من كل الملفات</button><p class="hint">لو الملف في Drive أو واتساب، نزّله على الجهاز الأول. XLSX أو XLS أو CSV حتى 10 MB. أول صف للعناوين، والبيانات من أول ورقة.</p>
-          <div id="xl-status"></div>
-          <div id="xl-map" style="display:none;margin-top:16px">
-            <div class="card-title" style="margin-bottom:12px">🗂️ ربط الأعمدة</div>
-            <div class="col-map-row">
-              <div><div class="label">اسم الشركة *</div><select class="select" id="mc-name"></select></div>
-              <div><div class="label">الإيميل (اختياري)</div><select class="select" id="mc-email"><option value="">— لا يوجد —</option></select></div>
-              <div><div class="label">رقم التليفون (اختياري)</div><select class="select" id="mc-phone"><option value="">— لا يوجد —</option></select></div>
-              <div><div class="label">المجال (اختياري)</div><select class="select" id="mc-field"><option value="">— لا يوجد —</option></select></div>
-              <div><div class="label">الموقع (اختياري)</div><select class="select" id="mc-loc"><option value="">— لا يوجد —</option></select></div>
-            </div>
-            <p style="font-size:12px;color:var(--text2);margin:12px 0">اختار عمود اسم الشركة، وعمود الإيميل أو التليفون على الأقل. الشركات التي لا تحتوي على وسيلة تواصل سيتم تخطيها.</p>
-            <button id="btn-import-companies" class="btn btn-primary" onclick="commitImport()" style="width:100%">✅ استيراد الشركات</button>
-            <div id="import-result" role="status" aria-live="polite" style="margin-top:12px;font-size:13px;white-space:pre-line"></div>
-          </div>
-        </div></details><div class="company-toolbar"><label class="search-field"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input class="input" id="company-search" placeholder="ابحث بالاسم أو الإيميل أو المجال" oninput="renderCompanies()" aria-label="بحث الشركات"></label><span id="selection-count" class="selection-count">0 شركة محددة</span></div><div class="card" style="padding:0"><div id="companies-container"></div></div>
-    </div>
-
-    <div class="page" id="page-send">
-      <div class="ph"><div><h1>راجع. ابعت. وتابع.</h1><p class="page-description">اختار الشركات وتوقيت الإرسال. اختار الإيميل أو الواتساب. الشركة اللي ناقصها بيانات القناة المختارة هتتخطى من غير إرسال.</p></div></div>
-      <div class="g4" style="margin-bottom:20px">
-        <div class="stat-card"><div class="stat-num c-blue" id="s-total">0</div><div class="stat-lbl">إجمالي</div></div>
-        <div class="stat-card"><div class="stat-num c-yellow" id="s-pending">0</div><div class="stat-lbl">انتظار</div></div>
-        <div class="stat-card"><div class="stat-num c-green" id="s-sent">0</div><div class="stat-lbl">أُرسل</div></div>
-        <div class="stat-card"><div class="stat-num c-red" id="s-failed">0</div><div class="stat-lbl">فشل</div></div>
-      </div>
-<div class="card"><div class="field"><label class="label" for="send-channel">قناة الإرسال لهذه الدفعة</label><select class="select" id="send-channel" onchange="updateChannelSummary()"><option value="email">الإيميل</option><option value="whatsapp">الواتساب</option></select></div><p class="hint" id="channel-summary" role="status" aria-live="polite">اختار قناة الإرسال؛ مش هنحوّل للقناة التانية تلقائيًا.</p><p class="hint">وجود رقم لا يضمن أنه مسجّل على واتساب؛ تعذر التسليم له بيتسجل كفشل إرسال.</p></div><div class="sender-box"><label>الإرسال من حساب Gmail</label><select class="select" id="send-sender" data-gmail-sender aria-label="حساب Gmail للإرسال" onchange="gmailSelect(this.value).catch(connectionError)"><option value="">جاري تحميل الحسابات…</option></select><small>يخص رسائل الإيميل. الرسائل المجدولة تحتفظ بالحساب المختار وقت الجدولة.</small></div>      <div class="g2">
-        <div class="card">
-          <div class="card-title">🕐 الجدولة</div>
-          <div class="field">
-            <div class="label">وقت الإرسال</div>
-            <select class="select" id="sched-type" aria-label="توقيت الإرسال" onchange="toggleSched()">
-              <option value="now">الآن فوراً</option>
-              <option value="scheduled">في وقت محدد</option>
-            </select>
-          </div>
-          <div id="sched-dt" style="display:none" class="field">
-            <div class="label">التاريخ والوقت</div>
-            <input type="datetime-local" class="input" id="send-dt" aria-label="وقت الإرسال المحدد" style="width:100%">
-          </div>
-          <div class="field">
-            <div class="label">فاصل بين الرسائل — بالثواني</div>
-            <input type="number" class="input" id="delay-s" aria-label="الفاصل بين الرسائل" value="5" min="1" max="120">
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">⚡ خيارات</div>
-          <div style="display:grid;gap:12px">
-            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
-              <input type="checkbox" id="opt-preview" checked style="accent-color:var(--accent);width:15px;height:15px">
+<aside class="sidebar"><a aria-label="مرسال — الرئيسية" class="logo" href="#" onclick="nav('home');return false"><div class="brand-lockup"><svg aria-hidden="true" class="meem-mark" viewbox="0 -5 110 105" xmlns="http://www.w3.org/2000/svg"><path d="M14 80V54C14 35 28 31 43 40L72 56C87 64 96 56 96 42V23C96 7 82 2 69 13L54 26" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="18"></path></svg><div><div class="brand-word">مرسال</div><div class="brand-caption" lang="en">Mrsaal</div></div></div></a><div class="sidebar-caption">مساحة العمل</div><nav aria-label="التنقل الرئيسي" class="nav"><button class="nav-item" data-page="home" onclick="nav('home')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1Z"></path></svg><span>الرئيسية</span></button><button class="nav-item" data-page="companies" onclick="nav('companies')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><rect height="18" rx="2" width="16" x="4" y="3"></rect><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"></path></svg><span>الشركات</span><span class="nav-badge" id="nb-companies">0</span></button><button class="nav-item" data-page="send" onclick="nav('send')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="m21 3-7 18-4-7-7-4 18-7ZM10 14 21 3"></path></svg><span>الإرسال</span></button><button class="nav-item" data-page="report" onclick="nav('report')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M4 3v18h17M8 16v-5m5 5V7m5 9v-8"></path></svg><span>التقارير</span><span class="nav-badge" id="nb-report">0</span></button><button class="nav-item" data-page="settings" onclick="nav('settings')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M4 7h16M4 17h16"></path><circle cx="9" cy="7" r="3"></circle><circle cx="16" cy="17" r="3"></circle></svg><span>الإعدادات</span></button><button class="nav-item nav-shortcut" onclick="openImporter()" type="button"><span aria-hidden="true" class="material-symbols-outlined">upload_file</span><span>استيراد الشركات</span></button><button class="nav-item nav-shortcut" onclick="openSettings('template')" type="button"><span aria-hidden="true" class="material-symbols-outlined">edit_note</span><span>كتابة الرسائل</span></button><button class="nav-item nav-shortcut" onclick="openSettings('cv')" type="button"><span aria-hidden="true" class="material-symbols-outlined">description</span><span>السيرة الذاتية</span></button></nav><div class="sidebar-tip"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"></path></svg><strong>رسالة مناسبة لكل فرصة</strong><p>راجع الرسالة قبل ما تبعتها، وخلي صوتك حاضر.</p></div><div class="sidebar-footer"><button class="account-button" onclick="openSettings('account')"><span class="avatar" id="sidebar-avatar">م</span><span class="account-text"><strong id="gmail-label">جاري الفحص...</strong><small id="gmail-sub">—</small></span><span class="gdot" id="gdot"></span></button></div></aside>
+<main class="main">
+<header class="workspace-bar"><div class="workspace-location">مرسال <span>/</span> <strong id="workspace-current">الرئيسية</strong></div><div class="workspace-actions"><button aria-label="تبديل اللغة" class="theme-button" data-workspace-language="" type="button">EN</button><button aria-label="اشرحلي الصفحة" class="theme-button tour-launch" onclick="MrsaalTour.start()"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-width="1.7" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7v1"></path></svg><span>اشرحلي الصفحة</span></button><button aria-label="تغيير المظهر" class="theme-button" onclick="toggleMrsaalTheme()"><span class="theme-label">المظهر</span></button><button aria-label="إعدادات حسابك" class="account-top" onclick="openSettings('account')"><span class="avatar" id="top-avatar">م</span></button></div></header>
+<div class="page" id="page-settings"><div class="ph"><div><h1>الإعدادات</h1><p class="page-description">حسابك، قنواتك، وكل التفاصيل اللي بتجهّز رسالتك.</p></div></div><div class="setup-return" hidden="" id="setup-return"><span>بتجهّز حسابك لأول مرة؟ احفظ التعديل وارجع للخطوات.</span><button class="btn btn-secondary" onclick="nav('onboarding')">رجوع للإعداد السريع</button></div><div class="settings-shell"><nav aria-label="أقسام الإعدادات" class="settings-tabs"><button data-setting="account" onclick="selectSettings('account')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M4 7h16M4 17h16"></path><circle cx="9" cy="7" r="3"></circle><circle cx="16" cy="17" r="3"></circle></svg>الحساب والمظهر</button><button data-setting="cv" onclick="selectSettings('cv')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"></path><path d="M14 3v6h6M8 13h8m-8 4h5"></path></svg>السيرة الذاتية</button><button data-setting="channels" onclick="selectSettings('channels')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M21 11a9 9 0 0 1-9 9 10 10 0 0 1-4-1l-5 2 1-5a9 9 0 1 1 17-5Z"></path><path d="M8 11h8"></path></svg>قنوات التواصل</button><button data-setting="template" onclick="selectSettings('template')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><rect height="14" rx="2" width="18" x="3" y="5"></rect><path d="m3 6 9 7 9-7"></path></svg>تفضيلات الرسالة</button><button data-setting="ai" onclick="selectSettings('ai')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"></path></svg>الذكاء الاصطناعي</button></nav><div class="settings-content"><section class="settings-panel" hidden="" id="settings-account"><div class="section-heading"><h2>حسابك</h2><p>إعدادات الدخول والمظهر.</p></div><div class="card"><div class="profile-row"><div class="avatar" id="settings-avatar">م</div><div><h3 id="profile-name">حسابك</h3><p dir="ltr" id="profile-email"></p></div><span class="state-badge ready">Google متصل</span></div><p class="section-copy">حساب الدخول مستقل عن حساب Gmail اللي تختاره للإرسال. تقدر تربط أكتر من بريد من قنوات التواصل.</p></div><div class="card"><h3>المظهر</h3><p class="section-copy">اختار المظهر المناسب ليك. اختيارك بيتحفظ على الجهاز ده.</p><div class="theme-choices"><button class="theme-choice" data-choice="light" onclick="setAppTheme('light')">☀ فاتح</button><button class="theme-choice" data-choice="dark" onclick="setAppTheme('dark')">☾ داكن</button><button class="theme-choice" data-choice="system" onclick="setAppTheme('system')">◐ حسب الجهاز</button></div></div><div class="card"><h3>الإعداد السريع</h3><p class="section-copy">ارجع لكروت البداية في أي وقت.</p><button class="btn btn-secondary" onclick="startOnboarding()">عرض خطوات الإعداد</button></div><div class="card account-footer"><div class="row"><a href="/privacy.html" rel="noopener" target="_blank">الخصوصية</a><a href="/terms.html" rel="noopener" target="_blank">الشروط</a></div><a class="btn btn-danger" href="/auth/logout">تسجيل خروج</a></div></section><section class="settings-panel" hidden="" id="settings-cv"><div class="section-heading"><h2>السيرة الذاتية</h2><p>الذكاء الاصطناعي بيستخدم المعلومات اللي هنا لكتابة رسالتك.</p></div><div class="card">
+<div class="card-title">📄 سيرتك الذاتية (PDF)</div>
+<div class="upload-zone" id="cv-zone">
+<input accept=".pdf,application/pdf,.txt,text/plain" aria-label="اختيار السيرة الذاتية PDF أو TXT" id="cv-file" onchange="uploadCV(event)" type="file"/>
+<div class="upload-icon">📋</div>
+<div class="upload-title">ارفع سيرتك الذاتية</div>
+<div class="upload-sub">PDF أو TXT حتى 20 MB</div>
+</div>
+<button class="btn btn-secondary" onclick="chooseUploadFile('cv-file')" type="button">الملف مش ظاهر؟ اختار من كل الملفات</button><p class="hint">لو الملف في Drive أو واتساب، نزّله على الجهاز الأول. PDF أو TXT حتى 20 MB. ملفات PDF المصوّرة تحتاج استخراج النص أولًا.</p>
+<div id="cv-status"></div>
+<div style="margin-top:14px">
+<div class="label">أو اكتب سيرتك الذاتية كنص</div>
+<p class="hint" style="margin-bottom:8px">رفع PDF بيحفظه مباشرة. تعديل النص وحفظه يحافظ على مرفق PDF الأصلي؛ محتوى الملف نفسه لا يتغير.</p><textarea aria-label="نص السيرة الذاتية" class="textarea" id="cv-text" placeholder="اسمك، مجالك، خبراتك، مهاراتك..." rows="7"></textarea>
+</div>
+<div class="row" style="margin-top:12px">
+<button class="btn btn-primary" onclick="saveCV()">💾 حفظ السيرة</button>
+<span id="cv-saved-note" style="font-size:12px;color:var(--green);display:none">✅ محفوظة</span>
+</div>
+</div></section><section class="settings-panel" hidden="" id="settings-channels"><div class="section-heading"><h2>قنوات التواصل</h2><p>اربط حسابات Gmail واختار حساب الإرسال، أو استخدم واتساب.</p></div><div class="card" id="gmail-channel-card"><div class="connections-header"><div><h3>حسابات Gmail</h3><p class="section-copy">اختار الميل اللي هتبعت منه. إضافة ميل لا تغيّر حساب مرسال أو الشركات.</p><p dir="ltr" id="channel-email"></p></div><a class="btn btn-primary" href="/auth/google/link">＋ إضافة حساب Google</a></div><div aria-label="حسابات الإرسال" class="connections-list" id="gmail-accounts" role="region">جاري تحميل الحسابات…</div></div><div class="card" style="margin-bottom:20px">
+<div class="card-title">📱 ربط واتساب</div>
+<p style="font-size:13px;color:var(--text2);margin-bottom:12px">اربط حسابك من واتساب ← الأجهزة المرتبطة ← ربط جهاز. كل مستخدم له جلسة منفصلة.</p>
+<div aria-live="polite" id="wa-status" role="status">جارٍ قراءة حالة الاتصال...</div>
+<img alt="رمز ربط واتساب" id="wa-qr" style="display:none;width:280px;max-width:100%;margin:16px auto;border-radius:12px"/>
+<div class="row" style="margin-top:12px">
+<button class="btn btn-primary" id="wa-connect" onclick="connectWhatsApp()">ربط واتساب / إعادة الاتصال</button>
+<button class="btn btn-secondary" id="wa-disconnect" onclick="disconnectWhatsApp()">فصل الربط</button>
+<button class="btn btn-secondary" onclick="loadWhatsAppStatus()">تحديث الحالة</button>
+</div>
+</div></section><section class="settings-panel" hidden="" id="settings-template"><div class="section-heading"><h2>أسلوبي في الكتابة</h2><p>رسالة تشبهك، مبنية على خبرتك، وبهدف واضح.</p></div><p aria-live="polite" id="writing-status" role="status"></p><div id="writing-editor"><div class="card"><div class="card-title">١ — عايز تقول إيه؟</div><div class="g2"><div class="field"><label class="label" for="ws-language">لغة الرسائل</label><select class="select" id="ws-language"><option value="egyptian">مصري مهذب</option><option value="arabic">عربي فصحى بسيط</option><option value="gulf">خليجي</option><option value="english">English</option></select></div><div class="field"><label class="label" for="ws-goal">هدف التواصل</label><select class="select" id="ws-goal"><option value="opportunity">السؤال عن فرص</option><option value="advertised">التقديم على وظيفة معلنة</option><option value="followup">متابعة تواصل سابق</option></select></div><div class="field"><label class="label" for="ws-role">الدور اللي بتدور عليه — اختياري</label><input class="input" id="ws-role" value=""/></div><div class="field"><label class="label" for="ws-cta">الخطوة اللي عايزها من الطرف التاني</label><input class="input" id="ws-cta" value=""/></div></div><p class="hint">اختار وظيفة معلنة أو متابعة فقط لو ده حصل فعلًا. خبراتك ومهاراتك مصدرها السي في المحفوظ.</p></div><div class="card"><div class="card-title">٢ — طريقتك أنت</div><p class="section-copy">ضيف مثالين أو تلاتة كتبتهم بنفسك. هيستخدمهم لفهم أسلوبك، مش لنقل بياناتهم للرسائل. الأمثلة هتتبعت لمزوّد الذكاء الاصطناعي عند التحليل والكتابة؛ احذف منها أي بيانات مش محتاج تشاركها.</p><div class="field"><label class="label" for="ws-example-0">مثال 1</label><textarea class="textarea" id="ws-example-0" rows="3"></textarea></div><div class="field"><label class="label" for="ws-example-1">مثال 2</label><textarea class="textarea" id="ws-example-1" rows="3"></textarea></div><div class="field"><label class="label" for="ws-example-2">مثال 3 — اختياري</label><textarea class="textarea" id="ws-example-2" rows="3"></textarea></div><button class="btn btn-secondary" id="ws-analyze" onclick="writingAnalyze()">افهم أسلوبي بالـAI</button><div hidden="" id="ws-suggestion-box"><p class="hint">اقتراح قابل للتعديل؛ مش هيتطبق غير لما تعتمده.</p><div class="field"><label class="label" for="ws-suggestion">وصف الأسلوب المقترح</label><textarea class="textarea" id="ws-suggestion" rows="3"></textarea></div><button class="btn btn-primary" onclick="writingAccept()">اعتمد الوصف</button></div><div class="field"><label class="label" for="ws-summary">أسلوبي المعتمد — تقدر تكتبه بنفسك</label><textarea class="textarea" id="ws-summary" rows="3"></textarea></div><div class="field"><label class="label" for="ws-forbidden">عبارات مش عايزها — كل عبارة في سطر</label><textarea class="textarea" id="ws-forbidden" rows="3"></textarea></div><div class="field"><label class="label" for="tpl-instructions">تعليمات إضافية — اختياري</label><textarea class="textarea" id="tpl-instructions" rows="3"></textarea></div><p class="hint">اختيارات اللغة والقناة لها الأولوية لو تعارضت مع التعليمات أو الأمثلة.</p></div><div class="card"><div class="card-title">٣ — لكل قناة طريقتها</div><div class="field"><label class="label" for="ws-mode">طريقة الكتابة</label><select class="select" id="ws-mode"><option value="ai">كتابة بالـAI مع مراجعة</option><option value="template">قالب ثابت بمتغيرات فقط</option></select></div><div class="field"><label class="label" for="tpl-subject">عنوان الإيميل — اختياري، الـAI يقترح عنوان لو سيبته فاضي</label><input class="input" id="tpl-subject" value=""/></div><div class="g2"><div class="writing-channel"><h3>الإيميل</h3><div class="field"><label class="label" for="ws-email-tone">النبرة</label><select class="select" id="ws-email-tone"><option value="professional">مهني وبسيط</option><option value="friendly">ودّي ومحترم</option><option value="direct">مباشر</option></select></div><div class="field"><label class="label" for="ws-email-length">الطول</label><select class="select" id="ws-email-length"><option value="short">قصير</option><option value="medium">متوسط</option></select></div><div class="field"><label class="label" for="ws-email-opening">بداية مفضلة — اختياري</label><input class="input" id="ws-email-opening" value=""/></div><div class="field"><label class="label" for="ws-email-closing">نهاية مفضلة — اختياري</label><input class="input" id="ws-email-closing" value=""/></div><div class="field"><label class="label" for="ws-email-template">نص القالب الثابت</label><textarea class="textarea" id="ws-email-template" rows="3"></textarea></div></div><div class="writing-channel"><h3>الواتساب</h3><div class="field"><label class="label" for="ws-whatsapp-tone">النبرة</label><select class="select" id="ws-whatsapp-tone"><option value="professional">مهني وبسيط</option><option value="friendly">ودّي ومحترم</option><option value="direct">مباشر</option></select></div><div class="field"><label class="label" for="ws-whatsapp-length">الطول</label><select class="select" id="ws-whatsapp-length"><option value="short">قصير</option><option value="medium">متوسط</option></select></div><div class="field"><label class="label" for="ws-whatsapp-opening">بداية مفضلة — اختياري</label><input class="input" id="ws-whatsapp-opening" value=""/></div><div class="field"><label class="label" for="ws-whatsapp-closing">نهاية مفضلة — اختياري</label><input class="input" id="ws-whatsapp-closing" value=""/></div><div class="field"><label class="label" for="ws-whatsapp-template">نص القالب الثابت</label><textarea class="textarea" id="ws-whatsapp-template" rows="3"></textarea></div></div></div><p class="hint">القالب الثابت يدعم {company_name} و{field} و{role}. اكتب اسمك بنفسك. هيحافظ على نصك، وتقدر تطلب تعديل بالـAI من المعاينة.</p></div><div class="writing-actions"><button class="btn btn-primary" id="ws-save" onclick="saveTemplate()">حفظ أسلوبي</button><button class="btn btn-secondary" onclick="writingTry()">حفظ وتجربة على شركة</button><button class="btn btn-secondary" onclick="nav('companies')">اختيار شركة من القائمة</button></div><div class="card"><div class="field"><label class="label" for="ws-test-company">شركة لتجربة الرسالة</label><select class="select" id="ws-test-company"><option value="">اختار شركة</option></select></div><p class="hint">التجربة تولّد مسودة فقط؛ مفيش إرسال إلا بزر الإرسال المعتاد بعد مراجعتك.</p></div></div></section><section class="settings-panel" hidden="" id="settings-ai"><div class="section-heading"><h2>منصات الذكاء الاصطناعي</h2><p>اربط المفتاح، اجلب الموديلات، اختبر اختيارك ثم احفظ.</p></div><div class="connections-notice">كل منصة لها مفتاح مستقل. الأولوية الأقل تبدأ أولًا، ثم الموديل الأساسي وبدائله داخل المنصة. لو مفيش منصة شخصية مفعّلة بموديل، يستخدم مرسال إعدادات السيرفر الحالية. التفعيل قد يستهلك رصيد منصتك؛ اختبار الاتصال نفسه طلب توليد قصير.</div><div class="provider-grid" id="ai-providers">جاري تحميل المنصات…</div></section></div></div></div>
+<div class="page active" id="page-home">
+<div class="ph"><div><div class="eyebrow">مساحة عملك</div><h1>أهلًا، <span id="welcome-name">بيك</span> <span class="wave">✦</span></h1><p class="page-description">كل خطوة في تقديمك، من أول رسالة لحد أول رد.</p></div><button class="btn btn-primary" onclick="nav('companies')"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><rect height="18" rx="2" width="16" x="4" y="3"></rect><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"></path></svg>إدارة الشركات</button></div>
+<div class="metrics"><div class="metric"><span class="metric-label">الشركات عندك</span><strong id="home-companies">—</strong><small>فرصك في مكان واحد</small></div><div class="metric"><span class="metric-label">رسائل اتبعتت</span><strong id="home-sent">—</strong><small>من سجل الإرسال</small></div><div class="metric"><span class="metric-label">ردود وصلتك</span><strong id="home-replies">—</strong><small>ردود مرصودة من الخدمة</small></div><div class="metric"><span class="metric-label">جاهزة للإرسال</span><strong id="home-pending">—</strong><small>CV موجود وقناة التواصل متاحة</small></div></div>
+<section class="next-step" hidden="" id="home-next-block"><div><span class="eyebrow">خطوتك الجاية</span><h2 id="next-title">جهّز سيرتك الذاتية</h2><p id="next-copy">ابدأ بخبراتك ومهاراتك عشان الرسالة تعبّر عنك.</p></div><button class="btn btn-primary" id="next-action" onclick="editSetup('cv')">ابدأ دلوقتي<svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"></path></svg></button></section>
+<section hidden="" id="home-readiness"><div class="section-heading inline-heading"><div><h2>حسابك جاهز قد إيه؟</h2><p>كمّل اللي محتاجه دلوقتي، والباقي وقت ما تحب.</p></div><button class="text-button" onclick="startOnboarding()">عرض الإعداد السريع ←</button></div>
+<div class="setup-grid" id="home-setup-cards"></div></section>
+<div class="dashboard-bottom" id="home-bottom"><section class="card"><div class="section-heading inline-heading"><h2>آخر نشاط</h2><button class="text-button" onclick="nav('report')">كل التقارير ←</button></div><div class="activity-list" id="home-activity"></div></section><section class="card workflow-card" hidden="" id="home-workflow"><h2>خطوات متبقية</h2><ol id="home-workflow-steps"></ol></section></div>
+</div><div class="page" id="page-onboarding"><div class="onboarding-heading"><span class="eyebrow">خلّينا نجهّز أول رسالة</span><h1>بداية بسيطة. وفرص أكتر.</h1><p>3 خطوات تساعدك تبدأ. كل خطوة ممكن تتخطاها وتكمّلها بعدين من الإعدادات.</p><div class="onboard-progress"><span id="onboard-counter">0 من 3 مكتمل</span><div class="prog-wrap"><div class="prog-bar" id="onboard-bar"></div></div></div></div><div class="setup-grid" id="onboard-cards"></div><div class="onboard-footer"><p>تخطي الإعداد مش بيحذف أي حاجة من حسابك.</p><div class="row"><button class="btn btn-secondary" onclick="finishOnboarding(true)">تخطي دلوقتي</button><button class="btn btn-primary" onclick="finishOnboarding(false)">افتح مساحة العمل<svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"></path></svg></button></div></div><div class="help-note"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><rect height="14" rx="2" width="18" x="3" y="5"></rect><path d="m3 6 9 7 9-7"></path></svg>حساب Google متصل. ربط واتساب مطلوب بس لو هتبعت على واتساب.</div></div>
+<div class="page" id="page-companies"><div class="work-company-metrics" id="work-company-metrics"></div>
+<div class="ph">
+<div class="ph-title">الشركات <span class="ph-sub" id="companies-count">0 شركة</span></div>
+<div class="row">
+<select aria-label="فلتر حالة الشركات" class="select" id="filter-status" onchange="filterCompanies()" style="width:auto;font-size:12px;padding:7px 12px">
+<option value="all">كل الحالات</option>
+<option value="pending">انتظار</option>
+<option value="sent">تم الإرسال</option>
+<option value="failed">فشل</option>
+<option value="scheduled">مجدول</option>
+</select>
+<button class="btn btn-secondary" onclick="bulkSelect(true)">☑️ الكل</button>
+<button class="btn btn-secondary" onclick="bulkSelect(false)">⬜ لا شيء</button>
+<button class="btn btn-danger" onclick="deleteSelected()">🗑️ حذف</button>
+</div>
+</div>
+<div class="row template-download"><a class="btn btn-secondary" download="" href="/templates/companies-template.xlsx">تنزيل نموذج الشركات Excel</a><span class="hint">املأ ورقة «الشركات»؛ الأمثلة في ورقة منفصلة لا تُستورد.</span></div><details class="import-details" id="import-panel"><summary><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><rect height="18" rx="2" width="16" x="4" y="3"></rect><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"></path></svg>استيراد شركات من Excel أو CSV<span>+</span></summary><div class="card">
+<div class="card-title">📊 ملف الشركات (Excel)</div>
+<div class="upload-zone" id="xl-zone">
+<input accept=".xlsx,.xls,.csv,.tsv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv,text/tab-separated-values" aria-label="اختيار ملف الشركات" id="xl-file" onchange="uploadExcel(event)" type="file"/>
+<div class="upload-icon">📊</div>
+<div class="upload-title">ارفع ملف الشركات</div>
+<div class="upload-sub">Excel / CSV</div>
+</div>
+<button class="btn btn-secondary" onclick="chooseUploadFile('xl-file')" type="button">الملف مش ظاهر؟ اختار من كل الملفات</button><p class="hint">لو الملف في Drive أو واتساب، نزّله على الجهاز الأول. XLSX أو XLS أو CSV حتى 10 MB. أول صف للعناوين، والبيانات من أول ورقة.</p>
+<div id="xl-status"></div>
+<div id="xl-map" style="display:none;margin-top:16px">
+<div class="card-title" style="margin-bottom:12px">🗂️ ربط الأعمدة</div>
+<div class="col-map-row">
+<div><div class="label">اسم الشركة *</div><select class="select" id="mc-name"></select></div>
+<div><div class="label">الإيميل (اختياري)</div><select class="select" id="mc-email"><option value="">— لا يوجد —</option></select></div>
+<div><div class="label">رقم التليفون (اختياري)</div><select class="select" id="mc-phone"><option value="">— لا يوجد —</option></select></div>
+<div><div class="label">المجال (اختياري)</div><select class="select" id="mc-field"><option value="">— لا يوجد —</option></select></div>
+<div><div class="label">الموقع (اختياري)</div><select class="select" id="mc-loc"><option value="">— لا يوجد —</option></select></div>
+</div>
+<p style="font-size:12px;color:var(--text2);margin:12px 0">اختار عمود اسم الشركة، وعمود الإيميل أو التليفون على الأقل. الشركات التي لا تحتوي على وسيلة تواصل سيتم تخطيها.</p>
+<button class="btn btn-primary" id="btn-import-companies" onclick="commitImport()" style="width:100%">✅ استيراد الشركات</button>
+<div aria-live="polite" id="import-result" role="status" style="margin-top:12px;font-size:13px;white-space:pre-line"></div>
+</div>
+</div></details><div class="company-toolbar"><label class="search-field"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 5 5"></path></svg><input aria-label="بحث الشركات" class="input" id="company-search" oninput="renderCompanies()" placeholder="ابحث بالاسم أو الإيميل أو المجال"/></label><span class="selection-count" id="selection-count">0 شركة محددة</span></div><div class="card" style="padding:0"><div id="companies-container"></div></div>
+</div>
+<div class="page" id="page-send">
+<div class="ph"><div><h1>راجع. ابعت. وتابع.</h1><p class="page-description">اختار الشركات وتوقيت الإرسال. اختار الإيميل أو الواتساب. الشركة اللي ناقصها بيانات القناة المختارة هتتخطى من غير إرسال.</p></div></div>
+<div class="g4" style="margin-bottom:20px">
+<div class="stat-card"><div class="stat-num c-blue" id="s-total">0</div><div class="stat-lbl">إجمالي</div></div>
+<div class="stat-card"><div class="stat-num c-yellow" id="s-pending">0</div><div class="stat-lbl">انتظار</div></div>
+<div class="stat-card"><div class="stat-num c-green" id="s-sent">0</div><div class="stat-lbl">أُرسل</div></div>
+<div class="stat-card"><div class="stat-num c-red" id="s-failed">0</div><div class="stat-lbl">فشل</div></div>
+</div>
+<div class="card"><div class="field"><label class="label" for="send-channel">قناة الإرسال لهذه الدفعة</label><select class="select" id="send-channel" onchange="updateChannelSummary()"><option value="email">الإيميل</option><option value="whatsapp">الواتساب</option></select></div><p aria-live="polite" class="hint" id="channel-summary" role="status">اختار قناة الإرسال؛ مش هنحوّل للقناة التانية تلقائيًا.</p><p class="hint">وجود رقم لا يضمن أنه مسجّل على واتساب؛ تعذر التسليم له بيتسجل كفشل إرسال.</p></div><div class="sender-box"><label>الإرسال من حساب Gmail</label><select aria-label="حساب Gmail للإرسال" class="select" data-gmail-sender="" id="send-sender" onchange="gmailSelect(this.value).catch(connectionError)"><option value="">جاري تحميل الحسابات…</option></select><small>يخص رسائل الإيميل. الرسائل المجدولة تحتفظ بالحساب المختار وقت الجدولة.</small></div> <div class="g2">
+<div class="card">
+<div class="card-title">🕐 الجدولة</div>
+<div class="field">
+<div class="label">وقت الإرسال</div>
+<select aria-label="توقيت الإرسال" class="select" id="sched-type" onchange="toggleSched()">
+<option value="now">الآن فوراً</option>
+<option value="scheduled">في وقت محدد</option>
+</select>
+</div>
+<div class="field" id="sched-dt" style="display:none">
+<div class="label">التاريخ والوقت</div>
+<input aria-label="وقت الإرسال المحدد" class="input" id="send-dt" style="width:100%" type="datetime-local"/>
+</div>
+<div class="field">
+<div class="label">فاصل بين الرسائل — بالثواني</div>
+<input aria-label="الفاصل بين الرسائل" class="input" id="delay-s" max="120" min="1" type="number" value="5"/>
+</div>
+</div>
+<div class="card">
+<div class="card-title">⚡ خيارات</div>
+<div style="display:grid;gap:12px">
+<label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
+<input checked="" id="opt-preview" style="accent-color:var(--accent);width:15px;height:15px" type="checkbox"/>
               معاينة كل رسالة قبل الإرسال
             </label>
-            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
-              <input type="checkbox" id="opt-skip-sent" onchange="updateChannelSummary()" checked style="accent-color:var(--accent);width:15px;height:15px">
+<label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
+<input checked="" id="opt-skip-sent" onchange="updateChannelSummary()" style="accent-color:var(--accent);width:15px;height:15px" type="checkbox"/>
               تخطي الشركات المرسل إليها على نفس القناة
             </label>
-            <div class="field" style="margin-bottom:0">
-              <div class="label">إرسال لـ</div>
-              <select class="select" id="send-filter" onchange="updateChannelSummary()" aria-label="الشركات المستهدفة">
-                <option value="all">كل الشركات</option>
-                <option value="selected">المحددة فقط</option>
-                <option value="pending">في الانتظار فقط</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="card" id="prog-card" style="display:none">
-        <div class="card-title">⏳ جاري الإرسال</div>
-        <div id="prog-text" style="font-size:13px;color:var(--text2);margin-bottom:8px">جاري التجهيز...</div>
-        <div class="prog-wrap"><div class="prog-bar" id="prog-bar" style="width:0%"></div></div>
-        <div style="font-size:13px;color:var(--text3);font-family:var(--mono);margin-top:4px" id="prog-detail">0 / 0</div>
-      </div>
-      <div class="row">
-        <button class="btn btn-primary" id="btn-send" onclick="startSend()">🚀 ابدأ الإرسال</button>
-        <button class="btn btn-danger" id="btn-stop" style="display:none" onclick="stopSend()">⏹️ إيقاف</button>
-      </div>
-    </div>
-
-    <div class="page" id="page-report">
-      <div class="ph">
-        <div><h1>التقارير</h1><p class="page-description">حالة كل رسالة وآخر رد مرصود، في مكان واحد.</p></div>
-        <div class="row">
-          <button class="btn btn-secondary" onclick="syncNow()">🔄 تزامن الردود</button>
-          <button class="btn btn-secondary" onclick="exportCSV()">⬇️ تصدير CSV</button>
-          <button class="btn btn-danger" onclick="clearLog()">🗑️ مسح السجل</button>
-        </div>
-      </div>
-      <div class="g4" style="margin-bottom:20px">
-        <div class="stat-card"><div class="stat-num c-blue" id="r-total">0</div><div class="stat-lbl">إجمالي</div></div>
-        <div class="stat-card"><div class="stat-num c-green" id="r-sent">0</div><div class="stat-lbl">تم الإرسال ✅</div></div>
-        <div class="stat-card"><div class="stat-num c-red" id="r-failed">0</div><div class="stat-lbl">فشل ❌</div></div>
-        <div class="stat-card"><div class="stat-num c-orange" id="r-opens">0</div><div class="stat-lbl">فتح البريد 👁</div></div>
-      </div>
-      <div class="card">
-        <div class="card-title">سجل الإرسال</div><p class="section-copy">افتح التفاصيل لعرض الرسالة والخط الزمني. فتح الإيميل مؤشر تتبع؛ قراءة واتساب تعتمد على تأكيد الخدمة.</p>
-        <div id="log-container"></div>
-      </div>
-    </div>
-
-  </main>
+<div class="field" style="margin-bottom:0">
+<div class="label">إرسال لـ</div>
+<select aria-label="الشركات المستهدفة" class="select" id="send-filter" onchange="updateChannelSummary()">
+<option value="all">كل الشركات</option>
+<option value="selected">المحددة فقط</option>
+<option value="pending">في الانتظار فقط</option>
+</select>
 </div>
-
+</div>
+</div>
+</div>
+<div class="card" id="prog-card" style="display:none">
+<div class="card-title">⏳ جاري الإرسال</div>
+<div id="prog-text" style="font-size:13px;color:var(--text2);margin-bottom:8px">جاري التجهيز...</div>
+<div class="prog-wrap"><div class="prog-bar" id="prog-bar" style="width:0%"></div></div>
+<div id="prog-detail" style="font-size:13px;color:var(--text3);font-family:var(--mono);margin-top:4px">0 / 0</div>
+</div>
+<div class="row">
+<button class="btn btn-primary" id="btn-send" onclick="startSend()">🚀 ابدأ الإرسال</button>
+<button class="btn btn-danger" id="btn-stop" onclick="stopSend()" style="display:none">⏹️ إيقاف</button>
+</div>
+</div>
+<div class="page" id="page-report">
+<div class="ph">
+<div><h1>التقارير</h1><p class="page-description">حالة كل رسالة وآخر رد مرصود، في مكان واحد.</p></div>
+<div class="row">
+<button class="btn btn-secondary" onclick="syncNow()">🔄 تزامن الردود</button>
+<button class="btn btn-secondary" onclick="exportCSV()">⬇️ تصدير CSV</button>
+<button class="btn btn-danger" onclick="clearLog()">🗑️ مسح السجل</button>
+</div>
+</div>
+<div class="g4" style="margin-bottom:20px">
+<div class="stat-card"><div class="stat-num c-blue" id="r-total">0</div><div class="stat-lbl">إجمالي</div></div>
+<div class="stat-card"><div class="stat-num c-green" id="r-sent">0</div><div class="stat-lbl">تم الإرسال ✅</div></div>
+<div class="stat-card"><div class="stat-num c-red" id="r-failed">0</div><div class="stat-lbl">فشل ❌</div></div>
+<div class="stat-card"><div class="stat-num c-orange" id="r-opens">0</div><div class="stat-lbl">فتح البريد 👁</div></div>
+</div>
+<div class="card">
+<div class="card-title">سجل الإرسال</div><p class="section-copy">افتح التفاصيل لعرض الرسالة والخط الزمني. فتح الإيميل مؤشر تتبع؛ قراءة واتساب تعتمد على تأكيد الخدمة.</p>
+<div id="log-container"></div>
+</div>
+</div>
+</main>
+</div>
 <div class="overlay" id="preview-overlay">
-  <section class="modal compose-modal" role="dialog" aria-modal="true" aria-labelledby="prev-company" aria-describedby="compose-description" tabindex="-1">
-    <header class="modal-hdr compose-header">
-      <div><p class="compose-eyebrow">مراجعة قبل الإرسال</p><h2 class="modal-title" id="prev-company">معاينة الرسالة</h2><p class="modal-sub" id="prev-to"></p></div>
-      <button class="modal-close" onclick="closePrev()" aria-label="إغلاق معاينة الرسالة">✕</button>
-    </header>
-    <div class="compose-scroll">
-      <p id="compose-description" class="compose-description">راجع المستلم والمرفق، وعدّل المسودة بطريقتك قبل الإرسال.</p>
-      <div class="compose-channel field"><label class="label" for="preview-channel">قناة الإرسال</label><select class="select" id="preview-channel" onchange="previewChangeChannel(this.value)"><option value="email">الإيميل</option><option value="whatsapp">واتساب</option></select><p class="hint">تغيير القناة يولّد مسودة جديدة.</p></div>
-      <div id="prev-loading" class="compose-loading" role="status" style="display:none"><div class="spin"></div><span>الذكاء الاصطناعي يكتب المسودة ويراجعها…</span></div>
-      <div id="prev-form">
-        <div class="compose-addresses">
-          <div class="sender-box"><label class="label" for="preview-sender">من حساب Gmail</label><select class="select" id="preview-sender" data-gmail-sender aria-label="حساب Gmail للإرسال" onchange="gmailSelect(this.value).catch(connectionError)"><option value="">جاري تحميل الحسابات…</option></select><small>الحساب المختار يُستخدم للإرسال والجدولة.</small></div>
-          <div class="field compose-recipient"><label class="label" for="prev-email">إلى المستلم</label><input class="input" id="prev-email" readonly dir="ltr"></div>
-        </div>
-        <div class="field" id="prev-subject-field"><label class="label" for="prev-subject">موضوع الإيميل</label><input class="input" id="prev-subject" placeholder="عنوان واضح ومختصر" dir="auto"></div>
-        <p class="compose-attachment hint" id="prev-attachment" role="status" aria-live="polite"></p>
-        <div class="field compose-editor"><label class="label" id="prev-body-label" for="prev-body">نص الرسالة</label><textarea class="textarea" id="prev-body" dir="auto" rows="8" placeholder="ستظهر المسودة هنا. تقدر تعدّلها قبل الإرسال."></textarea><p class="hint">استخدم سطرًا فارغًا بين الفقرات لرسالة سهلة القراءة.</p></div>
-        <details class="writing-revision compose-refine"><summary>تحسين المسودة بالذكاء الاصطناعي <span>اختياري</span></summary><div class="compose-refine-content"><div class="row"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('shorten')">اختصرها</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('simplify')">خليها أبسط</button><button class="btn btn-secondary" data-writing-control onclick="writingRevise('casual')">قلل الرسمية</button><button class="btn btn-secondary" data-writing-control onclick="writingReference()">احفظها كمرجع لأسلوبي</button></div><label class="label" for="writing-note">ملاحظة محددة على المسودة</label><div class="row"><input class="input" id="writing-note" placeholder="مثلًا: ابدأ بسبب التواصل على طول"><button class="btn btn-secondary" data-writing-control onclick="writingRevise('custom')">طبّق ملاحظتي</button></div></div></details>
-        <p id="writing-review" class="hint compose-review" role="status" aria-live="polite"></p>
-      </div>
-    </div>
-    <footer class="compose-footer"><div id="prev-send-status" role="status" aria-live="polite"></div><div class="compose-actions"><button class="btn btn-primary" id="btn-confirm" onclick="confirmSend()">إرسال الرسالة</button><button class="btn btn-secondary" data-writing-control onclick="regenerate()">إعادة الكتابة</button><button class="btn btn-secondary" onclick="skipCo()">تخطي الشركة</button><button class="btn compose-help" onclick="MrsaalTour.start('preview')">شرح المعاينة</button></div></footer>
-  </section>
+<section aria-describedby="compose-description" aria-labelledby="prev-company" aria-modal="true" class="modal compose-modal" role="dialog" tabindex="-1">
+<header class="modal-hdr compose-header">
+<div><p class="compose-eyebrow">مراجعة قبل الإرسال</p><h2 class="modal-title" id="prev-company">معاينة الرسالة</h2><p class="modal-sub" id="prev-to"></p></div>
+<button aria-label="إغلاق معاينة الرسالة" class="modal-close" onclick="closePrev()">✕</button>
+</header>
+<div class="compose-scroll">
+<p class="compose-description" id="compose-description">راجع المستلم والمرفق، وعدّل المسودة بطريقتك قبل الإرسال.</p>
+<div class="compose-channel field"><label class="label" for="preview-channel">قناة الإرسال</label><select class="select" id="preview-channel" onchange="previewChangeChannel(this.value)"><option value="email">الإيميل</option><option value="whatsapp">واتساب</option></select><p class="hint">تغيير القناة يولّد مسودة جديدة.</p></div>
+<div class="compose-loading" id="prev-loading" role="status" style="display:none"><div class="spin"></div><span>الذكاء الاصطناعي يكتب المسودة ويراجعها…</span></div>
+<div id="prev-form">
+<div class="compose-addresses">
+<div class="sender-box"><label class="label" for="preview-sender">من حساب Gmail</label><select aria-label="حساب Gmail للإرسال" class="select" data-gmail-sender="" id="preview-sender" onchange="gmailSelect(this.value).catch(connectionError)"><option value="">جاري تحميل الحسابات…</option></select><small>الحساب المختار يُستخدم للإرسال والجدولة.</small></div>
+<div class="field compose-recipient"><label class="label" for="prev-email">إلى المستلم</label><input class="input" dir="ltr" id="prev-email" readonly=""/></div>
 </div>
-
+<div class="field" id="prev-subject-field"><label class="label" for="prev-subject">موضوع الإيميل</label><input class="input" dir="auto" id="prev-subject" placeholder="عنوان واضح ومختصر"/></div>
+<p aria-live="polite" class="compose-attachment hint" id="prev-attachment" role="status"></p>
+<div class="field compose-editor"><label class="label" for="prev-body" id="prev-body-label">نص الرسالة</label><textarea class="textarea" dir="auto" id="prev-body" placeholder="ستظهر المسودة هنا. تقدر تعدّلها قبل الإرسال." rows="8"></textarea><p class="hint">استخدم سطرًا فارغًا بين الفقرات لرسالة سهلة القراءة.</p></div>
+<details class="writing-revision compose-refine"><summary>تحسين المسودة بالذكاء الاصطناعي <span>اختياري</span></summary><div class="compose-refine-content"><div class="row"><button class="btn btn-secondary" data-writing-control="" onclick="writingRevise('shorten')">اختصرها</button><button class="btn btn-secondary" data-writing-control="" onclick="writingRevise('simplify')">خليها أبسط</button><button class="btn btn-secondary" data-writing-control="" onclick="writingRevise('casual')">قلل الرسمية</button><button class="btn btn-secondary" data-writing-control="" onclick="writingReference()">احفظها كمرجع لأسلوبي</button></div><label class="label" for="writing-note">ملاحظة محددة على المسودة</label><div class="row"><input class="input" id="writing-note" placeholder="مثلًا: ابدأ بسبب التواصل على طول"/><button class="btn btn-secondary" data-writing-control="" onclick="writingRevise('custom')">طبّق ملاحظتي</button></div></div></details>
+<p aria-live="polite" class="hint compose-review" id="writing-review" role="status"></p>
+</div>
+</div>
+<footer class="compose-footer"><div aria-live="polite" id="prev-send-status" role="status"></div><div class="compose-actions"><button class="btn btn-primary" id="btn-confirm" onclick="confirmSend()">إرسال الرسالة</button><button class="btn btn-secondary" data-writing-control="" onclick="regenerate()">إعادة الكتابة</button><button class="btn btn-secondary" onclick="skipCo()">تخطي الشركة</button><button class="btn compose-help" onclick="MrsaalTour.start('preview')">شرح المعاينة</button></div></footer>
+</section>
+</div>
 <div class="overlay" id="report-detail-overlay">
-  <section class="modal report-modal" role="dialog" aria-modal="true" aria-labelledby="rd-company" aria-describedby="rd-description" tabindex="-1">
-    <div class="report-top">
-      <div class="report-head">
-        <div class="report-symbol" id="rd-icon" aria-hidden="true">📱</div>
-        <div class="report-heading">
-          <div class="report-eyebrow">تفاصيل الرسالة</div>
-          <h2 id="rd-company"></h2>
-          <p id="rd-description"></p>
-        </div>
-        <button class="modal-close report-close" id="rd-close" onclick="closeLogDetail()" aria-label="إغلاق تفاصيل الرسالة">✕</button>
-      </div>
-      <div class="report-badges">
-        <span class="report-chip" id="rd-channel"></span>
-        <span class="report-chip" id="rd-status"></span>
-        <span class="report-chip" id="rd-recipient" dir="ltr"></span>
-      </div>
-    </div>
+<section aria-describedby="rd-description" aria-labelledby="rd-company" aria-modal="true" class="modal report-modal" role="dialog" tabindex="-1">
+<div class="report-top">
+<div class="report-head">
+<div aria-hidden="true" class="report-symbol" id="rd-icon">📱</div>
+<div class="report-heading">
+<div class="report-eyebrow">تفاصيل الرسالة</div>
+<h2 id="rd-company"></h2>
+<p id="rd-description"></p>
+</div>
+<button aria-label="إغلاق تفاصيل الرسالة" class="modal-close report-close" id="rd-close" onclick="closeLogDetail()">✕</button>
+</div>
+<div class="report-badges">
+<span class="report-chip" id="rd-channel"></span>
+<span class="report-chip" id="rd-status"></span>
+<span class="report-chip" dir="ltr" id="rd-recipient"></span>
+</div>
+</div>
 <div class="timeline-layout"><aside class="timeline-side">
-      <div class="report-section-title">حالة الرسالة</div>
-      <div class="report-progress">
-        <div class="report-step" id="rd-sent-step"><div class="report-step-icon" aria-hidden="true">↗</div><strong id="rd-sent-label"></strong><small id="rd-sent-time"></small></div>
-        <div class="report-step" id="rd-read-step"><div class="report-step-icon" aria-hidden="true">✓✓</div><strong id="rd-read-label"></strong><small id="rd-read-time"></small></div>
-        <div class="report-step" id="rd-reply-step"><div class="report-step-icon" aria-hidden="true">↩</div><strong id="rd-reply-label"></strong><small id="rd-reply-time"></small></div>
-      </div>
-      <div class="report-note" id="rd-delivery" hidden></div>
-</aside><div class="timeline-main">      <div class="report-message" id="rd-message-section">
-        <div class="report-message-head"><h3>الرسالة المرسلة</h3><button class="btn btn-secondary" style="padding:5px 10px;font-size:13px" onclick="copyLogMessage()">نسخ النص</button></div>
-        <div class="report-subject" id="rd-subject" hidden></div>
-        <div class="report-text" id="rd-body" dir="auto"></div><p id="rd-sender" class="hint" dir="ltr"></p>
-      </div>
-      <div class="report-message" id="rd-reply-section" hidden>
-        <div class="report-message-head"><h3 class="report-reply-title">↩ آخر رد مرصود</h3></div>
-        <div class="report-text report-reply" id="rd-reply" dir="auto"></div>
-      </div>
-      <div class="report-note report-error" id="rd-error" hidden></div>
-      <div class="report-note" id="rd-note" hidden></div>
-    </div>
-</div>    <div class="report-footer"><span>حالة القراءة تتحدث عند وصول تأكيد من الخدمة.</span><button class="btn btn-secondary" onclick="closeLogDetail()">إغلاق</button></div>
-  </section>
+<div class="report-section-title">حالة الرسالة</div>
+<div class="report-progress">
+<div class="report-step" id="rd-sent-step"><div aria-hidden="true" class="report-step-icon">↗</div><strong id="rd-sent-label"></strong><small id="rd-sent-time"></small></div>
+<div class="report-step" id="rd-read-step"><div aria-hidden="true" class="report-step-icon">✓✓</div><strong id="rd-read-label"></strong><small id="rd-read-time"></small></div>
+<div class="report-step" id="rd-reply-step"><div aria-hidden="true" class="report-step-icon">↩</div><strong id="rd-reply-label"></strong><small id="rd-reply-time"></small></div>
+</div>
+<div class="report-note" hidden="" id="rd-delivery"></div>
+</aside><div class="timeline-main"> <div class="report-message" id="rd-message-section">
+<div class="report-message-head"><h3>الرسالة المرسلة</h3><button class="btn btn-secondary" onclick="copyLogMessage()" style="padding:5px 10px;font-size:13px">نسخ النص</button></div>
+<div class="report-subject" hidden="" id="rd-subject"></div>
+<div class="report-text" dir="auto" id="rd-body"></div><p class="hint" dir="ltr" id="rd-sender"></p>
+</div>
+<div class="report-message" hidden="" id="rd-reply-section">
+<div class="report-message-head"><h3 class="report-reply-title">↩ آخر رد مرصود</h3></div>
+<div class="report-text report-reply" dir="auto" id="rd-reply"></div>
+</div>
+<div class="report-note report-error" hidden="" id="rd-error"></div>
+<div class="report-note" hidden="" id="rd-note"></div>
+</div>
+</div> <div class="report-footer"><span>حالة القراءة تتحدث عند وصول تأكيد من الخدمة.</span><button class="btn btn-secondary" onclick="closeLogDetail()">إغلاق</button></div>
+</section>
 </div>
 <div class="toast" id="toast"></div>
-
 <script src="/assets/writing.js"></script>
 <script src="/assets/app.js?v=20261008-ai-reliability-2"></script>
-
-
 <script src="/assets/workspace.js"></script><script src="/assets/tickets.js?v=20261008-ai-reliability-2"></script>
-</body>
+<nav aria-label="التنقل السريع" class="work-bottom-nav"><button class="nav-item" data-page="home" onclick="nav('home')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1Z"></path></svg><span>الرئيسية</span></button><button class="nav-item" data-page="companies" onclick="nav('companies')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><rect height="18" rx="2" width="16" x="4" y="3"></rect><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"></path></svg><span>الشركات</span><span class="nav-badge">0</span></button><button class="nav-item" data-page="send" onclick="nav('send')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="m21 3-7 18-4-7-7-4 18-7ZM10 14 21 3"></path></svg><span>الإرسال</span></button><button class="nav-item" data-page="report" onclick="nav('report')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M4 3v18h17M8 16v-5m5 5V7m5 9v-8"></path></svg><span>التقارير</span><span class="nav-badge">0</span></button><button class="nav-item" data-page="settings" onclick="nav('settings')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M4 7h16M4 17h16"></path><circle cx="9" cy="7" r="3"></circle><circle cx="16" cy="17" r="3"></circle></svg><span>الإعدادات</span></button></nav></body>
 </html>
