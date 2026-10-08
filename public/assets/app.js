@@ -11,7 +11,7 @@ async function checkAuth() {
     const r = await api('/auth/status');
     document.getElementById('app-loading').style.display = 'none';
     if (!r.loggedIn) {
-      window.location.replace('/ar/login');
+      window.location.replace('/'+(window.MrsaalLocale?.lang||document.documentElement.lang||'ar')+'/login');
       setGmail(false, 'غير متصل', 'سجّل دخولك أولاً');
     } else {
       document.getElementById('login-screen').style.display='none'; document.querySelector('.app').classList.add('active');
@@ -266,11 +266,11 @@ function renderCompanies() {
   const rows = filtered.map(c=>`
     <tr>
       <td><input type="checkbox" class="chk" ${c.selected?'checked':''} onchange="toggleChk('${c.id}',this.checked)"></td>
-      <td><strong>${esc(c.name)}</strong></td>
+      <td data-user-content><strong>${esc(c.name)}</strong></td>
       <td class="mono">${c.email?esc(c.email):'<span style="color:var(--text3)">—</span>'}</td>
       <td class="mono">${c.phone?esc(c.phone):'—'}</td>
-      <td>${esc(c.field)||'<span style="color:var(--text3)">—</span>'}</td>
-      <td>${esc(c.location)||'<span style="color:var(--text3)">—</span>'}</td>
+      <td data-user-content>${esc(c.field)||'<span style="color:var(--text3)">—</span>'}</td>
+      <td data-user-content>${esc(c.location)||'<span style="color:var(--text3)">—</span>'}</td>
       <td><span class="tag ${c.status}">${stLabel(c.status)}</span></td>
       <td><button class="btn btn-secondary" style="padding:5px 10px;font-size:13px" onclick="previewOne('${c.id}')">👁️ معاينة</button></td>
     </tr>`).join('');
@@ -536,9 +536,9 @@ function renderLog(){
     const statusClass=l.replied?'replied':(l.open_count>0?'opened':l.status);
     const statusText=l.replied?'تم الرد 💬':(l.channel==='whatsapp'?(l.whatsapp_read_at?'اتقرت ✓✓':l.whatsapp_delivered_at?'وصلت ✓✓':stLabel(l.status)):(l.open_count>0?'تم رصد فتح البريد':stLabel(l.status)));
     return `<tr class="${l.replied?'row-replied':''}">
-      <td><div style="font-weight:700">${esc(l.company_name)}</div><div style="font-size:12px;color:var(--text3)">${new Date(l.sent_at*1000).toLocaleString('ar')}</div></td>
+      <td><div data-user-content style="font-weight:700">${esc(l.company_name)}</div><div style="font-size:12px;color:var(--text3)">${new Date(l.sent_at*1000).toLocaleString(window.MrsaalLocale?.lang==='en'?'en-GB':'ar-EG')}</div></td>
       <td class="mono" style="font-size:13px">${esc(l.company_email||'غير متوفر')}<div class="hint">${l.channel==='whatsapp'?'واتساب':'إيميل'}</div></td>
-      <td><span class="log-status ${statusClass}">${statusText}</span>${l.status==='skipped'&&l.reason?`<div class="hint">${esc(l.reason)}</div>`:''}${l.replied&&l.reply_text?`<div class="reply-preview" dir="auto">${esc(l.reply_text)}</div>`:''}</td>
+      <td><span class="log-status ${statusClass}">${statusText}</span>${l.status==='skipped'&&l.reason?`<div class="hint">${esc(l.reason)}</div>`:''}${l.replied&&l.reply_text?`<div data-user-content class="reply-preview" dir="auto">${esc(l.reply_text)}</div>`:''}</td>
       <td><button class="btn btn-secondary" style="padding:4px 8px;font-size:12px" onclick="viewLogDetail('${l.id}')">تفاصيل</button></td>
     </tr>`;
   }).join('');
@@ -549,7 +549,7 @@ let activeLogId=null, logDetailFocus=null, logDetailOverflow='';
 function reportDate(value){
   if(!Number(value))return '';
   const date=new Date(Number(value)*1000);
-  return Number.isNaN(date.getTime())?'':date.toLocaleString('ar-EG',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  return Number.isNaN(date.getTime())?'':date.toLocaleString(window.MrsaalLocale?.lang==='en'?'en-GB':'ar-EG',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
 }
 function fillLogDetail(l){
   document.getElementById('rd-sender').textContent=l.sender_email?'From: '+l.sender_email:'';
@@ -623,7 +623,7 @@ async function clearLog(){
 
 function exportCSV(){
   const rows=[['الشركة','البريد','الحالة','الموضوع','مرات الفتح','السبب','الوقت'],
-    ...log.map(l=>[l.company_name,l.company_email,stLabel(l.status),l.subject||'',l.open_count||0,l.reason||'',new Date(l.sent_at*1000).toLocaleString('ar-EG')])];
+    ...log.map(l=>[l.company_name,l.company_email,stLabel(l.status),l.subject||'',l.open_count||0,l.reason||'',new Date(l.sent_at*1000).toLocaleString(window.MrsaalLocale?.lang==='en'?'en-GB':'ar-EG')])];
   const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);

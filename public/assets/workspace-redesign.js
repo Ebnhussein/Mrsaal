@@ -1,0 +1,15 @@
+'use strict';
+(()=>{
+ const t=value=>window.MrsaalLocale?.t(value)||value;
+ const metrics=document.getElementById('work-company-metrics');
+ function updateMetrics(){if(!metrics||typeof companies==='undefined')return;const vals=[[companies.length,'إجمالي الشركات'],[companies.filter(c=>c.email||c.phone).length,'بيانات تواصل متاحة'],[companies.filter(c=>c.selected).length,'شركات محددة'],[companies.filter(c=>c.status==='sent').length,'تم الإرسال']];metrics.replaceChildren(...vals.map(([count,label])=>{const div=document.createElement('div'),span=document.createElement('span'),strong=document.createElement('strong');span.textContent=t(label);strong.textContent=count;div.append(span,strong);return div;}));}
+ if(typeof renderCompanies==='function'){
+  const original=renderCompanies;renderCompanies=function(){original();updateMetrics();const container=document.getElementById('companies-container'),table=container.querySelector('.tbl-wrap');if(!table)return;table.classList.add('work-company-table');const filter=document.getElementById('filter-status').value,term=document.getElementById('company-search').value.trim().toLowerCase();const rows=companies.filter(c=>(filter==='all'||c.status===filter)&&[c.name,c.email,c.phone,c.field,c.location].some(v=>String(v||'').toLowerCase().includes(term)));const cards=document.createElement('div');cards.className='work-company-list';cards.innerHTML=rows.map(c=>`<article class="work-company-card"><div class="work-company-head"><span class="work-company-mark" data-user-content>${esc(c.name.charAt(0))}</span><div><h3 data-user-content>${esc(c.name)}</h3><small data-user-content>${esc([c.field,c.location].filter(Boolean).join(' · '))}</small></div><label class="work-company-check"><input type="checkbox" ${c.selected?'checked':''} aria-label="${esc(t('تحديد الشركة'))}" data-company-select="${esc(c.id)}"></label></div><div class="work-company-contacts" data-user-content>${c.email?`<span>${esc(c.email)}</span>`:''}${c.phone?`<span>${esc(c.phone)}</span>`:''}${!c.email&&!c.phone?`<span>${esc(t('لا توجد وسيلة تواصل'))}</span>`:''}</div><div class="work-company-actions"><span class="tag ${esc(c.status)}">${esc(t(stLabel(c.status)))}</span><button class="btn btn-primary" data-company-preview="${esc(c.id)}">${esc(t('مراجعة الرسالة'))}</button></div></article>`).join('');container.append(cards);};
+  document.getElementById('companies-container').addEventListener('click',e=>{const b=e.target.closest('[data-company-preview]');if(b)previewOne(b.dataset.companyPreview);});
+  document.getElementById('companies-container').addEventListener('change',async e=>{if(!e.target.matches('[data-company-select]'))return;try{await toggleChk(e.target.dataset.companySelect,e.target.checked);renderCompanies();}catch(error){toast(error.message,'error');}});
+ }
+ if(typeof refreshWorkspace==='function'){const original=refreshWorkspace;refreshWorkspace=function(){original();updateMetrics();};}
+ // Navigation state is reflected in both the rail and the mobile bar.
+ document.querySelector('.work-bottom-nav')?.setAttribute('aria-label',t('التنقل السريع'));
+ updateMetrics();
+})();
