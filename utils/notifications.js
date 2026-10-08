@@ -37,10 +37,10 @@ async function ensureNotifications(){
 async function config(){
  if(configured)return configured;
  const curve=crypto.createECDH('prime256v1');curve.generateKeys();
- const proposed={publicKey:curve.getPublicKey().toString('base64url'),privateKey:curve.getPrivateKey().toString('base64url')};
+ const proposed={publicKey:curve.getPublicKey().toString('base64url'),privateKey:Buffer.concat([Buffer.alloc(32-curve.getPrivateKey().length),curve.getPrivateKey()]).toString('base64url')};
  await run('INSERT INTO notification_push_config(id,credentials) VALUES(1,$1) ON CONFLICT DO NOTHING',[seal(proposed)]);
  const row=await get('SELECT credentials FROM notification_push_config WHERE id=1');
- const keys=unseal(row.credentials);const webpush=require('web-push');
+ const keys=unseal(row.credentials);const privateBytes=Buffer.from(keys.privateKey,'base64url');if(privateBytes.length>0&&privateBytes.length<32)keys.privateKey=Buffer.concat([Buffer.alloc(32-privateBytes.length),privateBytes]).toString('base64url');const webpush=require('web-push');
  const base=process.env.BASE_URL||'https://mrsaal.ebnhussein.co';const subject=new URL(base).origin;
  webpush.setVapidDetails(subject,keys.publicKey,keys.privateKey);
  configured={webpush,publicKey:keys.publicKey};return configured;
