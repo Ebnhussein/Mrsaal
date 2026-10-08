@@ -3,7 +3,8 @@ const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function ensureTrackingSchema(){
   await run(`ALTER TABLE email_log ADD COLUMN IF NOT EXISTS whatsapp_delivered_at BIGINT;
     ALTER TABLE email_log ADD COLUMN IF NOT EXISTS whatsapp_read_at BIGINT;
-    ALTER TABLE email_log ADD COLUMN IF NOT EXISTS whatsapp_reply_at BIGINT;`);
+    ALTER TABLE email_log ADD COLUMN IF NOT EXISTS whatsapp_reply_at BIGINT;
+    ALTER TABLE email_log ADD COLUMN IF NOT EXISTS whatsapp_reply_message_id TEXT;`);
 }
 function seconds(value){const n=Number(value);return Number.isFinite(n)&&n>0?Math.floor(n):Math.floor(Date.now()/1000);}
 async function receipt(userId,key,{read=false,time=null}={}){
@@ -51,8 +52,8 @@ async function reply(userId,message){
     AND ($5::text IS NULL OR message_id=$5)
     ORDER BY sent_at DESC LIMIT 1`,[userId,jids,numbers,at,quote]);
   if(!log)return;
-  await run(`UPDATE email_log SET replied=1,reply_text=$3,whatsapp_reply_at=$4
-    WHERE id=$1 AND user_id=$2 AND (whatsapp_reply_at IS NULL OR whatsapp_reply_at <= $4)`,[log.id,userId,String(text).slice(0,10000),at]);
+  await run(`UPDATE email_log SET replied=1,reply_text=$3,whatsapp_reply_at=$4,whatsapp_reply_message_id=$5
+    WHERE id=$1 AND user_id=$2 AND (whatsapp_reply_at IS NULL OR whatsapp_reply_at <= $4)`,[log.id,userId,String(text).slice(0,10000),at,message.key.id]);
 }
 function attachTracking(sock,userId,entry){
   const active=()=>!entry.cancelled && entry.sock===sock;

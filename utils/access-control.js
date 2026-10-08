@@ -8,5 +8,5 @@ async function checkToolAccess(id){
  const settings=await get('SELECT tool_paused FROM website_settings WHERE id=1');
  if(settings?.tool_paused){const e=new Error('الأداة متوقفة مؤقتًا للصيانة. الدعم متاح.');e.status=503;e.code='TOOL_PAUSED';throw e;}
 }
-async function gate(req,res,next){try{if(req.session?.userId&&req.path.startsWith('/api/')&&!/^\/api\/(tickets|admin)(\/|$)/.test(req.path))await checkToolAccess(req.session.userId);next();}catch(e){res.status(e.status||500).json({error:(!e.status||e.status===500)?'حصلت مشكلة مؤقتة. حاول مرة أخرى.':e.message,code:e.code});}}
+async function gate(req,res,next){try{if(req.session?.userId&&req.path.startsWith('/api/')&&!/^\/api\/(tickets|admin|notifications)(\/|$)/.test(req.path))await checkToolAccess(req.session.userId);next();}catch(e){res.status(e.status||500).json({error:(!e.status||e.status===500)?'حصلت مشكلة مؤقتة. حاول مرة أخرى.':e.message,code:e.code});}}
 module.exports={checkToolAccess,gate};

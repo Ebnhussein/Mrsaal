@@ -113,7 +113,7 @@ async function openSocket(userId,entry) {
       }).catch(()=>{entry.error='تعذر عرض رمز QR';});
     }
     if(update.connection==='open') {
-      entry.status='connected';entry.qr=null;entry.rawQr=null;entry.error=null;entry.retries=0;
+      entry.notifiedDisconnect=false;entry.status='connected';entry.qr=null;entry.rawQr=null;entry.error=null;entry.retries=0;
       entry.phone=String(sock.user?.id||'').split(':')[0].split('@')[0];
     }
     if(update.connection==='close') {
@@ -121,12 +121,13 @@ async function openSocket(userId,entry) {
       const code=update.lastDisconnect?.error?.output?.statusCode;
       const terminal=[lib.DisconnectReason.loggedOut,lib.DisconnectReason.badSession,lib.DisconnectReason.connectionReplaced,lib.DisconnectReason.multideviceMismatch].includes(code);
       if(terminal || entry.retries>=5) {
+        require('./notifications').whatsappDisconnected(userId,entry);
         entry.status='disconnected';entry.error=terminal?'انتهى الاتصال. افصل الربط ثم اربط واتساب من جديد.':'تعذر الاتصال. جرّب الربط من جديد.';
         return;
       }
       entry.status='connecting';entry.retries++;
       entry.timer=setTimeout(()=>{
-        entry.pending=openSocket(userId,entry).catch(()=>{entry.status='disconnected';entry.error='تعذر إعادة الاتصال بواتساب';});
+        entry.pending=openSocket(userId,entry).catch(()=>{entry.status='disconnected';entry.error='تعذر إعادة الاتصال بواتساب';require('./notifications').whatsappDisconnected(userId,entry);});
       },Math.min(1000*2**entry.retries,30000));
     }
   });
