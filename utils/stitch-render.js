@@ -1,5 +1,6 @@
 'use strict';
 const fs=require('fs'),path=require('path');const cache=new Map();const {mergeGuides}=require('./website-guides');
+const {applyShell}=require('./website-shell');
 const pages=new Set(['home','product','plans','login','about','contact','help','blog','privacy','terms','article']);
 function escape(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 const categories={writing:{ar:'كتابة الرسائل',en:'Writing messages'},sheets:{ar:'تجهيز القوائم',en:'Preparing lists'},channels:{ar:'قنوات الإرسال',en:'Sending channels'},ai:{ar:'إعداد الذكاء الاصطناعي',en:'AI setup'}};
@@ -19,6 +20,6 @@ function renderExact(page,legacy,{posts=[],post=null}={},language='ar'){
  }
  const suffix=post?'blog/'+encodeURIComponent(post.slug):page==='home'?'':page;
  html=html.replace('</head>',`<link rel="alternate" hreflang="ar" href="https://mrsaal.ebnhussein.co/ar/${suffix}"><link rel="alternate" hreflang="en" href="https://mrsaal.ebnhussein.co/en/${suffix}"></head>`);
- return html;
+ return applyShell(html,lang,page,suffix);
 }
 module.exports={renderExact};
