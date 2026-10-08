@@ -58,6 +58,7 @@ async function lazyInit() {
 
     await ensureSchedulerSchema();
     await require('./utils/notifications').ensureNotifications();
+    await require('./utils/launch-schema').ensureLaunchSchema();
 
     const pgSession = require('connect-pg-simple')(session);
 
@@ -88,7 +89,10 @@ async function lazyInit() {
     app.use(require('./routes/site'));
     app.use('/api/notifications', require('./routes/notifications'));
     app.use('/api/tickets', require('./routes/tickets'));
+    app.use('/auth', require('./routes/supabase-auth'));
     app.use('/auth', require('./routes/auth'));
+    app.use('/api/launch', require('./routes/launch'));
+    app.use('/api/campaigns', require('./routes/campaigns'));
     app.use('/api/companies', require('./routes/companies'));
     app.use('/api/cv', require('./routes/cv'));
 
@@ -127,6 +131,7 @@ async function lazyInit() {
 
     startScheduler();
     require('./utils/notifications').startNotifications();
+    require('./utils/campaign-worker').start();
     ready = true;
 
     console.log('All systems initialised.');
@@ -143,6 +148,7 @@ async function close() {
   ready = false;
 
   require('./utils/scheduler').stopScheduler();
+  require('./utils/campaign-worker').stop();
   require('./utils/notifications').stopNotifications();
   server.close();
 
