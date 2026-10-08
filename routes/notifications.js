@@ -27,6 +27,12 @@ router.patch('/settings',wrap(async(req,res)=>{
  if(next.browser===false)await run('DELETE FROM notification_push_jobs WHERE notification_id IN(SELECT id FROM notifications WHERE user_id=$1)',[uid]);res.json({ok:true});
 }));
 router.get('/push-config',wrap(async(req,res)=>{try{const c=await notify.config();res.json({publicKey:c.publicKey});}catch{res.status(503).json({error:'إشعارات المتصفح غير متاحة حاليًا؛ إشعارات الموقع شغالة.'});}}));
+router.post('/device-status',wrap(async(req,res)=>{
+ if(typeof req.body.endpoint!=='string'||req.body.endpoint.length>4096)fail('اشتراك متصفح غير صالح');
+ const subscription=await get('SELECT endpoint_hash FROM notification_push_subscriptions WHERE user_id=$1 AND endpoint_hash=$2',[req.session.userId,notify.endpointHash(req.body.endpoint)]);
+ const pref=await get('SELECT settings FROM notification_preferences WHERE user_id=$1',[req.session.userId]);
+ res.json({enabled:!!subscription&&notify.preferences(pref?.settings).browser===true});
+}));
 router.post('/subscribe',wrap(async(req,res)=>{
  if(!notify.validSubscription(req.body.subscription))fail('اشتراك متصفح غير صالح');const uid=req.session.userId,sub=req.body.subscription,hash=notify.endpointHash(sub.endpoint);
  const count=await get('SELECT COUNT(*)::int AS n FROM notification_push_subscriptions WHERE user_id=$1 AND endpoint_hash<>$2',[uid,hash]);if(count.n>=5)fail('الحد 5 أجهزة. أوقف إشعارات جهاز قديم أولًا.');
