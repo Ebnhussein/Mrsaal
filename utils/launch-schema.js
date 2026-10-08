@@ -6,6 +6,13 @@ async function ensureLaunchSchema(){await run(`
  ALTER TABLE scheduled_jobs ADD COLUMN IF NOT EXISTS request_key TEXT;
  ALTER TABLE scheduled_jobs ADD COLUMN IF NOT EXISTS request_hash TEXT;
  CREATE UNIQUE INDEX IF NOT EXISTS scheduled_jobs_request ON scheduled_jobs(user_id,request_key) WHERE request_key IS NOT NULL;
+ ALTER TABLE users ADD COLUMN IF NOT EXISTS contact_phone TEXT;
+ ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ;
+ ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_completed_at TIMESTAMPTZ;
+ ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMPTZ;
+ ALTER TABLE users ADD COLUMN IF NOT EXISTS registration_required BOOLEAN NOT NULL DEFAULT false;
+ CREATE TABLE IF NOT EXISTS registration_limits(key TEXT PRIMARY KEY,window_started TIMESTAMPTZ NOT NULL,requests INTEGER NOT NULL,last_sent TIMESTAMPTZ NOT NULL);
+ DELETE FROM registration_limits WHERE window_started<NOW()-INTERVAL '24 hours';
  ALTER TABLE users ADD COLUMN IF NOT EXISTS supabase_id TEXT UNIQUE;
  ALTER TABLE users ADD COLUMN IF NOT EXISTS active_cv_id TEXT;
  ALTER TABLE users ADD COLUMN IF NOT EXISTS send_limit INTEGER NOT NULL DEFAULT 100;
