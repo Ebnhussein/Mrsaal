@@ -1,6 +1,6 @@
 /* Shared bilingual guide for tours and the product assistant. */
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.MrsaalGuide=factory();})(typeof window!=='undefined'?window:globalThis,function(){return {
-  "version": "2026-10-08-companies-applications",
+  "version": "2026-10-08-notifications",
   "tours": {
     "home": [
       {
@@ -23,6 +23,13 @@
         "body": "الرسائل والردود المرصودة تظهر هنا. افتح التقرير لمراجعة نص الرسالة وتوقيتها وبريد المرسل بدل الاكتفاء بعدد الرسائل.",
         "title_en": "Recent activity",
         "body_en": "See your latest sending results here. Open a message to review its text, status and timeline. Results come from your account data."
+      },
+      {
+        "id": "nt-bell",
+        "title": "كل جديد من الجرس",
+        "body": "الجرس يعرض عدد غير المقروء. افتحه لمتابعة الردود ورصد فتح البريد وواتساب والتذاكر والتحديثات. اضغط شوف التفاصيل للوصول للسجل، أو افتح الترس لاختيار الأنواع والصوت والمتصفح.",
+        "title_en": "Stay up to date from the bell",
+        "body_en": "The bell counts unread notifications. Open it for replies, email-open indicators, WhatsApp receipts, support tickets and updates. View details opens the original record; Settings lets you choose events, sound and browser alerts."
       }
     ],
     "onboarding": [
@@ -199,6 +206,13 @@
         "body": "افتح التفاصيل لترى نص الرسالة والخط الزمني وبريد المرسل والرد المرصود. الردود في Gmail تُراجع دوريًا؛ زر التزامن يطلب تحديثها.",
         "title_en": "Review the actual message",
         "body_en": "Open a log entry to see the sent text, timeline and latest detected reply. Missing confirmations do not prove the message was unread."
+      },
+      {
+        "id": "nt-bell",
+        "title": "كل جديد من الجرس",
+        "body": "الجرس يعرض عدد غير المقروء. افتحه لمتابعة الردود ورصد فتح البريد وواتساب والتذاكر والتحديثات. اضغط شوف التفاصيل للوصول للسجل، أو افتح الترس لاختيار الأنواع والصوت والمتصفح.",
+        "title_en": "Stay up to date from the bell",
+        "body_en": "The bell counts unread notifications. Open it for replies, email-open indicators, WhatsApp receipts, support tickets and updates. View details opens the original record; Settings lets you choose events, sound and browser alerts."
       }
     ],
     "settings-account": [
@@ -564,11 +578,30 @@
         "تواصل",
         "إدارة"
       ],
-      "answer": "اضغط مساعدة أسفل الصفحة، ثم تواصل مع الدعم. اختار شكوى جديدة، اكتب عنوانًا والقسم والخطوات التي أدت للمشكلة. لا تشارك مفاتيح API أو كلمات مرور. الشكوى وبريد حسابك يظهران لمسؤول الدعم. تابع الردود من تذاكري واضغط تحديث المحادثة. لا يوجد إشعار بريد تلقائي. سجل التشخيص يحتفظ بالقسم ورمز HTTP والتوقيت لمدة 30 يومًا؛ لا يسجل نص السيرة أو الرسائل. المساعد يفهم المحادثة ويصيغ شرحًا من الدليل، بدون تنفيذ تغييرات. سياق آخر ٦ رسائل في الذاكرة لمدة ٣٠ دقيقة ويمكن مسحه بمحادثة جديدة. لوحة الإدارة متاحة فقط للحسابات التي يحددها صاحب مرسال على السيرفر.",
+      "answer": "اضغط مساعدة أسفل الصفحة، ثم تواصل مع الدعم. اختار شكوى جديدة، اكتب عنوانًا والقسم والخطوات التي أدت للمشكلة. لا تشارك مفاتيح API أو كلمات مرور. الشكوى وبريد حسابك يظهران لمسؤول الدعم. تابع الردود من تذاكري أو إشعارات الجرس؛ شوف التفاصيل يفتح التذكرة. لا يوجد إشعار بريد تلقائي. سجل التشخيص يحتفظ بالقسم ورمز HTTP والتوقيت لمدة 30 يومًا؛ لا يسجل نص السيرة أو الرسائل. المساعد يفهم المحادثة ويصيغ شرحًا من الدليل، بدون تنفيذ تغييرات. سياق آخر ٦ رسائل في الذاكرة لمدة ٣٠ دقيقة ويمكن مسحه بمحادثة جديدة. لوحة الإدارة متاحة فقط للحسابات التي يحددها صاحب مرسال على السيرفر.",
       "action": "tickets",
       "title_en": "Contact support and follow a ticket",
-      "answer_en": "Open Help → Contact support. Describe your steps, expected result and actual result. Never share API keys, passwords or sensitive documents. Your ticket and account email are visible to support. Replies are in My tickets; use Refresh conversation. There is no automatic email notification. Diagnostics retain the category, HTTP status and time for 30 days, not CV or message content. The assistant explains the product but cannot change your account. Conversation context stores the last six messages in memory for 30 minutes and can be cleared with New conversation. Admin access is restricted to accounts authorised by the owner.",
+      "answer_en": "Open Help → Contact support. Describe your steps, expected result and actual result. Never share API keys, passwords or sensitive documents. Your ticket and account email are visible to support. Replies are in My tickets and the notification centre; View details opens the ticket. There is no automatic email notification. Diagnostics retain the category, HTTP status and time for 30 days, not CV or message content. The assistant explains the product but cannot change your account. Conversation context stores the last six messages in memory for 30 minutes and can be cleared with New conversation. Admin access is restricted to accounts authorised by the owner.",
       "keywords_en": "support help ticket complaint issue contact admin dashboard"
+    },
+    {
+      "id": "notifications",
+      "title": "الإشعارات والتحديثات",
+      "keywords": [
+        "إشعارات",
+        "اشعارات",
+        "جرس",
+        "تنبيه",
+        "صوت",
+        "تحديث",
+        "نوتفكيشن",
+        "متصفح"
+      ],
+      "answer": "الجرس أعلى مساحة مرسال يعرض عدد غير المقروء. منه تتابع رصد فتح البريد والردود، تأكيد تسليم وقراءة ورد واتساب، نتائج الجدولة، ردود الدعم وحالات التذاكر، والتحديثات المنشورة. الفتح مؤشر تحميل صور وليس إثبات قراءة. إشعارات الفتح والتسليم والجدولة تتجمع خلال خمس دقائق؛ نفس الحدث لا يتكرر. شوف التفاصيل يفتح التقرير أو التذكرة؛ تحديد كمقروء لا يمسح السجل. من ترس الإشعارات أو الإعدادات ← حسابك ← إعدادات الإشعارات اختار الأنواع والصوت والتنبيه الصغير. الصوت والمتصفح مقفولان افتراضيًا. تفعيل على هذا الجهاز يطلب إذن المتصفح، ويتطلب HTTPS ودعم Push؛ بعض أجهزة الموبايل تحتاج إضافة مرسال للشاشة الرئيسية. إيقاف لكل الأجهزة يمنع Push، وفصل هذا الجهاز يلغي اشتراك الجهاز فقط. تنبيه شاشة القفل عام ولا يحتوي نصوص الردود. إشعارات الموقع تتحدث كل 30 ثانية أثناء فتح الصفحة؛ رد Gmail يعتمد على المزامنة التي تعمل كل دقيقة. الإشعارات محفوظة 90 يومًا. الأدمن يمكنه نشر إعلان تحديث عربي وإنجليزي من تحديثات وإشعارات، وتوصله التذاكر الجديدة والأخطاء المتكررة. لا يوجد إرسال بريد تلقائي للإشعارات.",
+      "action": "notifications",
+      "title_en": "Notifications and product updates",
+      "answer_en": "Open the bell at the top of the workspace to see unread notifications: replies, email-open indicators, WhatsApp delivery/read/reply confirmations, scheduled-send results, ticket replies and statuses, and product updates. Email opens are image-load indicators, not proof of reading. Opens, receipts and scheduled events are grouped within five minutes and deduplicated. View details opens the original report or ticket; marking read does not delete records. Choose event types, in-app toasts, sound and browser push from the gear or Settings → Account → Notification settings. Sound and browser push are off by default. Enable on this device requests permission and requires HTTPS and Push support; some phones require adding Mrsaal to the Home Screen. Disable on all devices blocks push; Disconnect this device removes only that subscription. Lock-screen alerts contain no personal reply text. In-app alerts refresh every 30 seconds while visible; Gmail replies depend on the one-minute sync. Notifications are kept for 90 days. Admins can publish bilingual product updates and receive new ticket/repeated-error alerts. Notifications do not send automatic emails.",
+      "keywords_en": "notifications bell unread alert push browser sound updates ticket reply"
     }
   ]
 };});

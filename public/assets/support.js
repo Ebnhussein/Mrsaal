@@ -1,6 +1,6 @@
 (()=>{'use strict';
 let root,panel,messages,input,send,topics,opened=false,waiting=false,lastTopics=[],account='',previousFocus,locks=[],sequence=0,freshConversation=true;
-const actions={tickets:()=>window.MrsaalTickets?.open(),cv:()=>openSettings('cv'),channels:()=>openSettings('channels'),template:()=>openSettings('template'),ai:()=>openSettings('ai'),account:()=>openSettings('account'),companies:()=>nav('companies'),send:()=>nav('send'),report:()=>nav('report'),tour:()=>window.MrsaalTour?.start()};
+const actions={notifications:()=>window.MrsaalNotifications?.open(),tickets:()=>window.MrsaalTickets?.open(),cv:()=>openSettings('cv'),channels:()=>openSettings('channels'),template:()=>openSettings('template'),ai:()=>openSettings('ai'),account:()=>openSettings('account'),companies:()=>nav('companies'),send:()=>nav('send'),report:()=>nav('report'),tour:()=>window.MrsaalTour?.start()};
 const suggestions=[['cv','أرفع السي في إزاي؟'],['companies','الشركات مش ظاهرة'],['style','أظبط أسلوبي إزاي؟'],['whatsapp','ربط واتساب'],['ai','الـAI مش بيكتب'],['reports','القراءة والردود']];
 function user(){try{return currentUser?.email||'';}catch{return '';}}
 function button(label,fn,cls=''){const b=document.createElement('button');b.type='button';b.textContent=label;b.className=cls;b.addEventListener('click',fn);return b;}
