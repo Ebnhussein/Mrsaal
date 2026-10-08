@@ -1,0 +1,8 @@
+[Unit]
+Description=Encrypted off-site Mrsaal backup
+After=docker.service network-online.target
+[Service]
+Type=oneshot
+ExecStart=/opt/mrsaal/ops/backup.sh
+User=root
+UMask=0077
