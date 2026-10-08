@@ -57,6 +57,7 @@ async function lazyInit() {
     } = require('./utils/scheduler');
 
     await ensureSchedulerSchema();
+    await require('./utils/notifications').ensureNotifications();
 
     const pgSession = require('connect-pg-simple')(session);
 
@@ -85,6 +86,7 @@ async function lazyInit() {
     app.use(require('./utils/helpdesk').monitor);
     app.use('/api/admin', require('./routes/admin'));
     app.use(require('./routes/site'));
+    app.use('/api/notifications', require('./routes/notifications'));
     app.use('/api/tickets', require('./routes/tickets'));
     app.use('/auth', require('./routes/auth'));
     app.use('/api/companies', require('./routes/companies'));
@@ -124,6 +126,7 @@ async function lazyInit() {
     await require('./utils/whatsapp').restoreSessions();
 
     startScheduler();
+    require('./utils/notifications').startNotifications();
     ready = true;
 
     console.log('All systems initialised.');
@@ -140,6 +143,7 @@ async function close() {
   ready = false;
 
   require('./utils/scheduler').stopScheduler();
+  require('./utils/notifications').stopNotifications();
   server.close();
 
   const timer = setTimeout(() => process.exit(0), 10000);

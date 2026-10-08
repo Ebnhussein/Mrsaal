@@ -28,9 +28,11 @@
     "@google/genai": "latest",
     "@whiskeysockets/baileys": "6.7.24",
     "qrcode": "^1.5.4",
-    "pino": "^9.0.0"
+    "pino": "^9.0.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.2",
+    "@electric-sql/pglite": "^0.5.8"
   }
 }
