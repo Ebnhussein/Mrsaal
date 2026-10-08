@@ -542,7 +542,7 @@ function renderLog(){
     const statusText=l.replied?'تم الرد 💬':(l.channel==='whatsapp'?(l.whatsapp_read_at?'اتقرت ✓✓':l.whatsapp_delivered_at?'وصلت ✓✓':stLabel(l.status)):(l.open_count>0?'تم رصد فتح البريد':stLabel(l.status)));
     return `<tr class="${l.replied?'row-replied':''}">
       <td><div data-user-content style="font-weight:700">${esc(l.company_name)}</div><div style="font-size:12px;color:var(--text3)">${new Date(l.sent_at*1000).toLocaleString(window.MrsaalLocale?.lang==='en'?'en-GB':'ar-EG')}</div></td>
-      <td class="mono" style="font-size:13px">${esc(l.company_email||'غير متوفر')}<div class="hint">${l.channel==='whatsapp'?'واتساب':'إيميل'}</div></td>
+      <td style="font-size:13px"><span class="mono" data-user-content>${esc(l.company_email||'غير متوفر')}</span><div class="hint">${l.channel==='whatsapp'?'واتساب':'إيميل'}</div></td>
       <td><span class="log-status ${statusClass}">${statusText}</span>${l.status==='skipped'&&l.reason?`<div class="hint">${esc(l.reason)}</div>`:''}${l.replied&&l.reply_text?`<div data-user-content class="reply-preview" dir="auto">${esc(l.reply_text)}</div>`:''}</td>
       <td><button class="btn btn-secondary" style="padding:4px 8px;font-size:12px" onclick="viewLogDetail('${l.id}')">تفاصيل</button></td>
     </tr>`;

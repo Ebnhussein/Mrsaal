@@ -38,7 +38,7 @@
   "رسالة مناسبة": "A relevant message",
   "متابعة واضحة": "Clear follow-up",
   "رسالتك، خطوة بخطوة": "Your message, step by step",
-  "تم الرد": "Replied",
+  "تم الرد": "Reply detected",
   "مرحبًا بفريقكم، يسعدني مشاركة خبرتي والتعرف على فرص التعاون...": "Hello team, I would love to share my experience and explore opportunities to work together...",
   "✓ تم الإرسال": "✓ Sent",
   "✓ تم التسليم": "✓ Delivered",
@@ -834,5 +834,18 @@
   "الجدولة": "Scheduling",
   "خيارات الإرسال": "Sending options",
   "جاري الإرسال": "Sending in progress",
-  "إيقاف الإرسال": "Stop sending"
+  "إيقاف الإرسال": "Stop sending",
+  "تحديث الردود": "Refresh replies",
+  "خيارات التقارير": "Report options",
+  "يمسح سجل النتائج فقط، ولا يسحب الرسائل المرسلة.": "Clears report history only; it does not recall sent messages.",
+  "إجمالي الرسائل": "Total messages",
+  "فشل الإرسال": "Failed sends",
+  "رصد فتح البريد": "Email open detected",
+  "آخر رد مرصود": "Latest detected reply",
+  "عرض التفاصيل": "View details",
+  "جاري تحديث الردود": "Refreshing replies",
+  "قراءة واتساب": "WhatsApp read",
+  "تسليم واتساب": "WhatsApp delivered",
+  "بدون اسم شركة": "Unnamed company",
+  "تصدير CSV": "Export CSV"
 }
