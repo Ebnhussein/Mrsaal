@@ -3,7 +3,7 @@ const fs=require('fs'),path=require('path'),crypto=require('crypto');
 const {run,get,all,pool}=require('./db');
 const {seal,unseal}=require('./connection-secrets');
 const {adminEmail}=require('./helpdesk');
-const TYPES=['release','email_open','email_reply','wa_delivered','wa_read','wa_reply','send_failed','schedule_started','schedule_done','schedule_failed','schedule_skipped','ticket_reply','ticket_status','wa_disconnected','connection_issue','admin_ticket','admin_ticket_reply','admin_errors'];
+const TYPES=['followup_reminder','release','email_open','email_reply','wa_delivered','wa_read','wa_reply','send_failed','schedule_started','schedule_done','schedule_failed','schedule_skipped','ticket_reply','ticket_status','wa_disconnected','connection_issue','admin_ticket','admin_ticket_reply','admin_errors'];
 const DEFAULTS={types:Object.fromEntries(TYPES.map(k=>[k,true])),sound:false,toast:true,browser:false,language:'ar'};
 let timer,busy=false,configured=null,cleanupAt=0;
 function preferences(input={}){return {...DEFAULTS,...input,types:{...DEFAULTS.types,...input.types}};}

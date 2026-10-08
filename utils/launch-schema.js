@@ -1,0 +1,34 @@
+'use strict';
+const {run}=require('./db');
+async function ensureLaunchSchema(){await run(`
+ ALTER TABLE scheduled_jobs ADD COLUMN IF NOT EXISTS log_id TEXT;
+ ALTER TABLE scheduled_jobs ADD COLUMN IF NOT EXISTS cv_id TEXT;
+ ALTER TABLE scheduled_jobs ADD COLUMN IF NOT EXISTS request_key TEXT;
+ ALTER TABLE scheduled_jobs ADD COLUMN IF NOT EXISTS request_hash TEXT;
+ CREATE UNIQUE INDEX IF NOT EXISTS scheduled_jobs_request ON scheduled_jobs(user_id,request_key) WHERE request_key IS NOT NULL;
+ ALTER TABLE users ADD COLUMN IF NOT EXISTS supabase_id TEXT UNIQUE;
+ ALTER TABLE users ADD COLUMN IF NOT EXISTS active_cv_id TEXT;
+ ALTER TABLE users ADD COLUMN IF NOT EXISTS send_limit INTEGER NOT NULL DEFAULT 100;
+ ALTER TABLE users ADD COLUMN IF NOT EXISTS ai_limit INTEGER NOT NULL DEFAULT 100;
+ ALTER TABLE companies ADD COLUMN IF NOT EXISTS list_name TEXT NOT NULL DEFAULT '';
+ ALTER TABLE companies ADD COLUMN IF NOT EXISTS followup_status TEXT NOT NULL DEFAULT 'not_started';
+ ALTER TABLE companies ADD COLUMN IF NOT EXISTS notes TEXT NOT NULL DEFAULT '';
+ ALTER TABLE companies ADD COLUMN IF NOT EXISTS remind_at BIGINT;
+ ALTER TABLE companies ADD COLUMN IF NOT EXISTS reminder_sent BOOLEAN NOT NULL DEFAULT false;
+ CREATE TABLE IF NOT EXISTS message_drafts(user_id TEXT REFERENCES users(id) ON DELETE CASCADE,company_id TEXT REFERENCES companies(id) ON DELETE CASCADE,channel TEXT CHECK(channel IN ('email','whatsapp')),subject TEXT NOT NULL DEFAULT '',body TEXT NOT NULL DEFAULT '',updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),PRIMARY KEY(user_id,company_id,channel));
+ CREATE TABLE IF NOT EXISTS ai_feedback(id BIGSERIAL PRIMARY KEY,user_id TEXT REFERENCES users(id) ON DELETE CASCADE,company_id TEXT,channel TEXT,rating INTEGER CHECK(rating BETWEEN 1 AND 5),note TEXT,created_at TIMESTAMPTZ DEFAULT NOW());
+ CREATE TABLE IF NOT EXISTS ai_leases(user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,token TEXT NOT NULL,until TIMESTAMPTZ NOT NULL);
+ CREATE TABLE IF NOT EXISTS usage_daily(user_id TEXT REFERENCES users(id) ON DELETE CASCADE,kind TEXT,day DATE NOT NULL DEFAULT CURRENT_DATE,amount INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(user_id,kind,day));
+ CREATE TABLE IF NOT EXISTS delivery_attempts(id TEXT PRIMARY KEY,user_id TEXT REFERENCES users(id) ON DELETE CASCADE,request_key TEXT NOT NULL,payload_hash TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'processing',log_id TEXT,result JSONB,started_at TIMESTAMPTZ DEFAULT NOW(),UNIQUE(user_id,request_key));
+ CREATE TABLE IF NOT EXISTS campaigns(id TEXT PRIMARY KEY,user_id TEXT REFERENCES users(id) ON DELETE CASCADE,status TEXT NOT NULL DEFAULT 'draft',channel TEXT NOT NULL CHECK(channel IN ('email','whatsapp')),sender_account_id TEXT,cv_id TEXT,delay_seconds INTEGER NOT NULL DEFAULT 5,next_at TIMESTAMPTZ DEFAULT NOW(),created_at TIMESTAMPTZ DEFAULT NOW());
+ CREATE TABLE IF NOT EXISTS campaign_items(id TEXT PRIMARY KEY,campaign_id TEXT REFERENCES campaigns(id) ON DELETE CASCADE,company_id TEXT,company_name TEXT,recipient TEXT,subject TEXT NOT NULL DEFAULT '',body TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'draft',reason TEXT,message_id TEXT,updated_at TIMESTAMPTZ DEFAULT NOW());
+ CREATE INDEX IF NOT EXISTS campaigns_due ON campaigns(status,next_at);
+ CREATE INDEX IF NOT EXISTS campaign_items_queue ON campaign_items(campaign_id,status);
+ UPDATE delivery_attempts SET status='uncertain' WHERE status='processing' AND started_at<NOW()-INTERVAL '10 minutes';
+ UPDATE campaign_items SET status='uncertain',reason='توقف الخادم أثناء الإرسال. راجع القناة قبل المحاولة مجددًا.' WHERE status='processing' AND updated_at<NOW()-INTERVAL '10 minutes';
+ UPDATE campaign_items SET status='draft' WHERE status='generating' AND updated_at<NOW()-INTERVAL '2 minutes';
+
+ UPDATE scheduled_jobs SET status='uncertain' WHERE status='processing' AND (scheduled_at IS NULL OR scheduled_at<EXTRACT(EPOCH FROM NOW())*1000-600000);
+ UPDATE email_log SET status='uncertain',reason='توقف الخادم قبل تأكيد نتيجة الإرسال' WHERE status IN ('processing','scheduled') AND (id IN (SELECT log_id FROM delivery_attempts WHERE status='uncertain') OR id IN (SELECT log_id FROM scheduled_jobs WHERE status='uncertain'));
+ `);}
+module.exports={ensureLaunchSchema};

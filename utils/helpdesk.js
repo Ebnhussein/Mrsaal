@@ -1,7 +1,7 @@
 'use strict';
 const {randomUUID}=require('crypto');
 const {run,get}=require('./db');
-const groups=new Set(['companies','cv','email','writing','providers','whatsapp','accounts']);
+const groups=new Set(['companies','cv','email','writing','providers','whatsapp','accounts','campaigns','launch']);
 const counters=new Map();let cleanupAt=0;
 function quota(key,max){const now=Date.now();for(const [k,v]of counters)if(now-v.start>3600000)counters.delete(k);if(counters.size>10000&&!counters.has(key))return false;const v=counters.get(key)||{start:now,n:0};v.n++;counters.set(key,v);return v.n<=max;}
 function adminEmail(email){return new Set(String(process.env.ADMIN_EMAILS||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean)).has(String(email||'').toLowerCase());}

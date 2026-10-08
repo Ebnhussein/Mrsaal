@@ -1,0 +1,20 @@
+'use strict';
+const {get,run,pool}=require('./db');let timer,busy=false,stopping=false;
+async function tick(){if(busy||stopping)return;busy=true;let client,locked=false;try{client=await pool.connect();
+ locked=(await client.query('SELECT pg_try_advisory_lock(724391) AS locked')).rows[0].locked;if(!locked)return;
+ await run("UPDATE delivery_attempts SET status='uncertain' WHERE status='processing' AND started_at<NOW()-INTERVAL '10 minutes'; UPDATE email_log SET status='uncertain',reason='تعذر تأكيد نتيجة الإرسال قبل توقف الخادم' WHERE status='processing' AND id IN (SELECT log_id FROM delivery_attempts WHERE status='uncertain'); UPDATE campaign_items SET status='uncertain',reason='توقف الإرسال قبل تأكيد النتيجة' WHERE status='processing' AND updated_at<NOW()-INTERVAL '10 minutes'; UPDATE campaigns c SET status='paused' WHERE status='running' AND EXISTS(SELECT 1 FROM campaign_items i WHERE i.campaign_id=c.id AND i.status='uncertain');");
+ await client.query('BEGIN');try{const reminders=(await client.query("SELECT id,user_id,name,remind_at FROM companies WHERE remind_at<=$1 AND reminder_sent=false LIMIT 20 FOR UPDATE SKIP LOCKED",[Date.now()])).rows;for(const co of reminders){await client.query("SELECT mrsaal_notify($1,$2,'followup_reminder','messages',$3::jsonb,$4::jsonb)",[co.user_id,'reminder:'+co.id+':'+co.remind_at,JSON.stringify({page:'followup'}),JSON.stringify({company:co.name})]);await client.query('UPDATE companies SET reminder_sent=true WHERE id=$1 AND remind_at=$2',[co.id,co.remind_at]);}await client.query('COMMIT');}catch(e){await client.query('ROLLBACK');throw e;}
+
+ const c=await get("SELECT * FROM campaigns WHERE status='running' AND next_at<=NOW() ORDER BY next_at LIMIT 1");if(!c)return;
+ try{await require('./access-control').checkToolAccess(c.user_id);}catch{await run("UPDATE campaigns SET status='paused' WHERE id=$1",[c.id]);return;}
+ const item=await get("UPDATE campaign_items SET status='processing',updated_at=NOW() WHERE id=(SELECT id FROM campaign_items WHERE campaign_id=$1 AND status='ready' ORDER BY company_name,id LIMIT 1) AND status='ready' RETURNING *",[c.id]);
+ if(!item){await run("UPDATE campaigns SET status='completed' WHERE id=$1 AND status='running'",[c.id]);await require('./notifications').emit(c.user_id,'campaign-done:'+c.id,'schedule_done','messages',{page:'campaigns',campaignId:c.id});return;}
+ // Status may have changed while the worker acquired the item.
+ const active=await get('SELECT status FROM campaigns WHERE id=$1',[c.id]);if(active?.status!=='running'){await run("UPDATE campaign_items SET status=$1 WHERE id=$2",[active?.status==='cancelled'?'cancelled':'ready',item.id]);return;}
+ const co=await get('SELECT email,phone FROM companies WHERE id=$1 AND user_id=$2',[item.company_id,c.user_id]);if(!co||(c.channel==='email'?co.email:co.phone)!==item.recipient){await run("UPDATE campaign_items SET status='failed',reason='بيانات المستلم تغيّرت بعد المراجعة؛ أنشئ حملة جديدة' WHERE id=$1",[item.id]);await run("UPDATE campaigns SET status='paused' WHERE id=$1",[c.id]);return;}
+ const result=await require('./delivery').deliver(c.user_id,{companyId:item.company_id,channel:c.channel,subject:item.subject,body:item.body,senderAccountId:c.sender_account_id,cvId:c.cv_id,idempotencyKey:'campaign:'+item.id});
+ await run('UPDATE campaign_items SET status=$1,reason=$2,message_id=$3,updated_at=NOW() WHERE id=$4',[result.status,result.error||result.reason||null,result.messageId||null,item.id]);await run("UPDATE campaigns SET next_at=NOW()+($1 * INTERVAL '1 second') WHERE id=$2",[c.delay_seconds,c.id]);
+ if(result.status==='uncertain'||result.status==='failed')await run("UPDATE campaigns SET status='paused' WHERE id=$1 AND status='running'",[c.id]);
+ }catch(e){console.warn('Campaign worker failed:',e.code||e.name);}finally{if(client){if(locked)await client.query('SELECT pg_advisory_unlock(724391)').catch(()=>{});client.release();}busy=false;}}
+function start(){stopping=false;timer=setInterval(()=>tick().catch(()=>{}),3000);timer.unref();}function stop(){stopping=true;clearInterval(timer);}
+module.exports={start,stop,tick};

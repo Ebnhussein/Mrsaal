@@ -9,15 +9,14 @@ function getOAuthClient() {
   );
 }
 
-function getAuthUrl(state) {
+function getAuthUrl(state,mode='link') {
   const oauth2Client = getOAuthClient();
   return oauth2Client.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent select_account',
     state,
     scope: [
-      'https://www.googleapis.com/auth/gmail.send',
-      'https://www.googleapis.com/auth/gmail.readonly',
+      ...(mode==='link'?['https://www.googleapis.com/auth/gmail.send','https://www.googleapis.com/auth/gmail.readonly']:[]),
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile'
     ]

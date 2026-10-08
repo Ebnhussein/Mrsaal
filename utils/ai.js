@@ -1,7 +1,10 @@
 'use strict';
 // Transport and Gemini/OpenRouter fallbacks are kept in your existing ai-legacy.js.
 const {callGemini:legacyCall}=require('./ai-legacy');
-async function callGemini(prompt,maxTokens=1200,apiKey=null,modelName=null,validate=null,userId=null){if(userId){const {callUserAI}=require('./ai-providers');const text=await callUserAI(userId,prompt,maxTokens,validate);if(text!==null)return text;}return legacyCall(prompt,maxTokens,apiKey,modelName,validate);}
+async function callGemini(prompt,maxTokens=1200,apiKey=null,modelName=null,validate=null,userId=null){
+ let lease;try{if(userId){lease=await require('./ai-leases').acquire(userId);await require('./usage-limits').consume(userId,'ai');const text=await require('./ai-providers').callUserAI(userId,prompt,maxTokens,validate);if(text!==null)return text;}return await legacyCall(prompt,maxTokens,apiKey,modelName,validate);}finally{if(lease)await require('./ai-leases').release(userId,lease).catch(()=>{});}
+}
+
 const {decode}=require('./writing-profile');
 function json(text){try{return JSON.parse(text.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,''));}catch{return null;}}
 async function ask(prompt,args,valid){const raw=await callGemini(prompt,2400,args.apiKey,args.modelName,t=>valid(json(t)),args.userId);const data=json(raw);if(!valid(data))throw new Error('رد غير مكتمل من الذكاء الاصطناعي. حاول مرة تانية.');return data;}

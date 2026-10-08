@@ -1,4 +1,5 @@
 'use strict';
+const health=require('./ai-health');
 const {withRecovery,retryAfter,hardQuota}=require('./ai-retry');
 const {all}=require('./db');const {unseal}=require('./connection-secrets');
 const PROVIDERS={gemini:{name:'Google Gemini',base:'https://generativelanguage.googleapis.com/v1beta'},openrouter:{name:'OpenRouter',base:'https://openrouter.ai/api/v1'},openai:{name:'OpenAI',base:'https://api.openai.com/v1'},groq:{name:'Groq',base:'https://api.groq.com/openai/v1'}};
@@ -8,8 +9,8 @@ function timeoutSetting(name, fallback, minimum, maximum) {
  const value=Number(process.env[name]);
  return Number.isFinite(value)&&value>=minimum&&value<=maximum?Math.floor(value):fallback;
 }
-const MODEL_TIMEOUT_MS=timeoutSetting('AI_MODEL_TIMEOUT_MS',40000,5000,60000);
-const TOTAL_TIMEOUT_MS=timeoutSetting('AI_TOTAL_TIMEOUT_MS',75000,MODEL_TIMEOUT_MS,90000);
+const MODEL_TIMEOUT_MS=timeoutSetting('AI_MODEL_TIMEOUT_MS',20000,5000,60000);
+const TOTAL_TIMEOUT_MS=timeoutSetting('AI_TOTAL_TIMEOUT_MS',45000,MODEL_TIMEOUT_MS,90000);
 const DISCOVERY_TIMEOUT_MS=20000;
 const ERROR_HINTS = {
  AUTH: 'المفتاح مرفوض. احفظ المفتاح الجديد ثم اختبره.',
@@ -86,12 +87,15 @@ async function callUserAI(userId,prompt,maxTokens,validate){
  for(const {row,model}of chain){
   if(blocked.has(row.provider))continue;
   if(Date.now()>=end)break;
+  const key=unseal(row.credentials).key;const unavailable=health.available(row.provider,key,model);
+  if(unavailable){failed.push(`${PROVIDERS[row.provider]?.name} / ${model}: ${ERROR_HINTS[unavailable.code]||ERROR_HINTS.TEMPORARY}`);continue;}
   try {
-   const text=await withRecovery(()=>generate(row.provider,unseal(row.credentials).key,model,prompt,maxTokens,Math.min(MODEL_TIMEOUT_MS,Math.max(1,end-Date.now()))),end);
+   const text=await withRecovery(()=>generate(row.provider,key,model,prompt,maxTokens,Math.min(MODEL_TIMEOUT_MS,Math.max(1,end-Date.now()))),end);
    if(validate&&!validate(text))throw aiError('FORMAT');
-   return text;
+   health.success(row.provider,key,model);return text;
   } catch(e) {
    const code=Object.hasOwn(ERROR_HINTS,e.code)?e.code:'UNKNOWN';
+   health.failed(row.provider,key,model,code,e.retryAfterMs);
    const safeModel=String(model).replace(/[^a-zA-Z0-9_/:.\-]/g,'').slice(0,100);
    const label=PROVIDERS[row.provider]?.name||'AI';
    failed.push(`${label} / ${safeModel}: ${ERROR_HINTS[code]}`);

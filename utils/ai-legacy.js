@@ -1,3 +1,4 @@
+const health=require('./ai-health');
 const { GoogleGenAI } = require('@google/genai');
 const {withRecovery,retryAfter,hardQuota}=require('./ai-retry');
 
@@ -179,7 +180,7 @@ async function callGemini(
   for (const { provider, model } of models) {
     const key = keys[provider]?.trim();
 
-    if (!key || blockedProviders.has(provider)) continue;
+    if (!key || blockedProviders.has(provider) || health.available(provider,key,model)) continue;
 
     const remaining = deadline - Date.now();
     if (remaining <= 0) break;
@@ -209,9 +210,10 @@ async function callGemini(
       }
 
       console.log(`✅ AI succeeded: ${provider} / ${model}`);
-      return result;
+      health.success(provider,key,model);return result;
     } catch (error) {
       const status = Number(error.status || error.code) || 0;
+      const code=status===401||status===403?'AUTH':status===404?'MODEL_UNAVAILABLE':status===429?'RATE_LIMIT':status===402?'CREDITS':status>=500?'TEMPORARY':error.name==='AbortError'||error.name==='TimeoutError'?'TIMEOUT':'UNKNOWN';health.failed(provider,key,model,code);
       const reason=error.code==='FORMAT'?'الرد وصل بتنسيق غير صالح':error.code==='TRUNCATED'?'الرد اتقطع قبل اكتماله':error.code==='EMPTY'?'الموديل لم يرجع نصًا':error.code==='QUOTA'?'الحد اليومي مستهلك':status===429?'تقييد مؤقت لعدد الطلبات':status===401||status===403?'راجع صلاحيات المفتاح':status===404?'الموديل غير متاح':error.name==='AbortError'||error.name==='TimeoutError'?'انتهت مهلة الرد':status>=500?'الموديل مزدحم مؤقتًا':'تعذر استلام رد صالح أو الاتصال';
       failures.push(`${provider} / ${model}: ${reason}`);
 
