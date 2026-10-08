@@ -19,7 +19,7 @@ router.get('/:lang(ar|en)/:page?',wrap(async(req,res,next)=>{
  if(page==='login'&&req.session?.userId)return res.redirect(await isAdmin(req.session.userId)?'/admin':'/app');
  
  const posts=page==='blog'?await all("SELECT slug,category,title_ar,title_en,excerpt_ar,excerpt_en FROM website_posts WHERE status='published' ORDER BY published_at DESC"):[];
- let html=render(req.params.lang,page,{posts});if(page==='login'&&req.query.error)html=html.replace('<main>','<main><div class="m-inline-notice" role="alert">'+(req.params.lang==='ar'?'تعذر تسجيل الدخول. حاول مرة أخرى؛ إذا استمرت المشكلة تواصل مع إدارة مرسال.':'Sign-in failed. Please try again or contact the Mrsaal administrator.')+'</div>');res.send(html);
+ let html=render(req.params.lang,page,{posts});if(page==='login'&&req.query.error)html=html.replace(/<main[^>]*>/,'$&<div class="m-inline-notice" role="alert">'+(req.params.lang==='ar'?'تعذر تسجيل الدخول. حاول مرة أخرى؛ إذا استمرت المشكلة تواصل مع إدارة مرسال.':'Sign-in failed. Please try again or contact the Mrsaal administrator.')+'</div>');res.send(html);
 }));
 router.get('/sitemap.xml',wrap(async(req,res)=>{const posts=await all("SELECT slug FROM website_posts WHERE status='published'");const urls=['home','product','blog','plans','help','about','contact','privacy','terms'];res.type('application/xml').send('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+['ar','en'].flatMap(l=>[...urls.map(p=>`<url><loc>https://mrsaal.ebnhussein.co/${l}/${p==='home'?'':p}</loc></url>`),...posts.map(p=>`<url><loc>https://mrsaal.ebnhussein.co/${l}/blog/${escapeHTML(encodeURIComponent(p.slug))}</loc></url>`)]).join('')+'</urlset>');}));
 module.exports=router;
