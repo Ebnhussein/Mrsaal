@@ -128,6 +128,18 @@ async function saveCV() {
 
 let cvVersions=[],cvCurrentId=null,cvLoadRevision=0;
 function cvLabel(ar,en){return document.documentElement.lang==='en'?en:ar;}
+function confirmCVDeletion(cv,active=false){
+ return new Promise(resolve=>{
+  const previous=document.activeElement,d=document.createElement('dialog');d.className='launch-dialog cv-delete-dialog';d.dir=document.documentElement.lang==='en'?'ltr':'rtl';d.dataset.userContent='';
+  const title=document.createElement('h2');title.id='cv-delete-title';title.textContent=cvLabel('حذف نسخة السيرة؟','Delete CV version?');d.setAttribute('aria-labelledby',title.id);
+  const head=document.createElement('div');head.className='launch-dialog-head';const x=document.createElement('button');x.className='launch-close';x.type='button';x.textContent='×';x.setAttribute('aria-label',cvLabel('إغلاق','Close'));head.append(title,x);
+  const name=document.createElement('p');name.className='cv-delete-name';name.dir='auto';name.textContent=cv.name||cv.filename||cvLabel('سيرة نصية','Text CV');
+  const explanation=document.createElement('p');explanation.id='cv-delete-description';explanation.textContent=cvLabel('الحذف نهائي لهذه النسخة فقط. باقي النسخ والشركات والرسائل لن تتأثر.','This permanently deletes only this version. Other versions, companies and messages stay unchanged.');d.setAttribute('aria-describedby',explanation.id);
+  const actions=document.createElement('div');actions.className='cv-delete-actions';const cancel=document.createElement('button');cancel.type='button';cancel.className='btn btn-secondary';cancel.textContent=cvLabel('احتفظ بالنسخة','Keep version');cancel.autofocus=true;const remove=document.createElement('button');remove.type='button';remove.className='btn btn-danger';remove.textContent=cvLabel('احذف النسخة','Delete version');actions.append(cancel,remove);
+  d.append(head,name,explanation);if(active){const note=document.createElement('p');note.className='cv-delete-active-note';note.textContent=cvLabel('دي النسخة المستخدمة حاليًا. بعد حذفها هنستخدم أحدث نسخة محفوظة لو موجودة.','This is the active version. The newest saved version will be used after deletion if one exists.');d.append(note);}d.append(actions);
+  let approved=false;remove.onclick=()=>{approved=true;d.close();};cancel.onclick=x.onclick=()=>d.close();d.addEventListener('close',()=>{d.remove();previous?.focus();resolve(approved);},{once:true});document.body.append(d);d.showModal();cancel.focus();
+ });
+}
 function renderCVVersions(){
  const host=document.getElementById('cv-versions');if(!host)return;
  host.replaceChildren();host.dataset.userContent='';
@@ -141,7 +153,7 @@ function renderCVVersions(){
   const actions=document.createElement('div');actions.className='cv-version-actions';
   if(active){const badge=document.createElement('span');badge.className='cv-version-active';badge.textContent=cvLabel('مستخدمة حاليًا','Active');actions.append(badge);}else{const use=document.createElement('button');use.type='button';use.className='btn btn-secondary';use.textContent=cvLabel('استخدم النسخة','Use version');use.onclick=async()=>{use.disabled=true;try{await api('/api/cv/select','POST',{id:cv.id});await loadCV();toast(cvLabel('تم اختيار النسخة','Version selected'),'success');}catch(e){toast(e.message,'error');use.disabled=false;}};actions.append(use);}
   const remove=document.createElement('button');remove.type='button';remove.className='cv-version-delete';remove.textContent='×';const label=cvLabel('حذف النسخة: ','Delete version: ')+(cv.name||cv.filename||'CV');remove.title=label;remove.setAttribute('aria-label',label);
-  remove.onclick=async()=>{if(!confirm(cvLabel('حذف هذه النسخة نهائيًا؟','Permanently delete this version?')+'\n'+(cv.name||cv.filename||'CV')+(active?'\n'+cvLabel('هذه النسخة المستخدمة حاليًا. سيتم اختيار نسخة محفوظة أخرى إن وُجدت.','This is the active version. Another saved version will be selected if available.') :'')))return;remove.disabled=true;try{await api('/api/cv/'+encodeURIComponent(cv.id),'DELETE');await loadCV();toast(cvLabel('تم حذف النسخة','Version deleted'),'success');}catch(e){toast(e.message,'error');remove.disabled=false;}};
+  remove.onclick=async()=>{if(!await confirmCVDeletion(cv,active))return;remove.disabled=true;try{await api('/api/cv/'+encodeURIComponent(cv.id),'DELETE');await loadCV();toast(cvLabel('تم حذف النسخة','Version deleted'),'success');}catch(e){toast(e.message,'error');remove.disabled=false;}};
   actions.append(remove);row.append(info,actions);host.append(row);
  }
 }
