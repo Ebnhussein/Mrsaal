@@ -107,7 +107,7 @@ async function uploadCV(e) {
     const r = await apiForm('/api/cv/upload', fd);
     document.getElementById('cv-text').value = r.content;
     document.getElementById('cv-status').innerHTML = pill(file.name, (file.size/1024).toFixed(0)+' KB');
-    cvReady=!!r.content?.trim();refreshWorkspace();toast('تم رفع السيرة وحفظها','success');
+    await loadCV();toast('تم رفع السيرة وحفظها','success');
   } catch(err) {
     document.getElementById('cv-status').innerHTML = `<div style="margin-top:10px;font-size:13px;color:var(--red)">❌ ${esc(err.message)}</div>`;
     toast('خطأ: '+err.message,'error');
@@ -126,13 +126,36 @@ async function saveCV() {
   } catch(err) { toast(err.message,'error'); }
 }
 
-async function loadCV() {
-  try {
-    const cv = await api('/api/cv');
-    if(cv)document.getElementById('cv-status').innerHTML=pill(cv.filename||'نص السيرة',cv.has_attachment?'PDF محفوظ ويُرفق تلقائيًا بالإيميل':'نص فقط — ارفع PDF لإرفاقه بالإيميل');
-    cvReady=!!cv?.content?.trim(); if(cvReady) document.getElementById('cv-text').value=cv.content; refreshWorkspace();
-  } catch {}
+let cvVersions=[],cvCurrentId=null,cvLoadRevision=0;
+function cvLabel(ar,en){return document.documentElement.lang==='en'?en:ar;}
+function renderCVVersions(){
+ const host=document.getElementById('cv-versions');if(!host)return;
+ host.replaceChildren();host.dataset.userContent='';
+ const heading=document.createElement('h3');heading.textContent=cvLabel('نسخك المحفوظة','Your saved versions');host.append(heading);
+ const hint=document.createElement('p');hint.className='hint';hint.textContent=cvLabel('النسخة المستخدمة هي اللي بتُرفق عند الإرسال. رفع نسخة جديدة لا يحذف القديمة.','The active version is attached when sending. Uploading a new version keeps older versions.');host.append(hint);
+ if(!cvVersions.length){const empty=document.createElement('p');empty.className='hint';empty.textContent=cvLabel('لسه مفيش نسخ محفوظة.','No saved versions yet.');host.append(empty);return;}
+ for(const cv of cvVersions){
+  const active=cv.id===cvCurrentId,row=document.createElement('div');row.className='cv-version-row'+(active?' is-active':'');
+  const info=document.createElement('div');info.className='cv-version-info';const name=document.createElement('strong');name.dir='auto';name.textContent=cv.name||cv.filename||cvLabel('سيرة نصية','Text CV');info.append(name);
+  const meta=document.createElement('small');const date=new Date(Number(cv.created_at)*1000);meta.textContent=(cv.has_attachment?'PDF':cvLabel('نص فقط','Text only'))+(Number.isNaN(date.getTime())?'':' · '+date.toLocaleString(document.documentElement.lang==='en'?'en-GB':'ar-EG',{dateStyle:'medium',timeStyle:'short'}));info.append(meta);
+  const actions=document.createElement('div');actions.className='cv-version-actions';
+  if(active){const badge=document.createElement('span');badge.className='cv-version-active';badge.textContent=cvLabel('مستخدمة حاليًا','Active');actions.append(badge);}else{const use=document.createElement('button');use.type='button';use.className='btn btn-secondary';use.textContent=cvLabel('استخدم النسخة','Use version');use.onclick=async()=>{use.disabled=true;try{await api('/api/cv/select','POST',{id:cv.id});await loadCV();toast(cvLabel('تم اختيار النسخة','Version selected'),'success');}catch(e){toast(e.message,'error');use.disabled=false;}};actions.append(use);}
+  const remove=document.createElement('button');remove.type='button';remove.className='cv-version-delete';remove.textContent='×';const label=cvLabel('حذف النسخة: ','Delete version: ')+(cv.name||cv.filename||'CV');remove.title=label;remove.setAttribute('aria-label',label);
+  remove.onclick=async()=>{if(!confirm(cvLabel('حذف هذه النسخة نهائيًا؟','Permanently delete this version?')+'\n'+(cv.name||cv.filename||'CV')+(active?'\n'+cvLabel('هذه النسخة المستخدمة حاليًا. سيتم اختيار نسخة محفوظة أخرى إن وُجدت.','This is the active version. Another saved version will be selected if available.') :'')))return;remove.disabled=true;try{await api('/api/cv/'+encodeURIComponent(cv.id),'DELETE');await loadCV();toast(cvLabel('تم حذف النسخة','Version deleted'),'success');}catch(e){toast(e.message,'error');remove.disabled=false;}};
+  actions.append(remove);row.append(info,actions);host.append(row);
+ }
 }
+async function loadCV() {
+ const revision=++cvLoadRevision;
+ try {
+  const cv=await api('/api/cv');if(revision!==cvLoadRevision)return;
+  cvCurrentId=cv?.id||null;
+  document.getElementById('cv-status').innerHTML=cv?pill(cv.filename||'نص السيرة',cv.has_attachment?'PDF محفوظ ويُرفق تلقائيًا بالإيميل':'نص فقط — ارفع PDF لإرفاقه بالإيميل'):'';
+  cvReady=!!cv?.content?.trim();document.getElementById('cv-text').value=cv?.content||'';refreshWorkspace();
+  try{const rows=await api('/api/cv/list');if(revision!==cvLoadRevision)return;cvVersions=rows;renderCVVersions();}catch(e){const host=document.getElementById('cv-versions');if(host){host.replaceChildren();const retry=document.createElement('button');retry.type='button';retry.className='btn btn-secondary';retry.textContent=cvLabel('تعذر تحميل النسخ — إعادة المحاولة','Could not load versions — retry');retry.onclick=()=>loadCV();host.append(retry);}}
+ } catch(e){toast(e.message,'error');}
+}
+document.addEventListener('mrsaal:language',()=>renderCVVersions());
 
 async function saveTemplate(){return writingSave();}
 
