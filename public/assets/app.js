@@ -14,6 +14,7 @@ async function checkAuth() {
       window.location.replace('/'+(window.MrsaalLocale?.lang||document.documentElement.lang||'ar')+'/login');
       setGmail(false, 'غير متصل', 'سجّل دخولك أولاً');
     } else {
+      if(r.profileRequired){window.location.replace('/auth/account?mode=profile');return;}
       document.getElementById('login-screen').style.display='none'; document.querySelector('.app').classList.add('active');
       setGmail(true, r.name || 'Gmail متصل', r.email);
       dataLoaded=false;cvReady=false;templateReady=false;waState='unknown';currentUser=r;
