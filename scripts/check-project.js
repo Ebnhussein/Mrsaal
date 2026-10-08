@@ -12,6 +12,7 @@ function checkProject(root=path.resolve(__dirname,'..')){
   }
  }} }
  visit(root);
+ if(fs.existsSync(path.join(root,'utils/notifications.js')))for(const file of ['utils/notifications-schema.sql','public/notifications-sw.js'])if(!fs.existsSync(path.join(root,file)))errors.push('Missing notification file: '+file);
  const index=path.join(root,'public/index.html');
  if(!fs.existsSync(index))errors.push('public/index.html is missing');
  else{
