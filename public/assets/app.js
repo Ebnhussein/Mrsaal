@@ -535,7 +535,7 @@ function fillLogDetail(l){
     el('rd-'+id+'-step').classList.toggle('done',done);
   };
   step('sent',l.status==='sent'?'تم الإرسال':stLabel(l.status),reportDate(l.sent_at),l.status==='sent');
-  step('read',read?(wa?'اتقرت':'تم رصد فتح البريد'):(wa?'بانتظار تأكيد القراءة':'لم تُحمّل صورة التتبع بعد'),read?reportDate(wa?l.whatsapp_read_at:l.last_opened_at)||'وصل تأكيد القراءة':'عدم وصول تأكيد لا يعني إن الرسالة لم تُقرأ',read);
+  step('read',read?(wa?'اتقرت':'تم رصد فتح البريد'):(wa?'بانتظار تأكيد القراءة':'لم يُرصد فتح البريد بعد'),read?reportDate(wa?l.whatsapp_read_at:l.last_opened_at)||'وصل تأكيد القراءة':'عدم وصول تأكيد لا يعني إن الرسالة لم تُقرأ',read);
   step('reply',replied?'تم الرد':'لم يُرصد رد بعد',replied?reportDate(wa?l.whatsapp_reply_at:l.reply_received_at)||'تم تسجيل رد':'يظهر هنا عند رصد رد جديد',replied);
   el('rd-delivery').hidden=!wa;
   text('rd-delivery',l.whatsapp_delivered_at?'✓✓ وصلت للمستلم · '+reportDate(l.whatsapp_delivered_at):'لم يصل تأكيد تسليم من واتساب حتى الآن.');
@@ -547,7 +547,7 @@ function fillLogDetail(l){
   text('rd-reply',l.reply_text||'تم رصد رد بدون نص محفوظ.');
   el('rd-error').hidden=!l.reason;text('rd-error',l.reason);
   el('rd-note').hidden=wa&&!!l.message_id;
-  text('rd-note',wa?'هذه رسالة قديمة بدون معرّف؛ لا يمكن تتبع قراءتها.':'تتبع البريد يعتمد على تحميل صورة صغيرة. حجب الصور أو وضع السبام قد يمنع الرصد، وتحميل الصورة لا يثبت القراءة. الردود تُراجع كل دقيقة، وأثناء فتح التقارير كل ٣٠ ثانية؛ آخر ٣٠ يومًا.');
+  text('rd-note',wa?'هذه رسالة قديمة بدون معرّف؛ لا يمكن تتبع قراءتها.':'فتح البريد مؤشر تقريبي؛ بعض تطبيقات البريد تحجب التتبع أو تسجّل الفتح تلقائيًا. عدم رصد الفتح لا يعني أن الرسالة لم تُقرأ. الردود تُراجع كل دقيقة، وأثناء فتح التقارير كل ٣٠ ثانية؛ آخر ٣٠ يومًا.');
 }
 function viewLogDetail(id){
   const l=log.find(x=>x.id===id);if(!l)return;

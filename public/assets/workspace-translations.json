@@ -277,7 +277,6 @@
   "وقت الإرسال": "Send time",
   "الرسالة المرسلة": "Sent message",
   "↩ آخر رد مرصود": "↩ Latest detected reply",
-  "حالة القراءة تتحدث عند وصول تأكيد من الخدمة.": "Read status updates when the service confirms it.",
   "أُرسل": "Sent",
   "واتساب": "WhatsApp",
   "إدارة الشركات": "Manage companies",
@@ -417,7 +416,6 @@
   "بانتظار تأكيد القراءة": "Waiting for read confirmation",
   "بدون مرفق CV — السيرة محفوظة كنص فقط. ارفع PDF من الإعدادات لإرفاقه بالرسالة.": "No CV attachment — your CV is saved as text only. Upload a PDF in Settings to attach it.",
   "بريد": "Email",
-  "تتبع البريد يعتمد على تحميل صورة صغيرة. حجب الصور أو وضع السبام قد يمنع الرصد، وتحميل الصورة لا يثبت القراءة. الردود تُراجع كل دقيقة، وأثناء فتح التقارير كل ٣٠ ثانية؛ آخر ٣٠ يومًا.": "Email tracking uses a small image. Blocked images or spam filtering may prevent detection; loading the image does not prove the email was read. Replies from the last 30 days are checked every minute and every 30 seconds while Reports is open.",
   "تحميل الشركات:": "Loading companies:",
   "تخطي:": "Skipped:",
   "تعذر التحقق من المرفق. راجع ملف السيرة في الإعدادات.": "Could not verify the attachment. Check your CV in Settings.",
@@ -492,7 +490,6 @@
   "للقناة المختارة. اختار القناة التانية لو حابب.": "for the selected channel. You can choose the other channel instead.",
   "للواتساب": "for WhatsApp",
   "لم تتم إضافة شركات. راجع الأعمدة والصفوف المتخطاة.": "No companies were added. Review your columns and skipped rows.",
-  "لم تُحمّل صورة التتبع بعد": "Tracking image not loaded yet",
   "لم يصل تأكيد تسليم من واتساب حتى الآن.": "WhatsApp has not confirmed delivery yet.",
   "لم يُرصد رد بعد": "No reply detected yet",
   "مجال": "Field",
@@ -857,5 +854,8 @@
   "الاستخدام والحدود": "Usage and limits",
   "تغيير القناة يعرض المسودة المحفوظة للقناة المختارة.": "Changing the channel loads its saved draft.",
   "التجربة تفتح المعاينة. اضغط اكتب لو عايز مسودة جديدة؛ الإرسال يحتاج مراجعتك.": "Testing opens Preview. Press Write for a new draft; sending requires your review.",
-  "اعتماد كل مسودة مطلوب قبل إرسال الحملة": "Every draft must be approved before sending a campaign."
+  "اعتماد كل مسودة مطلوب قبل إرسال الحملة": "Every draft must be approved before sending a campaign.",
+  "لم يُرصد فتح البريد بعد": "No email open detected yet",
+  "فتح البريد مؤشر تقريبي؛ بعض تطبيقات البريد تحجب التتبع أو تسجّل الفتح تلقائيًا. عدم رصد الفتح لا يعني أن الرسالة لم تُقرأ. الردود تُراجع كل دقيقة، وأثناء فتح التقارير كل ٣٠ ثانية؛ آخر ٣٠ يومًا.": "Email opens are approximate: some email apps block tracking or register opens automatically. No detected open does not mean the message is unread. Replies from the last 30 days are checked every minute and every 30 seconds while Reports is open.",
+  "حالة التتبع تتحدث عند وصول حدث جديد من الخدمة.": "Tracking updates when a new event arrives from the service."
 }
