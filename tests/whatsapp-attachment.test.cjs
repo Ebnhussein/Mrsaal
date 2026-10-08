@@ -21,6 +21,6 @@ test('Gmail and WhatsApp attachment preview use actual saved PDF metadata',async
 });
 test('preview generation enables sending after draft loads without referencing an undefined channel',async()=>{
  const source=fs.readFileSync(path.join(__dirname,'../public/assets/app.js'),'utf8');const start=source.indexOf('async function genPreview('),end=source.indexOf('function closePrev',start);const nodes=new Map();const node=id=>{if(!nodes.has(id))nodes.set(id,{style:{},dataset:{}});return nodes.get(id);};
- const ctx={previewRequest:0,prevCompanyId:'company',previewChannel:'whatsapp',document:{getElementById:node,querySelector:node},api:async()=>({channel:'whatsapp',body:'Draft\n\nThank you'}),writingBusy(){},writingReview(){},toast(){}};
+ const ctx={previewRequest:0,prevCompanyId:'company',previewChannel:'whatsapp',document:{getElementById:node,querySelector:node},api:async()=>({channel:'whatsapp',body:'Draft\n\nThank you'}),previewEdited(){},writingBusy(){},writingReview(){},toast(){}};
  vm.runInNewContext(source.slice(start,end),ctx);await ctx.genPreview('company');assert.equal(node('btn-confirm').disabled,false);assert.equal(node('#preview-overlay .modal').dataset.channel,'whatsapp');assert.equal(node('prev-body').value,'Draft\n\nThank you');
 });
