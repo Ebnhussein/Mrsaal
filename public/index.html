@@ -3,7 +3,7 @@
 <html dir="rtl" lang="ar">
 <head><script src="/assets/theme-init.js"></script>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <title>مرسال — مساحتك لفرصتك الجاية</title>
 <link href="/assets/favicon.svg" rel="icon" type="image/svg+xml"/><link href="/assets/app.css" rel="stylesheet"/>
 <link href="/assets/writing.css" rel="stylesheet"/>
@@ -17,7 +17,7 @@
 <link href="/assets/layout.css?v=20261008-ai-reliability-2" rel="stylesheet"/>
 <link href="/assets/tickets.css" rel="stylesheet"/>
 <link href="/assets/stitch.css?v=20261008-stitch-1" rel="stylesheet"/>
-<link href="/assets/workspace-redesign.css?v=applications-1" rel="stylesheet"/><script defer="" src="/assets/workspace-locale.js?v=applications-1"></script><script defer="" src="/assets/workspace-redesign.js?v=applications-1"></script><link href="/assets/applications.css?v=applications-1" rel="stylesheet"/><script defer="" src="/assets/applications.js?v=applications-1"></script></head>
+<link href="/assets/workspace-redesign.css?v=applications-1" rel="stylesheet"/><script defer="" src="/assets/workspace-locale.js?v=reports-1"></script><script defer="" src="/assets/workspace-redesign.js?v=applications-1"></script><link href="/assets/applications.css?v=applications-1" rel="stylesheet"/><script defer="" src="/assets/applications.js?v=applications-1"></script><link href="/assets/reports-mobile.css?v=reports-1" rel="stylesheet"/><script defer="" src="/assets/reports-mobile.js?v=reports-1"></script></head>
 <body class="mrsaal-workspace stitch-workspace">
 <div id="app-loading" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px">
 <div class="spin" style="width:40px;height:40px;border-width:3px"></div>
@@ -104,17 +104,13 @@
 <div class="page" id="page-report">
 <div class="ph">
 <div><h1>التقارير</h1><p class="page-description">حالة كل رسالة وآخر رد مرصود، في مكان واحد.</p></div>
-<div class="row">
-<button class="btn btn-secondary" onclick="syncNow()">🔄 تزامن الردود</button>
-<button class="btn btn-secondary" onclick="exportCSV()">⬇️ تصدير CSV</button>
-<button class="btn btn-danger" onclick="clearLog()">🗑️ مسح السجل</button>
-</div>
+<div class="reports-actions"><button class="btn btn-primary" id="reports-sync" onclick="syncNow()" type="button"><span aria-hidden="true" class="material-symbols-outlined">sync</span><span>تحديث الردود</span></button><button class="btn btn-secondary" id="reports-export" onclick="exportCSV()" type="button"><span aria-hidden="true" class="material-symbols-outlined">download</span><span>تصدير CSV</span></button><details class="reports-options"><summary aria-label="خيارات التقارير"><span aria-hidden="true" class="material-symbols-outlined">more_horiz</span></summary><div><button class="btn btn-danger" id="reports-clear" onclick="clearLog().catch(connectionError)" type="button"><span aria-hidden="true" class="material-symbols-outlined">delete</span><span>مسح السجل</span></button><p>يمسح سجل النتائج فقط، ولا يسحب الرسائل المرسلة.</p></div></details></div>
 </div>
 <div class="g4" style="margin-bottom:20px">
-<div class="stat-card"><div class="stat-num c-blue" id="r-total">0</div><div class="stat-lbl">إجمالي</div></div>
-<div class="stat-card"><div class="stat-num c-green" id="r-sent">0</div><div class="stat-lbl">تم الإرسال ✅</div></div>
-<div class="stat-card"><div class="stat-num c-red" id="r-failed">0</div><div class="stat-lbl">فشل ❌</div></div>
-<div class="stat-card"><div class="stat-num c-orange" id="r-opens">0</div><div class="stat-lbl">فتح البريد 👁</div></div>
+<div class="stat-card"><div class="stat-num c-blue" id="r-total">0</div><div class="stat-lbl">إجمالي الرسائل</div></div>
+<div class="stat-card"><div class="stat-num c-green" id="r-sent">0</div><div class="stat-lbl">تم الإرسال</div></div>
+<div class="stat-card"><div class="stat-num c-red" id="r-failed">0</div><div class="stat-lbl">فشل الإرسال</div></div>
+<div class="stat-card"><div class="stat-num c-orange" id="r-opens">0</div><div class="stat-lbl">رصد فتح البريد</div></div>
 </div>
 <div class="card">
 <div class="card-title">سجل الإرسال</div><p class="section-copy">افتح التفاصيل لعرض الرسالة والخط الزمني. فتح الإيميل مؤشر تتبع؛ قراءة واتساب تعتمد على تأكيد الخدمة.</p>
@@ -191,7 +187,7 @@
 </div>
 <div class="toast" id="toast"></div>
 <script src="/assets/writing.js"></script>
-<script src="/assets/app.js?v=applications-1"></script>
+<script src="/assets/app.js?v=reports-1"></script>
 <script src="/assets/workspace.js"></script><script src="/assets/tickets.js?v=20261008-ai-reliability-2"></script>
 <nav aria-label="التنقل السريع" class="work-bottom-nav"><button class="nav-item" data-page="home" onclick="nav('home')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1Z"></path></svg><span>الرئيسية</span></button><button class="nav-item" data-page="companies" onclick="nav('companies')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><rect height="18" rx="2" width="16" x="4" y="3"></rect><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"></path></svg><span>الشركات</span><span class="nav-badge">0</span></button><button class="nav-item" data-page="settings" data-work-setting="template" onclick="openSettings('template')" type="button"><span aria-hidden="true" class="material-symbols-outlined">edit_note</span><span>الرسائل</span></button><button class="nav-item" data-page="report" onclick="nav('report')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M4 3v18h17M8 16v-5m5 5V7m5 9v-8"></path></svg><span>التقارير</span><span class="nav-badge" hidden="">0</span></button><button class="nav-item" data-page="settings" onclick="openSettings('account')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M4 7h16M4 17h16"></path><circle cx="9" cy="7" r="3"></circle><circle cx="16" cy="17" r="3"></circle></svg><span>الإعدادات</span></button></nav><div class="applications-overlay" hidden="" id="applications-drawer"><section aria-labelledby="applications-title" aria-modal="true" class="applications-drawer" role="dialog"><header class="applications-drawer-header"><div><h2 id="applications-title">تجهيز الإرسال</h2><p>راجع القناة والشركات والتوقيت قبل التأكيد.</p></div><button class="btn btn-secondary" onclick="MrsaalTour.start('send')" type="button">شرح الإرسال</button><button aria-label="إغلاق تجهيز الإرسال" class="btn btn-secondary" onclick="MrsaalApplications.close()" type="button">×</button></header><div class="applications-drawer-content"><div class="applications-send" id="page-send">
 <div class="g4" hidden="" style="margin-bottom:20px">
