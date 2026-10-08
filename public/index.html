@@ -123,7 +123,7 @@
 <section aria-describedby="compose-description" aria-labelledby="prev-company" aria-modal="true" class="modal compose-modal" role="dialog" tabindex="-1">
 <header class="modal-hdr compose-header">
 <div><p class="compose-eyebrow">مراجعة قبل الإرسال</p><h2 class="modal-title" id="prev-company">معاينة الرسالة</h2><p class="modal-sub" id="prev-to"></p></div>
-<button aria-label="إغلاق معاينة الرسالة" class="modal-close" onclick="closePrev()">✕</button>
+<div class="compose-header-tools"><button aria-label="شرح المعاينة" title="شرح المعاينة" class="modal-close compose-help-icon" onclick="MrsaalTour.start('preview')" type="button"><span aria-hidden="true">?</span></button><button aria-label="إغلاق معاينة الرسالة" class="modal-close" onclick="closePrev()">✕</button></div>
 </header>
 <div class="compose-scroll">
 <p class="compose-description" id="compose-description">راجع المستلم والمرفق، وعدّل المسودة بطريقتك قبل الإرسال.</p>
@@ -141,7 +141,7 @@
 <p aria-live="polite" class="hint compose-review" id="writing-review" role="status"></p>
 </div>
 </div>
-<footer class="compose-footer"><div aria-live="polite" id="prev-send-status" role="status"></div><div class="compose-actions"><button class="btn btn-primary" id="btn-confirm" onclick="confirmSend()">إرسال الرسالة</button><button class="btn btn-secondary" id="btn-write" data-writing-control="" onclick="regenerate()">إعادة الكتابة</button><button class="btn btn-secondary" onclick="skipCo()">تخطي الشركة</button><button class="btn compose-help" onclick="MrsaalTour.start('preview')">شرح المعاينة</button></div></footer>
+<footer class="compose-footer"><div aria-live="polite" id="prev-send-status" role="status"></div><div class="compose-actions"><button class="btn btn-primary" id="btn-confirm" onclick="confirmSend()">إرسال الرسالة</button><button class="btn btn-secondary" id="btn-write" data-writing-control="" onclick="regenerate()">إعادة الكتابة</button><button class="btn btn-secondary" onclick="skipCo()">تخطي الشركة</button></div></footer>
 </section>
 </div>
 <div class="overlay" id="report-detail-overlay">
