@@ -793,5 +793,15 @@
   "مفاتيح API": "API keys",
   "هتتخطى لنقص بيانات القناة. مفيش تحويل تلقائي.": "will be skipped because contact details are missing. There is no automatic channel switch.",
   "👁️ معاينة": "Preview",
-  "اشرحلي الصفحة": "Page walkthrough"
+  "اشرحلي الصفحة": "Page walkthrough",
+  "إعداد حسابك": "Account setup",
+  "الرسائل": "Messages",
+  "المساعدة": "Help",
+  "عدد الشركات": "Number of companies",
+  "استيراد شركات": "Import companies",
+  "مُعدّ": "Configured",
+  "غير مُعدّ": "Not configured",
+  "لم يُرفع": "Not uploaded",
+  "مرفوع": "Uploaded",
+  "لم يتم التحقق": "Not checked"
 }
