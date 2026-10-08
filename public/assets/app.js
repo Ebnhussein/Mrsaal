@@ -18,7 +18,7 @@ async function checkAuth() {
       setGmail(true, r.name || 'Gmail متصل', r.email);
       dataLoaded=false;cvReady=false;templateReady=false;waState='unknown';currentUser=r;
       window.MrsaalTickets?.refreshAccess();
-      if(!document.getElementById('public-site-link')){const a=document.createElement('a');a.id='public-site-link';a.href='/ar/';a.textContent='موقع مرسال';a.className='btn btn-secondary';document.querySelector('.sidebar')?.append(a);}
+      document.getElementById('public-site-link')?.remove();
       await loadAll();
       await loadWhatsAppStatus();
       dataLoaded=true;
