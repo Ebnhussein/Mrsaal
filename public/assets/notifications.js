@@ -71,7 +71,7 @@
   const cfg=await request('/push-config'),reg=await navigator.serviceWorker.register('/notifications-sw.js',{scope:'/'});await navigator.serviceWorker.ready;
   const key=Uint8Array.from(atob(cfg.publicKey.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));let sub=await reg.pushManager.getSubscription();
   if(sub&&sub.options.applicationServerKey&&Array.from(new Uint8Array(sub.options.applicationServerKey)).join()!==Array.from(key).join()){await sub.unsubscribe();sub=null;}
-  sub=sub||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});await request('/subscribe','POST',{subscription:sub.toJSON()});await savePrefs({browser:true,language:en()?'en':'ar'});notice(tr('اتفعّلت إشعارات الجهاز','Device notifications enabled'));renderSettings();
+  sub=sub||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});await request('/subscribe','POST',{subscription:sub.toJSON()});await savePrefs({browser:true,language:en()?'en':'ar'});notice(tr('اتفعّلت إشعارات الجهاز','Device notifications enabled'));if(dialog?.open&&settingsMode)renderSettings();
  }
  async function disableDevice(){const reg=await navigator.serviceWorker?.getRegistration('/');const sub=await reg?.pushManager.getSubscription();if(sub){await request('/unsubscribe','POST',{endpoint:sub.endpoint});await sub.unsubscribe();}notice(tr('اتوقفت إشعارات هذا الجهاز','Notifications stopped on this device'));}
  let audio;
@@ -94,7 +94,25 @@
   // A filtered list may omit new events; the bell still reflects all unread items.
  }catch(e){if(dialog?.open)notice(e.message);else if(!baseline&&bell)bell.title=tr('تعذر الاتصال؛ اضغط لإعادة المحاولة','Connection unavailable; click to retry');}finally{fetching=false;}}
  async function open(settings=false){init();settingsMode=settings;if(!dialog)return;previousFocus=document.activeElement;if(!dialog.open){body.replaceChildren(el('p',tr('جارٍ التحميل…','Loading…')));dialog.showModal();}await load();if(settingsMode)render();}
- async function start(){if(started)return;const admin=!!document.querySelector('.admin-top');if(!admin&&(!document.querySelector('.app.active')||typeof currentUser==='undefined'||!currentUser?.email))return;started=true;init();await load();pollTimer=setInterval(()=>{if(!document.hidden)load();},30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});window.addEventListener('online',()=>load());
+ let permissionPrompt;
+ async function deviceNotificationsEnabled(){
+  if(!('Notification' in window)||Notification.permission!=='granted'||!navigator.serviceWorker)return false;
+  const reg=await navigator.serviceWorker.getRegistration('/'),sub=await reg?.pushManager.getSubscription();
+  if(!sub)return false;return (await request('/device-status','POST',{endpoint:sub.endpoint})).enabled===true;
+ }
+ async function promptNotifications(){
+  if(!owner||await deviceNotificationsEnabled())return;
+  const d=el('dialog',undefined,'nt-permission-dialog');permissionPrompt=d;d.dir=en()?'ltr':'rtl';d.dataset.userContent='';d.setAttribute('aria-labelledby','nt-permission-title');d.setAttribute('aria-describedby','nt-permission-description');
+  const header=el('div',undefined,'nt-permission-header'),title=el('h2',tr('خليك متابع كل جديد','Stay up to date'));title.id='nt-permission-title';const close=button('×',()=>d.close(),'nt-close');close.setAttribute('aria-label',tr('إغلاق','Close'));header.append(title,close);
+  const intro=el('p',tr('فعّل الإشعارات عشان تعرف نتيجة تقديمك من غير ما تفتح التقارير كل شوية.','Enable notifications to follow your applications without repeatedly checking reports.'));intro.id='nt-permission-description';const benefits=el('ul');for(const pair of [['رصد فتح البريد ووصول رد من الشركة','Detected email opens and company replies'],['تسليم وقراءة وردود واتساب لما التأكيد يوصل','WhatsApp delivery, read and reply events when available'],['ردود الدعم والتحديثات الجديدة','Support replies and new product updates']])benefits.append(el('li',tr(...pair)));
+  const privacy=el('p',tr('الإشعارات اختيارية. إشعارات الجهاز بتظهر برسالة عامة، من غير نصوص رسائلك أو أسماء الشركات.','Notifications are optional. Device alerts use generic text without your messages or company names.'),'nt-permission-note');
+  const status=el('p',undefined,'nt-permission-status');status.setAttribute('role','status');const actions=el('div',undefined,'nt-permission-actions'),enable=button(tr('تفعيل الإشعارات','Enable notifications'),async()=>{status.textContent=tr('جاري التفعيل…','Enabling…');try{await enableBrowser();d.close();}catch(e){status.textContent=e.message;}},'nt-button nt-permission-enable'),later=button(tr('لاحقًا','Later'),()=>d.close(),'nt-button');
+  if('Notification' in window&&Notification.permission==='denied')status.textContent=tr('الإذن مقفول في المتصفح. افتح إعدادات الموقع بجوار العنوان واسمح بالإشعارات، ثم اضغط تفعيل.','Notifications are blocked. Allow them in the site settings beside the address bar, then enable.');
+  if(!('PushManager' in window)||!('Notification' in window)||!window.isSecureContext)status.textContent=tr('لو بتستخدم iPhone، أضف مرسال للشاشة الرئيسية وافتحه منها. لو الإشعارات غير مدعومة، تقدر تكمل بإشعارات الموقع.','On iPhone, add Mrsaal to your Home Screen and open it there. If push is unsupported, in-app alerts remain available.');
+  actions.append(enable,later);d.append(header,intro,benefits,privacy,status,actions);document.body.append(d);d.addEventListener('close',()=>{d.remove();permissionPrompt=null;},{once:true});d.showModal();enable.focus();
+ }
+ function scheduleNotificationPrompt(){const wait=setInterval(()=>{if(!started){clearInterval(wait);return;}if(document.hidden||document.querySelector('dialog[open],.overlay.open'))return;clearInterval(wait);promptNotifications().catch(()=>{});},1000);}
+ async function start(){if(started)return;const admin=!!document.querySelector('.admin-top');if(!admin&&(!document.querySelector('.app.active')||typeof currentUser==='undefined'||!currentUser?.email))return;started=true;init();await load();if(!admin)scheduleNotificationPrompt();pollTimer=setInterval(()=>{if(!document.hidden)load();},30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});window.addEventListener('online',()=>load());
   const params=new URLSearchParams(location.search);if(params.get('notifications'))await open();if(params.get('ticket')&&window.MrsaalTickets?.openTicket)await MrsaalTickets.openTicket(params.get('ticket'));
   const page=params.get('notificationPage');if(page&&window.nav){nav(page==='settings'?'settings':'report');if(page==='settings')selectSettings(params.get('section')||'channels');else{await loadLog();if(params.get('log')&&log.some(l=>l.id===params.get('log')))viewLogDetail(params.get('log'));}}
  }
