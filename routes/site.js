@@ -6,6 +6,7 @@ router.get('/',wrap(async(req,res)=>{const q=new URLSearchParams();for(const k o
 router.get('/app',wrap(async(req,res)=>{
  res.set({'Cache-Control':'no-store','X-Robots-Tag':'noindex'});
  if(!req.session?.userId)return res.redirect('/ar/login');
+ const profile=await get('SELECT registration_required FROM users WHERE id=$1',[req.session.userId]);if(profile?.registration_required)return res.redirect('/auth/account?mode=profile');
  try{await checkToolAccess(req.session.userId);}catch(e){return res.status(e.status||403).send(render('ar','suspended',{custom:'<section class="m-section"><h1>الأداة غير متاحة حاليًا</h1><p>'+escapeHTML(e.message)+'</p><button class="m-button" id="blocked-support">تواصل مع الدعم</button><a class="m-button" href="/auth/logout">خروج</a><script src="/assets/tickets.js" defer></script><script src="/assets/blocked-support.js" defer></script></section>'}));}
  res.sendFile(path.join(publicDir,'index.html'));
 }));

@@ -12,18 +12,18 @@ router.get('/google/callback',wrap(async(req,res)=>{
  if(req.query.error||typeof req.query.code!=='string')return res.redirect('/?error=auth_denied');
  try{
  const tokens=await getTokensFromCode(req.query.code),info=await getUserInfo(tokens.access_token);
- if(!info.id||!info.email||info.verified_email===false)throw new Error('Google identity unavailable');
+ if(!info.id||!info.email||info.verified_email!==true)throw new Error('Google identity unavailable');
  if(flow.mode==='link'){
   if(!flow.userId||req.session.userId!==flow.userId)throw new Error('Session changed');
   await saveAccount(flow.userId,info,tokens);return res.redirect('/?linked=gmail');
  }
  let user=await get('SELECT * FROM users WHERE google_id=$1',[info.id]);
- if(!user){const id=uuidv4();await run('INSERT INTO users(id,google_id,email,name,access_token,refresh_token,token_expiry) VALUES($1,$2,$3,$4,$5,$6,$7)',[id,info.id,info.email,info.name,null,null,null]);user=await get('SELECT * FROM users WHERE id=$1',[id]);}
- else await run('UPDATE users SET email=$1,name=$2,access_token=$3,refresh_token=COALESCE($4,refresh_token),token_expiry=$5 WHERE id=$6',[info.email,info.name,null,null,null,user.id]);
+ if(!user){const id=uuidv4();await run('INSERT INTO users(id,google_id,email,name,access_token,refresh_token,token_expiry,registration_required,email_verified_at) VALUES($1,$2,$3,$4,$5,$6,$7,true,NOW())',[id,info.id,info.email,info.name,null,null,null]);user=await get('SELECT * FROM users WHERE id=$1',[id]);}
+ else await run('UPDATE users SET email=$1,name=COALESCE(name,$2),email_verified_at=COALESCE(email_verified_at,NOW()),access_token=$3,refresh_token=COALESCE($4,refresh_token),token_expiry=$5 WHERE id=$6',[info.email,info.name,null,null,null,user.id]);
 
- await new Promise((resolve,reject)=>req.session.regenerate(e=>e?reject(e):resolve()));req.session.userId=user.id;await saveSession(req);res.redirect('/');
+ await new Promise((resolve,reject)=>req.session.regenerate(e=>e?reject(e):resolve()));req.session.userId=user.id;await saveSession(req);res.redirect(user.registration_required?'/auth/account?mode=profile':'/');
  }catch(err){console.error('Google connection failed:',err.code||err.name);res.redirect('/?error=auth_failed');}
 }));
 router.get('/logout',(req,res)=>req.session.destroy(()=>res.redirect('/')));
-router.get('/status',wrap(async(req,res)=>{if(!req.session?.userId)return res.json({loggedIn:false});const user=await get('SELECT id,email,name FROM users WHERE id=$1',[req.session.userId]);res.json(user?{loggedIn:true,email:user.email,name:user.name}:{loggedIn:false});}));
+router.get('/status',wrap(async(req,res)=>{if(!req.session?.userId)return res.json({loggedIn:false});const user=await get('SELECT id,email,name,contact_phone,registration_required FROM users WHERE id=$1',[req.session.userId]);res.json(user?{loggedIn:true,email:user.email,name:user.name,phone:user.contact_phone,profileRequired:!!user.registration_required}:{loggedIn:false});}));
 module.exports=router;
