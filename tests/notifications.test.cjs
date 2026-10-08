@@ -45,8 +45,18 @@ test('push outbox removes expired devices and retries transient errors with revi
 });
 test('real web-push library encrypts a notification with persisted native ECDH VAPID keys',()=>{
  const webpush=require('web-push'),app=crypto.createECDH('prime256v1'),browser=crypto.createECDH('prime256v1');app.generateKeys();browser.generateKeys();
- webpush.setVapidDetails('https://mrsaal.ebnhussein.co',app.getPublicKey().toString('base64url'),app.getPrivateKey().toString('base64url'));
+ webpush.setVapidDetails('https://mrsaal.ebnhussein.co',app.getPublicKey().toString('base64url'),Buffer.concat([Buffer.alloc(32-app.getPrivateKey().length),app.getPrivateKey()]).toString('base64url'));
  const sub={endpoint:'https://fcm.googleapis.com/fcm/send/local-test-only',keys:{p256dh:browser.getPublicKey().toString('base64url'),auth:crypto.randomBytes(16).toString('base64url')}};
  const details=webpush.generateRequestDetails(sub,JSON.stringify({title:'Mrsaal',url:'/app?notifications=1'}),{TTL:3600,topic:'mrsaal-notifications'});
  assert.equal(details.headers['Content-Encoding'],'aes128gcm');assert.match(details.headers.Authorization,/^vapid /);assert(details.body.length>40);assert(!details.body.toString().includes('notifications=1'));
+});
+
+test('device prompt status requires the current owner subscription and enabled account preference',async()=>{
+ for(const [registered,allowed]of [[true,true],[false,true],[true,false]]){
+ const h=harness(false,{get:async(sql,args)=>{if(sql.includes('notification_push_subscriptions')){assert.match(sql,/user_id=\$1 AND endpoint_hash=\$2/);assert.equal(args[0],'owner');return registered?{endpoint_hash:args[1]}:null;}return {settings:{browser:allowed}};}});
+ const r=await h('POST','/device-status',{body:{endpoint:'https://fcm.googleapis.com/test'}});assert.equal(r.body.enabled,registered&&allowed);
+ }
+});
+test('persisted short ECDH private key is padded without replacing the device public key',async()=>{
+ const curve=crypto.createECDH('prime256v1');curve.setPrivateKey(Buffer.from([1]));const publicKey=curve.getPublicKey().toString('base64url');const n=load('utils/notifications.js',{'./db':{run:async()=>{},get:async()=>({credentials:JSON.stringify({publicKey,privateKey:'AQ'})})},'./connection-secrets':{seal:JSON.stringify,unseal:JSON.parse},'./helpdesk':{adminEmail:()=>false}});assert.equal((await n.config()).publicKey,publicKey);
 });
