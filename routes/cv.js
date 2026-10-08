@@ -5,18 +5,21 @@ const pdf = require('pdf-parse');
 const {cvKind,textFile}=require('../utils/upload-files');
 const { requireAuth } = require('../middleware/auth');
 const asyncHandler = require('../middleware/async-handler');
-const { get } = require('../utils/db');
+const { get,all,run } = require('../utils/db');
 const { replaceLatest } = require('../utils/user-records');
 const upload = multer({storage:multer.memoryStorage(),limits:{fileSize:20*1024*1024}});
 router.use(requireAuth);
+router.get('/list',asyncHandler(async(req,res)=>res.json(await all('SELECT id,name,filename,created_at,(pdf_data IS NOT NULL) AS has_attachment,(id=COALESCE((SELECT active_cv_id FROM users WHERE id=$1),$2)) AS active FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC',[req.session.userId,'']))));
+router.post('/select',asyncHandler(async(req,res)=>{if(!await get('SELECT id FROM cv_profiles WHERE user_id=$1 AND id=$2',[req.session.userId,req.body.id]))return res.status(404).json({error:'السيرة غير موجودة'});await run('UPDATE users SET active_cv_id=$1 WHERE id=$2',[req.body.id,req.session.userId]);res.json({ok:true});}));
+router.delete('/:id',asyncHandler(async(req,res)=>{if(await get("SELECT id FROM campaigns WHERE user_id=$1 AND cv_id=$2 AND status IN ('running','paused','draft')",[req.session.userId,req.params.id]))return res.status(409).json({error:'السيرة مستخدمة في حملة. أنهِ الحملة أولًا.'});await run('DELETE FROM cv_profiles WHERE id=$1 AND user_id=$2',[req.params.id,req.session.userId]);await run('UPDATE users SET active_cv_id=NULL WHERE id=$1 AND active_cv_id=$2',[req.session.userId,req.params.id]);res.json({ok:true});}));
 router.get('/pdf',asyncHandler(async(req,res)=>{
- const cv=await get('SELECT filename,pdf_data FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1',[req.session.userId]);
+ const cv=await require('../utils/cv-store').active(req.session.userId);
  if(!cv?.pdf_data)return res.status(404).json({error:'لا يوجد PDF محفوظ. أعد رفع السيرة بصيغة PDF.'});
  res.set({'Content-Type':'application/pdf','Content-Disposition':'attachment; filename="CV.pdf"','Cache-Control':'private, no-store'});
  res.send(cv.pdf_data);
 }));
 router.get('/', asyncHandler(async(req,res)=>{
- res.json(await get('SELECT id,content,filename,created_at,(pdf_data IS NOT NULL) AS has_attachment FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1',[req.session.userId])||null);
+ const cv=await require('../utils/cv-store').active(req.session.userId);res.json(cv?{id:cv.id,content:cv.content,filename:cv.filename,name:cv.name,created_at:cv.created_at,has_attachment:!!cv.pdf_data}:null);
 }));
 router.post('/upload',upload.single('cv'),asyncHandler(async(req,res)=>{
  if(!req.file)return res.status(400).json({error:'لا يوجد ملف'});
@@ -25,13 +28,13 @@ router.post('/upload',upload.single('cv'),asyncHandler(async(req,res)=>{
  try{text=isPDF?(await pdf(req.file.buffer)).text:textFile(req.file.buffer);}
  catch{return res.status(400).json({error:'فشل قراءة ملف PDF. تأكد من سلامة الملف.'});}
  if(!text?.trim())return res.status(400).json({error:'الملف لا يحتوي على نص مقروء. ارفع PDF نصيًا أو أضف النص يدويًا. السيرة السابقة لم تتغير.'});
- const id=await replaceLatest('cv_profiles',req.session.userId,{content:text,filename:req.file.originalname,pdf_data:isPDF?req.file.buffer:null});
+ const id=await require('../utils/cv-store').save(req.session.userId,{content:text,filename:req.file.originalname,pdf_data:isPDF?req.file.buffer:null});
  res.json({id,content:text,filename:req.file.originalname,has_attachment:isPDF});
 }));
 router.post('/text',asyncHandler(async(req,res)=>{
  const {content,name}=req.body;
  if(typeof content!=='string'||!content.trim())return res.status(400).json({error:'المحتوى فارغ'});
- const id=await replaceLatest('cv_profiles',req.session.userId,{content:content.trim(),filename:typeof name==='string'?name:'manual',pdf_data:null},{preservePDF:true});
+ const id=await require('../utils/cv-store').save(req.session.userId,{content:content.trim(),filename:typeof name==='string'?name:'manual',pdf_data:null},true);
  res.json({id,content:content.trim()});
 }));
 router.get('/template',asyncHandler(async(req,res)=>{
