@@ -1,6 +1,6 @@
 /* Shared bilingual guide for tours and the product assistant. */
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.MrsaalGuide=factory();})(typeof window!=='undefined'?window:globalThis,function(){return {
-  "version": "2026-10-08-notifications",
+  "version": "2026-10-08-launch",
   "tours": {
     "home": [
       {
@@ -597,11 +597,63 @@
         "نوتفكيشن",
         "متصفح"
       ],
-      "answer": "الجرس أعلى مساحة مرسال يعرض عدد غير المقروء. منه تتابع رصد فتح البريد والردود، تأكيد تسليم وقراءة ورد واتساب، نتائج الجدولة، ردود الدعم وحالات التذاكر، والتحديثات المنشورة. الفتح مؤشر تحميل صور وليس إثبات قراءة. إشعارات الفتح والتسليم والجدولة تتجمع خلال خمس دقائق؛ نفس الحدث لا يتكرر. شوف التفاصيل يفتح التقرير أو التذكرة؛ تحديد كمقروء لا يمسح السجل. من ترس الإشعارات أو الإعدادات ← حسابك ← إعدادات الإشعارات اختار الأنواع والصوت والتنبيه الصغير. الصوت والمتصفح مقفولان افتراضيًا. تفعيل على هذا الجهاز يطلب إذن المتصفح، ويتطلب HTTPS ودعم Push؛ بعض أجهزة الموبايل تحتاج إضافة مرسال للشاشة الرئيسية. إيقاف لكل الأجهزة يمنع Push، وفصل هذا الجهاز يلغي اشتراك الجهاز فقط. تنبيه شاشة القفل عام ولا يحتوي نصوص الردود. إشعارات الموقع تتحدث كل 30 ثانية أثناء فتح الصفحة؛ رد Gmail يعتمد على المزامنة التي تعمل كل دقيقة. الإشعارات محفوظة 90 يومًا. الأدمن يمكنه نشر إعلان تحديث عربي وإنجليزي من تحديثات وإشعارات، وتوصله التذاكر الجديدة والأخطاء المتكررة. لا يوجد إرسال بريد تلقائي للإشعارات.",
+      "answer": "الجرس أعلى مساحة مرسال يعرض عدد غير المقروء. منه تتابع رصد فتح البريد والردود، تأكيد تسليم وقراءة ورد واتساب، نتائج الجدولة، ردود الدعم وحالات التذاكر، والتحديثات المنشورة. الفتح مؤشر تحميل صور وليس إثبات قراءة. إشعارات الفتح والتسليم والجدولة تتجمع خلال خمس دقائق؛ نفس الحدث لا يتكرر. شوف التفاصيل يفتح التقرير أو التذكرة؛ تحديد كمقروء لا يمسح السجل. من ترس الإشعارات أو الإعدادات ← حسابك ← إعدادات الإشعارات اختار الأنواع والصوت والتنبيه الصغير. الصوت والمتصفح مقفولان افتراضيًا. تفعيل على هذا الجهاز يطلب إذن المتصفح، ويتطلب HTTPS ودعم Push؛ بعض أجهزة الموبايل تحتاج إضافة مرسال للشاشة الرئيسية. إيقاف لكل الأجهزة يمنع Push، وفصل هذا الجهاز يلغي اشتراك الجهاز فقط. تنبيه شاشة القفل عام ولا يحتوي نصوص الردود. إشعارات الموقع تتحدث كل 30 ثانية أثناء فتح الصفحة؛ رد Gmail يعتمد على المزامنة التي تعمل كل دقيقة. الإشعارات محفوظة 90 يومًا. الأدمن يمكنه نشر إعلان تحديث عربي وإنجليزي من تحديثات وإشعارات، وتوصله التذاكر الجديدة والأخطاء المتكررة. لا يوجد إرسال بريد تلقائي للإشعارات. بعد تفعيل الصوت اضغط تجربة صوت الإشعار مرة لفتح الصوت في المتصفح. الصوت خارج الموقع يعتمد على إعدادات النظام؛ صلاحية الإشعارات وحدها لا تفتح تشغيل الصوت داخل الصفحة.",
       "action": "notifications",
       "title_en": "Notifications and product updates",
-      "answer_en": "Open the bell at the top of the workspace to see unread notifications: replies, email-open indicators, WhatsApp delivery/read/reply confirmations, scheduled-send results, ticket replies and statuses, and product updates. Email opens are image-load indicators, not proof of reading. Opens, receipts and scheduled events are grouped within five minutes and deduplicated. View details opens the original report or ticket; marking read does not delete records. Choose event types, in-app toasts, sound and browser push from the gear or Settings → Account → Notification settings. Sound and browser push are off by default. Enable on this device requests permission and requires HTTPS and Push support; some phones require adding Mrsaal to the Home Screen. Disable on all devices blocks push; Disconnect this device removes only that subscription. Lock-screen alerts contain no personal reply text. In-app alerts refresh every 30 seconds while visible; Gmail replies depend on the one-minute sync. Notifications are kept for 90 days. Admins can publish bilingual product updates and receive new ticket/repeated-error alerts. Notifications do not send automatic emails.",
+      "answer_en": "Open the bell at the top of the workspace to see unread notifications: replies, email-open indicators, WhatsApp delivery/read/reply confirmations, scheduled-send results, ticket replies and statuses, and product updates. Email opens are image-load indicators, not proof of reading. Opens, receipts and scheduled events are grouped within five minutes and deduplicated. View details opens the original report or ticket; marking read does not delete records. Choose event types, in-app toasts, sound and browser push from the gear or Settings → Account → Notification settings. Sound and browser push are off by default. Enable on this device requests permission and requires HTTPS and Push support; some phones require adding Mrsaal to the Home Screen. Disable on all devices blocks push; Disconnect this device removes only that subscription. Lock-screen alerts contain no personal reply text. In-app alerts refresh every 30 seconds while visible; Gmail replies depend on the one-minute sync. Notifications are kept for 90 days. Admins can publish bilingual product updates and receive new ticket/repeated-error alerts. Notifications do not send automatic emails. After enabling sound, tap Test notification sound to unlock browser audio. Background sound is controlled by device settings; notification permission alone does not unlock page audio.",
       "keywords_en": "notifications bell unread alert push browser sound updates ticket reply"
+    },
+    {
+      "id": "campaigns",
+      "title": "حملات الإرسال والمسودات",
+      "title_en": "Campaigns and saved drafts",
+      "keywords": [
+        "حملة",
+        "حملات",
+        "مسودة",
+        "اكتب",
+        "معاينة",
+        "استكمال",
+        "توقيف"
+      ],
+      "keywords_en": "campaign review draft write pause resume cancel",
+      "answer": "فتح المعاينة يحمل آخر مسودة محفوظة أو الرسالة السابقة ولا يبدأ AI. اكتب بنفسك أو اضغط اكتب؛ بعد وجود نص يظهر إعادة الكتابة. تقدر تعدّل العنوان والنص قبل الإرسال. حفظ التعديلات تلقائي بعد نصف ثانية. زر بدء الإرسال للشركات المختارة ينشئ حملة: راجع كل رسالة واضغط اعتماد هذه المسودة ثم ابدأ. لا يبدأ إرسال رسالة غير معتمدة. الحملة تعمل على السيرفر حتى لو قفلت الصفحة، ويمكن إيقافها مؤقتًا واستكمالها أو إلغاء المتبقي. الرسالة الجاري إرسالها قد تصل بعد الإيقاف. uncertain معناها النتيجة غير مؤكدة؛ راجع القناة قبل إعادة الإرسال. تغيير المستلم بعد المراجعة يوقف الحملة.",
+      "answer_en": "Preview loads a saved draft or previous message without requesting AI. Write manually or press Write; an existing body changes the action to Rewrite. Edit subject and body before sending; changes autosave after half a second. Starting a selected-company batch creates a campaign: review and approve every draft before starting. Unapproved messages are blocked. The server continues after you close the page. Pause, resume or cancel remaining items. An in-flight message may still arrive after pausing. Uncertain results require checking the channel before retrying. Changing a recipient after review pauses sending.",
+      "action": "companies"
+    },
+    {
+      "id": "account-email",
+      "title": "تسجيل البريد وحفظ بياناتك",
+      "title_en": "Email login and your data",
+      "keywords": [
+        "سوبابيز",
+        "تسجيل",
+        "باسورد",
+        "كلمة",
+        "حذف",
+        "تصدير",
+        "حدود"
+      ],
+      "keywords_en": "supabase email login password account export delete limits",
+      "answer": "تسجيل البريد يعمل عند تفعيل Supabase من مسؤول الموقع. أنشئ حسابًا وأكد البريد من الرسالة، ثم ادخل بكلمة المرور. نسيت كلمة المرور يرسل رابط الاستعادة. لو عندك حساب Google سابق بنفس البريد، سجل Google واربط تسجيل البريد من إعدادات الحساب بعد تأكيد حساب البريد. ربط Gmail مستقل عن الدخول ويطلب صلاحيات الإرسال والمتابعة فقط عند الربط. من إعدادات الحساب تقدر تشوف استخدامك اليومي وتصدّر بياناتك أو تحذف الحساب بعد التأكيد. الحذف الكامل لهوية Supabase يحتاج تفعيل الإدارة على السيرفر. لا تحذف أثناء إرسال نشط.",
+      "answer_en": "Email login is available after the administrator enables Supabase. Create an account, verify your email, then sign in. Forgot password sends a reset link. For an existing Google account, sign in with Google and link verified email login from Account settings. Gmail permissions are requested separately when linking a sending channel. Account settings show daily usage, data export and confirmed account deletion. Complete Supabase identity deletion requires server-side administration setup. Active sending must finish or be stopped before deletion.",
+      "action": "account"
+    },
+    {
+      "id": "cv-versions",
+      "title": "نسخ CV وقوائم المتابعة",
+      "title_en": "CV versions and follow-up lists",
+      "keywords": [
+        "نسخ",
+        "سيرة",
+        "متابعة",
+        "تذكير",
+        "قوائم"
+      ],
+      "keywords_en": "CV versions list follow up reminder notes",
+      "answer": "كل رفع سيرة يحفظ نسخة جديدة ولا يمسح النسخ القديمة. من إعدادات السيرة افتح نسخ السيرة الذاتية وحدد النسخة المستخدمة. تعديل النص يحفظ نسخة ويحافظ على مرفق PDF الموجود، لكن لا يغير نص ملف PDF الأصلي. الحملة تثبت نسخة السيرة وقت إنشائها. من الشركات افتح القوائم والمتابعة لتسمية قائمة وتسجيل ملاحظات ومرحلة التقديم وموعد تذكير. هذه متابعة تقديمك وليست البحث عن وظائف.",
+      "answer_en": "Each CV upload saves a new version. Open CV versions in Settings and select your active CV. Editing text preserves the original PDF attachment but does not rewrite the PDF. Campaigns pin the chosen CV version when created. From Companies, open Lists and follow-up to record a list name, private notes, application stage and reminder date. This tracks your applications; it does not search for jobs.",
+      "action": "cv"
     }
   ]
 };});

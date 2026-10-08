@@ -847,5 +847,15 @@
   "قراءة واتساب": "WhatsApp read",
   "تسليم واتساب": "WhatsApp delivered",
   "بدون اسم شركة": "Unnamed company",
-  "تصدير CSV": "Export CSV"
+  "تصدير CSV": "Export CSV",
+  "تقييم المسودة": "Rate this draft",
+  "دخول أو تسجيل بالبريد الإلكتروني": "Sign in or register with email",
+  "حساب نشط": "Active account",
+  "اكتب بالذكاء الاصطناعي": "Write with AI",
+  "المسودة المحفوظة — تقدر تعدّلها قبل الإرسال.": "Saved draft — you can edit it before sending.",
+  "اكتب بنفسك أو اضغط اكتب بالذكاء الاصطناعي. المعاينة لا تولّد رسالة تلقائيًا.": "Write manually or press Write with AI. Preview does not generate automatically.",
+  "الاستخدام والحدود": "Usage and limits",
+  "تغيير القناة يعرض المسودة المحفوظة للقناة المختارة.": "Changing the channel loads its saved draft.",
+  "التجربة تفتح المعاينة. اضغط اكتب لو عايز مسودة جديدة؛ الإرسال يحتاج مراجعتك.": "Testing opens Preview. Press Write for a new draft; sending requires your review.",
+  "اعتماد كل مسودة مطلوب قبل إرسال الحملة": "Every draft must be approved before sending a campaign."
 }

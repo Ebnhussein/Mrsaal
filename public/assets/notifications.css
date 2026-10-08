@@ -3,3 +3,5 @@
 
 .nt-admin-release textarea{height:112px!important;min-height:112px!important;max-height:280px;resize:vertical}.nt-admin-release input{height:44px;font-size:14px}.nt-admin-release textarea{font-size:14px}
 .nt-bell[hidden]{display:none}
+
+.nt-toast[popover]{margin:0;inset:auto 16px 24px auto;position:fixed;max-width:min(400px,calc(100vw - 32px));z-index:2147483647}.nt-toast[popover]::backdrop{background:transparent;pointer-events:none}

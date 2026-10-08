@@ -351,7 +351,7 @@ async function refreshPreviewAttachment(channel,id){
 async function previewChangeChannel(channel){await previewOne(prevCompanyId,channel);}
 async function previewOne(id,channel=selectedDeliveryChannel()) {
   if(!ensureCV())return;
-  prevCompanyId=id;previewChannel=channel;
+  prevCompanyId=id;previewChannel=channel;previewSendKey=crypto.randomUUID();
   const co=companies.find(c=>c.id===id); if(!co) return;
   document.getElementById('preview-channel').value=channel;
   document.getElementById('prev-company').textContent=co.name;
@@ -378,10 +378,16 @@ async function previewOne(id,channel=selectedDeliveryChannel()) {
     }
     return;
   }
-  document.getElementById('prev-loading').style.display='block';document.getElementById('prev-form').style.opacity='.4';
-  document.getElementById('writing-review').textContent='جاري الكتابة ومراجعة المسودة…';
+  const requestId=++previewRequest;
+  document.getElementById('prev-loading').style.display='none';document.getElementById('prev-form').style.opacity='1';writingBusy(false);
+  document.getElementById('btn-confirm').disabled=true;
+  document.getElementById('writing-review').textContent='اكتب بنفسك أو اضغط اكتب بالذكاء الاصطناعي. المعاينة لا تولّد رسالة تلقائيًا.';
   void refreshPreviewAttachment(channel,id);
-  await genPreview(id);
+  try{const draft=await api('/api/writing/draft?companyId='+encodeURIComponent(id)+'&channel='+channel);
+    if(requestId!==previewRequest||id!==prevCompanyId)return;
+    if(draft){document.getElementById('prev-subject').value=draft.subject||'';document.getElementById('prev-body').value=draft.body||'';document.getElementById('writing-review').textContent='المسودة المحفوظة — تقدر تعدّلها قبل الإرسال.';}
+  }catch(e){document.getElementById('prev-send-status').textContent='تعذر تحميل المسودة. '+e.message;}
+  previewEdited(false);
 }
 let previewBatchActive=false, previewFocus=null, previewOverflow='';
 
@@ -405,12 +411,11 @@ async function genPreview(id) {
     document.getElementById('btn-confirm').disabled=!r.body?.trim();
   } catch(err) {
     if(requestId!==previewRequest || id!==prevCompanyId) return;
-    document.getElementById('prev-body').value='';
     document.getElementById('prev-send-status').textContent='تعذر توليد الرسالة: '+err.message;
   } finally {
     if(requestId===previewRequest && id===prevCompanyId){
       document.getElementById('prev-loading').style.display='none';
-      document.getElementById('prev-form').style.opacity='1'; writingBusy(false);document.getElementById('preview-channel').disabled=false;
+      document.getElementById('prev-form').style.opacity='1'; writingBusy(false);document.getElementById('preview-channel').disabled=false;previewEdited(false);
     }
   }
 }
@@ -437,7 +442,7 @@ async function confirmSend() {
       companyId:prevCompanyId,channel:previewChannel,
       subject:document.getElementById('prev-subject').value,
       body:document.getElementById('prev-body').value,
-      scheduledAt
+      scheduledAt,idempotencyKey:previewSendKey
     });
     const co=companies.find(c=>c.id===prevCompanyId);
     if(co&&!result.skipped) co.status=scheduledAt?'scheduled':'sent';
@@ -468,52 +473,7 @@ async function startSend() {
   const queue=deliveryQueue(channel);
   if(!queue.length){toast('مفيش شركات مناسبة للاختيارات الحالية','info');return;}
   if(channel==='whatsapp'&&queue.some(c=>!companyChannelReason(c,channel))&&waState!=='connected'){toast('اربط واتساب قبل إرسال هذه الدفعة.','error');openSettings('channels');return;}
-  const schedType=document.getElementById('sched-type').value;
-  if(schedType==='scheduled') {
-    const dt=document.getElementById('send-dt').value;
-    if(!dt){toast('حدد التاريخ والوقت','error');return;}
-    try {
-      const r=await api('/api/email/send-bulk','POST',{channel,companyIds:queue.map(c=>c.id),scheduleType:'scheduled',scheduledAt:dt});
-      queue.filter(c=>!companyChannelReason(c,channel)).forEach(c=>c.status='scheduled'); renderCompanies(); updateSendStats();
-      await loadLog();toast(`تمت جدولة ${r.scheduled} رسالة · تخطي ${r.skipped||0}`,'success');
-    } catch(err){toast(err.message,'error');}
-    return;
-  }
-  if(previewMode){previewBatchActive=true;sendQueue=queue.map(c=>c.id);processNextInQueue();return;}
-  stopFlag=false;
-  document.getElementById('btn-send').style.display='none';
-  document.getElementById('btn-stop').style.display='';
-  document.getElementById('prog-card').style.display='block';
-  document.getElementById('prog-bar').style.width='0%';
-  const ids=queue.map(c=>c.id);
-  const delay=parseInt(document.getElementById('delay-s').value)||5;
-  const r=await fetch('/api/email/send-bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel,companyIds:ids,scheduleType:'now',delaySeconds:delay,senderAccountId:gmailActiveId})});
-  if(!r.ok){
-    const error=await r.json().catch(()=>({error:'تعذر بدء الإرسال'}));
-    toast(error.error||'تعذر بدء الإرسال','error');
-    document.getElementById('btn-send').style.display='';
-    document.getElementById('btn-stop').style.display='none';return;
-  }
-  const reader=r.body.getReader(); const dec=new TextDecoder(); let buf='';
-  while(true){
-    if(stopFlag){await reader.cancel();break;}
-    const{done,value}=await reader.read(); if(done) break;
-    buf+=dec.decode(value,{stream:true});
-    const lines=buf.split('\n'); buf=lines.pop();
-    for(const line of lines){
-      if(!line.startsWith('data:')) continue;
-      try{
-        const ev=JSON.parse(line.slice(5).trim());
-        if(ev.type==='progress'){document.getElementById('prog-text').textContent=`جاري إرسال رسالة إلى ${ev.company}...`;document.getElementById('prog-detail').textContent=`${ev.i} / ${ev.total}`;document.getElementById('prog-bar').style.width=`${(ev.i/ev.total)*100}%`;}
-        else if(ev.type==='sent'){const co=companies.find(c=>c.id===ev.companyId);if(co)co.status='sent';renderCompanies();updateSendStats();toast('✅ '+ev.company,'success');}
-        else if(ev.type==='skipped'){document.getElementById('prog-text').textContent=ev.company+' — '+ev.reason;}
-        else if(ev.type==='failed'){const co=companies.find(c=>c.id===ev.companyId);if(co)co.status='failed';renderCompanies();updateSendStats();}
-        else if(ev.type==='done'){document.getElementById('prog-text').textContent=`✅ اكتمل — أُرسل: ${ev.sent}، تخطي: ${ev.skipped||0}، فشل: ${ev.failed}`;document.getElementById('prog-bar').style.width='100%';toast(`🎉 اكتمل: ${ev.sent} رسالة`,'success');await loadLog();}
-      }catch{}
-    }
-  }
-  document.getElementById('btn-send').style.display='';
-  document.getElementById('btn-stop').style.display='none';
+  try{await MrsaalLaunch.create(queue.map(c=>c.id),channel);}catch(e){toast(e.message,'error');}
 }
 
 function stopSend(){stopFlag=true;toast('تم طلب الإيقاف...','info');}
@@ -695,3 +655,14 @@ composeOverlay.addEventListener('keydown',event=>{
  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
  else if(!event.shiftKey&&(document.activeElement===last||document.activeElement===composeOverlay.querySelector('.modal'))){event.preventDefault();first.focus();}
 });
+
+let previewDraftTimer,previewSendKey=crypto.randomUUID();
+function previewEdited(save=true){
+ const subject=document.getElementById('prev-subject'),body=document.getElementById('prev-body');
+ if(!body)return;document.getElementById('btn-confirm').disabled=!body.value.trim();
+ const write=document.getElementById('btn-write');if(write)write.textContent=body.value.trim()?'إعادة الكتابة':'اكتب بالذكاء الاصطناعي';
+ if(!save)return;previewSendKey=crypto.randomUUID();clearTimeout(previewDraftTimer);
+ const companyId=prevCompanyId,channel=previewChannel,values={companyId,channel,subject:subject.value,body:body.value};
+ previewDraftTimer=setTimeout(()=>api('/api/writing/draft','POST',values).catch(e=>{if(prevCompanyId===companyId)document.getElementById('prev-send-status').textContent='لم يتم حفظ التعديل: '+e.message;}),500);
+}
+for(const id of ['prev-body','prev-subject'])document.getElementById(id)?.addEventListener('input',()=>previewEdited());
