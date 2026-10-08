@@ -252,10 +252,13 @@ async function loadCompanies() {
 
 function filterCompanies() { renderCompanies(); }
 
+function filteredCompanyRows(){
+ const filter=document.getElementById('filter-status')?.value||'all',contact=document.getElementById('filter-contact')?.value||'all',term=document.getElementById('company-search').value.trim().toLowerCase();
+ return companies.filter(c=>(filter==='all'||c.status===filter)&&(contact==='all'||contact==='email'&&!!c.email||contact==='whatsapp'&&!!c.phone||contact==='none'&&!c.email&&!c.phone)&&[c.name,c.email,c.phone,c.field,c.location].some(v=>String(v||'').toLowerCase().includes(term)));
+}
 function renderCompanies() {
-  const filter = document.getElementById('filter-status')?.value || 'all';
-  const term=document.getElementById('company-search').value.trim().toLowerCase();
-  const filtered=companies.filter(c=>(filter==='all'||c.status===filter)&&[c.name,c.email,c.phone,c.field,c.location].some(v=>String(v||'').toLowerCase().includes(term)));
+  const filter=document.getElementById('filter-status')?.value||'all';
+  const filtered=filteredCompanyRows();
   document.getElementById('selection-count').textContent=companies.filter(c=>c.selected).length+' شركة محددة';
   document.getElementById('nb-companies').textContent = companies.length;
   document.getElementById('companies-count').textContent = filtered.length+' شركة';
@@ -265,7 +268,7 @@ function renderCompanies() {
   }
   const rows = filtered.map(c=>`
     <tr>
-      <td><input type="checkbox" class="chk" ${c.selected?'checked':''} onchange="toggleChk('${c.id}',this.checked)"></td>
+      <td><input type="checkbox" class="chk" ${c.selected?'checked':''} onchange="toggleChk('${c.id}',this.checked).catch(connectionError)"></td>
       <td data-user-content><strong>${esc(c.name)}</strong></td>
       <td class="mono">${c.email?esc(c.email):'<span style="color:var(--text3)">—</span>'}</td>
       <td class="mono">${c.phone?esc(c.phone):'—'}</td>
@@ -276,7 +279,7 @@ function renderCompanies() {
     </tr>`).join('');
   document.getElementById('companies-container').innerHTML = `
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>☑</th><th>الشركة</th><th>الإيميل</th><th>التليفون</th><th>المجال</th><th>الموقع</th><th>الحالة</th><th>إجراء</th></tr></thead>
+      <thead><tr><th><input type="checkbox" class="chk" data-select-visible aria-label="تحديد النتائج الظاهرة" onchange="selectVisibleCompanies(this.checked).catch(connectionError)"/></th><th>الشركة</th><th>الإيميل</th><th>التليفون</th><th>المجال</th><th>الموقع</th><th>الحالة</th><th>إجراء</th></tr></thead>
       <tbody>${rows}</tbody>
     </table></div>`;
 }
@@ -285,13 +288,15 @@ function stLabel(s){return{pending:'انتظار',sent:'أُرسل',failed:'فش
 function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 
 async function toggleChk(id,val) {
-  const c=companies.find(x=>x.id===id); if(c) c.selected=val;
-  await api('/api/companies/'+id,'PATCH',{selected:val});
+ const c=companies.find(x=>x.id===id);if(!c)return;const previous=c.selected;
+ try{await api('/api/companies/'+id,'PATCH',{selected:val});c.selected=val;}catch(error){c.selected=previous;throw error;}finally{renderCompanies();updateChannelSummary();}
 }
-
 async function bulkSelect(val) {
-  companies.forEach(c=>c.selected=val); renderCompanies();
-  await api('/api/companies','PATCH',{ids:companies.map(c=>c.id),selected:val});
+ const rows=[...companies];await api('/api/companies','PATCH',{ids:rows.map(c=>c.id),selected:val});rows.forEach(c=>c.selected=val);renderCompanies();updateChannelSummary();
+}
+async function selectVisibleCompanies(val){
+ const rows=filteredCompanyRows();if(!rows.length)return;
+ try{await api('/api/companies','PATCH',{ids:rows.map(c=>c.id),selected:val});rows.forEach(c=>c.selected=val);}finally{renderCompanies();updateChannelSummary();}
 }
 
 async function deleteSelected() {

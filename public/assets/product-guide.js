@@ -1,6 +1,6 @@
 /* Shared bilingual guide for tours and the product assistant. */
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.MrsaalGuide=factory();})(typeof window!=='undefined'?window:globalThis,function(){return {
-  "version": "2026-10-08-stitch-workspace-bilingual",
+  "version": "2026-10-08-companies-applications",
   "tours": {
     "home": [
       {
@@ -104,6 +104,13 @@
         "body": "حدد الشركات المطلوبة، وافتح المعاينة لتراجع المستلم والنص قبل الإرسال. اختيار شركة لا يرسل لها تلقائيًا.",
         "title_en": "Select and preview",
         "body_en": "Choose companies using the checkboxes. Preview a message to review its recipient, channel, draft and CV attachment before sending."
+      },
+      {
+        "id": "applications-selection",
+        "title": "جهز الإرسال بعد التحديد",
+        "body": "بعد تحديد شركة أو أكثر يظهر شريط الإجراءات. اضغط تجهيز الإرسال لاختيار القناة والحساب والتوقيت. إلغاء التحديد يزيل الاختيارات كلها، والحذف داخل المزيد مع تأكيد.",
+        "title_en": "Prepare sending after selection",
+        "body_en": "Select one or more companies to show the action bar. Prepare sending opens the channel, account and timing controls. Clear selection removes all selections; deletion is under More and requires confirmation."
       }
     ],
     "send": [
@@ -115,11 +122,11 @@
         "body_en": "Select Email or WhatsApp for this batch. Missing contact details for the selected channel are skipped; Mrsaal does not switch channels automatically."
       },
       {
-        "id": "send-filter",
-        "title": "حدد المستلمين",
-        "body": "حدد هل الإرسال للشركات المحددة أو المنتظرة حسب اختيارات الصفحة. راجع عدد الشركات والقناة قبل البدء؛ المستخدم يختار القناة، والشركة اللي ناقصها بياناتها تتخطى من غير تحويل للقناة التانية.",
-        "title_en": "Choose recipients",
-        "body_en": "Send to all, pending or selected companies. Review your selected count and whether already-contacted companies should be skipped."
+        "id": "channel-summary",
+        "title": "راجع الشركات المحددة",
+        "body": "الشركات المحددة من صفحة الشركات والتقديم هي المستلمون فقط. الملخص يوضح المناسبين للقناة المختارة ومن سيتم تخطيهم. إخفاء شركة بفلتر البحث لا يلغي تحديدها؛ راجع العدد قبل التأكيد.",
+        "title_en": "Review selected companies",
+        "body_en": "Only companies selected in Companies & applications are recipients. The summary shows eligible companies and those skipped for missing contact details. Hiding a company with a filter does not clear its selection; review the count before confirming."
       },
       {
         "id": "send-sender",
@@ -509,10 +516,10 @@
       "id": "send",
       "title": "الإرسال والجدولة",
       "keywords": "إرسال ارسال جدولة وقت scheduled bulk",
-      "answer": "اختار قناة الدفعة: إيميل أو واتساب. الشركة اللي ناقصها بيانات القناة هتتخطى بسبب واضح في التقارير، من غير تحويل تلقائي. تخطي المرسل سابقًا يخص نفس القناة، والجدولة تثبت القناة المختارة.\n\nاختار قناة الدفعة: إيميل أو واتساب. بيانات القناة الناقصة تتسجل كتخطي بسبب واضح، من غير تحويل تلقائي. تخطي المرسل سابقًا يخص نفس القناة. المعاينة والجدولة تحتفظان بالاختيار.\n\n1. حدد المستلمين: حدد هل الإرسال للشركات المحددة أو المنتظرة حسب اختيارات الصفحة. راجع عدد الشركات والقناة قبل البدء؛ المستخدم يختار القناة، والشركة اللي ناقصها بياناتها تتخطى من غير تحويل للقناة التانية.\n\n2. من أي Gmail؟: اختار بريد المرسل. القائمة تعرض حسابات Google المرتبطة من قنوات التواصل. التبديل لا يغير حساب تسجيل دخول مرسال. الرسائل المجدولة تُثبت هذا الحساب وقت الجدولة.\n\n3. راجع كل رسالة: تفعيل المعاينة يفتح المسودة لتعدلها وتعتمدها قبل الإرسال. التوليد والمراجعة لا يرسلان الرسالة؛ زر التأكيد هو قرار الإرسال.\n\n4. الوقت المناسب: الآن يبدأ الإرسال عند تأكيدك. في وقت محدد يحتاج تاريخًا ووقتًا في المستقبل؛ المهام تُفحص كل دقيقة، فالتنفيذ ليس مضمونًا في نفس الثانية.\n\n5. حدد موعدًا مستقبلًا: اختار موعدك من الجهاز وراجع التاريخ والوقت. لو عايز تغيير حساب المرسل، اعمله قبل الجدولة؛ تغييره بعد كده لا يبدل الحساب المثبت للرسائل المجدولة.\n\n6. فاصل بين الرسائل: الفاصل ينظم الإرسال المباشر داخل المجموعة. وجود فاصل لا يضمن سماح المنصة بالإرسال أو يمنع حدود الاستخدام. ابدأ برسالة اختبار إلى حسابك.\n\n7. ابدأ بعد المراجعة: السيرة لازم تكون جاهزة، وGmail مصرح له، وواتساب متصل لو فيه مستلمين على واتساب. لو فشل الإرسال راجع التقرير قبل إعادة المحاولة لتجنب تكرار رسالة وصلت.\n\n8. إيقاف المجموعة: الإيقاف يطلب وقف باقي المجموعة في الواجهة؛ لا يسحب رسالة أُرسلت بالفعل. الرسائل المجدولة لا تُلغى بمجرد إغلاق الصفحة.",
+      "answer": "من الشركات والتقديم، حدد المستلمين ثم اضغط تجهيز الإرسال. اختار قناة الدفعة: إيميل أو واتساب. الشركة اللي ناقصها بيانات القناة هتتخطى بسبب واضح في التقارير، من غير تحويل تلقائي. تخطي المرسل سابقًا يخص نفس القناة، والجدولة تثبت القناة المختارة.\n\nاختار قناة الدفعة: إيميل أو واتساب. بيانات القناة الناقصة تتسجل كتخطي بسبب واضح، من غير تحويل تلقائي. تخطي المرسل سابقًا يخص نفس القناة. المعاينة والجدولة تحتفظان بالاختيار.\n\n1. حدد المستلمين: الإرسال يخص الشركات المحددة فقط. الفلاتر لا تلغي تحديد الشركات المخفية؛ راجع العدد. راجع عدد الشركات والقناة قبل البدء؛ المستخدم يختار القناة، والشركة اللي ناقصها بياناتها تتخطى من غير تحويل للقناة التانية.\n\n2. من أي Gmail؟: اختار بريد المرسل. القائمة تعرض حسابات Google المرتبطة من قنوات التواصل. التبديل لا يغير حساب تسجيل دخول مرسال. الرسائل المجدولة تُثبت هذا الحساب وقت الجدولة.\n\n3. راجع كل رسالة: تفعيل المعاينة يفتح المسودة لتعدلها وتعتمدها قبل الإرسال. التوليد والمراجعة لا يرسلان الرسالة؛ زر التأكيد هو قرار الإرسال.\n\n4. الوقت المناسب: الآن يبدأ الإرسال عند تأكيدك. في وقت محدد يحتاج تاريخًا ووقتًا في المستقبل؛ المهام تُفحص كل دقيقة، فالتنفيذ ليس مضمونًا في نفس الثانية.\n\n5. حدد موعدًا مستقبلًا: اختار موعدك من الجهاز وراجع التاريخ والوقت. لو عايز تغيير حساب المرسل، اعمله قبل الجدولة؛ تغييره بعد كده لا يبدل الحساب المثبت للرسائل المجدولة.\n\n6. فاصل بين الرسائل: الفاصل ينظم الإرسال المباشر داخل المجموعة. وجود فاصل لا يضمن سماح المنصة بالإرسال أو يمنع حدود الاستخدام. ابدأ برسالة اختبار إلى حسابك.\n\n7. ابدأ بعد المراجعة: السيرة لازم تكون جاهزة، وGmail مصرح له، وواتساب متصل لو فيه مستلمين على واتساب. لو فشل الإرسال راجع التقرير قبل إعادة المحاولة لتجنب تكرار رسالة وصلت.\n\n8. إيقاف المجموعة: الإيقاف يطلب وقف باقي المجموعة في الواجهة؛ لا يسحب رسالة أُرسلت بالفعل. الرسائل المجدولة لا تُلغى بمجرد إغلاق الصفحة.",
       "action": "send",
       "title_en": "Sending and scheduling",
-      "answer_en": "Choose Email or WhatsApp and your target set: all, pending or selected companies. Missing details for that channel are skipped; there is no automatic channel switch. You can skip companies already contacted on the same channel. Preview messages before sending, set a delay and choose now or a future time. Scheduled messages keep their selected Gmail sender. Stop halts remaining batch work, but a message already in progress may finish. Review results before retrying. Account suspension cancels pending scheduled jobs; a general pause postpones new sends until resumed.",
+      "answer_en": "In Companies & applications, select recipients and click Prepare sending. Only selected companies are included; filters do not clear selections outside the visible results. Choose Email or WhatsApp and your target set: selected companies. Missing details for that channel are skipped; there is no automatic channel switch. You can skip companies already contacted on the same channel. Preview messages before sending, set a delay and choose now or a future time. Scheduled messages keep their selected Gmail sender. Stop halts remaining batch work, but a message already in progress may finish. Review results before retrying. Account suspension cancels pending scheduled jobs; a general pause postpones new sends until resumed.",
       "keywords_en": "send sending schedule scheduled batch bulk delay time channel skip stop"
     },
     {
