@@ -15,6 +15,7 @@ const csp=["default-src 'self'","base-uri 'none'","object-src 'none'","frame-anc
  "connect-src 'self'","frame-src 'none'"].join('; ');
 module.exports=(req,res,next)=>{
  res.setHeader('Content-Security-Policy',csp);
+ if(req.path==='/notifications-sw.js')res.setHeader('Cache-Control','no-cache');
  res.setHeader('X-Frame-Options','DENY');
  res.setHeader('X-Content-Type-Options','nosniff');
  res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
