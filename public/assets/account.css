@@ -10,3 +10,18 @@ body[data-theme=dark] .auth-panel{--surface:#132a25;--text:#edf7f1;--border:#426
 /* Keep the form reachable on small screens, including with the keyboard open. */
 .auth-layout,.auth-layout>*{min-width:0}.account-page .input{scroll-margin-top:90px}.account-page .btn{touch-action:manipulation}.account-page #account-status{font-size:13px;line-height:1.7}
 @media(max-width:900px){.auth-layout .auth-story{display:none}.auth-layout{margin:16px auto 24px;gap:0}.auth-layout .auth-panel{padding:20px}.account-header{margin-bottom:16px}.account-page h1{margin-top:0;margin-bottom:6px}.account-page #account-description{margin-bottom:16px}.account-page form{gap:12px}.account-page .account-divider{margin-top:16px}.account-page .account-google{margin-top:10px}.account-page .launch-actions .btn{flex:1 1 120px;font-size:13px}.account-page .account-brand{white-space:normal}.stitch-exact[data-page=login]>.sx-bottom-nav,.stitch-exact[data-page=signup]>.sx-bottom-nav,.stitch-exact[data-page=login]>.sx-mobile-footer,.stitch-exact[data-page=signup]>.sx-mobile-footer{display:none}.stitch-exact[data-page=login],.stitch-exact[data-page=signup]{padding-bottom:env(safe-area-inset-bottom,0px)}.stitch-exact[data-page=login] footer:not(.sx-mobile-footer),.stitch-exact[data-page=signup] footer:not(.sx-mobile-footer){display:none}.account-page .account-captcha{overflow:visible}}
+
+/* Isolate auth sizing from imported page grids; never clip an oversized form. */
+.stitch-exact>main.auth-layout{box-sizing:border-box;min-inline-size:0;max-inline-size:calc(100% - 32px)}
+.auth-layout>.auth-panel{min-inline-size:0;max-inline-size:100%;box-sizing:border-box;overflow-wrap:anywhere}
+.auth-panel form,.auth-panel form>div,.auth-panel input,.auth-panel .launch-actions,.auth-panel .btn{min-inline-size:0;max-inline-size:100%;box-sizing:border-box}
+.auth-panel .btn{white-space:normal;overflow-wrap:anywhere}.auth-panel #account-pending-email{display:block;max-inline-size:100%}
+@media(max-width:900px){
+ body.stitch-exact[data-page=login],body.stitch-exact[data-page=signup]{width:100%;min-width:0;max-width:100%;overflow-x:visible}
+ .stitch-exact>main.auth-layout{display:block!important;width:calc(100% - 24px)!important;max-width:520px;max-inline-size:calc(100% - 24px);margin:12px auto 24px!important;inset:auto;transform:none;padding-inline:0!important}
+ .auth-layout>.auth-panel{display:block;width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:20px 16px!important;position:static;transform:none}
+ .auth-layout .account-brand{font-size:16px;line-height:1.6;white-space:normal}.auth-layout h1{font-size:24px!important;line-height:1.5!important}
+ .auth-layout .account-header{margin-bottom:14px}.auth-layout .account-captcha{width:100%;min-width:0;max-width:100%;justify-content:center}
+ .auth-layout .launch-actions{display:grid;grid-template-columns:minmax(0,1fr);width:100%;gap:8px}.auth-layout .launch-actions>.btn{width:100%;font-size:14px;min-height:44px}
+ .auth-layout .account-google{width:100%;gap:10px}.auth-layout .account-google-icon{width:20px;height:20px}.auth-layout #account-google-label{min-width:0;white-space:normal}
+}
