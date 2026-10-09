@@ -14,7 +14,7 @@ const csp=["default-src 'self'","base-uri 'none'","object-src 'none'","frame-anc
  "font-src 'self' https://fonts.gstatic.com","img-src 'self' data: blob: https:",
  "connect-src 'self'","frame-src 'none'"].join('; ');
 module.exports=(req,res,next)=>{
- const account=req.path==='/auth/account'||req.path==='/account.html';
+ const account=req.path==='/auth/account'||req.path==='/account.html'||/^\/(ar|en)\/(login|signup)\/?$/.test(req.path);
  res.setHeader('Content-Security-Policy',account?csp.replace("script-src 'self' ","script-src 'self' https://challenges.cloudflare.com ").replace("connect-src 'self'","connect-src 'self' https://challenges.cloudflare.com").replace("frame-src 'none'","frame-src https://challenges.cloudflare.com"):csp);
  if(req.path==='/notifications-sw.js')res.setHeader('Cache-Control','no-cache');
  res.setHeader('X-Frame-Options','DENY');
