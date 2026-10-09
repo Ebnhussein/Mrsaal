@@ -14,10 +14,21 @@
  function node(tag,text,cls){const n=document.createElement(tag);if(text)n.textContent=text;if(cls)n.className=cls;return n;}
  function mount(){
   const input=document.getElementById('helpSearchInput'),script=document.getElementById('help-search-data'),panel=document.getElementById('help-search-results');if(!input||!script||!panel)return;
-  let data;try{data=JSON.parse(script.textContent);}catch{return;}const en=data.language==='en',clear=document.getElementById('clearSearchBtn'),searchRow=input.parentElement;searchRow.after(panel);searchRow.classList.add('help-search-input-row');input.autocomplete='off';input.maxLength=200;input.setAttribute('aria-label',en?'Search Mrsaal help':'ابحث في مساعدة مرسال');input.setAttribute('aria-controls',panel.id);input.setAttribute('aria-expanded','false');input.placeholder=en?'Describe the issue: PDF, Gmail, WhatsApp, AI…':'اكتب المشكلة: PDF، إيميل، واتساب، AI…';
+  let data;try{data=JSON.parse(script.textContent);}catch{return;}const en=data.language==='en',clear=document.getElementById('clearSearchBtn'),searchRow=input.parentElement;document.body.append(panel);searchRow.classList.add('help-search-input-row');input.autocomplete='off';input.maxLength=200;input.setAttribute('aria-label',en?'Search Mrsaal help':'ابحث في مساعدة مرسال');input.setAttribute('aria-controls',panel.id);input.setAttribute('aria-expanded','false');input.placeholder=en?'Describe the issue: PDF, Gmail, WhatsApp, AI…':'اكتب المشكلة: PDF، إيميل، واتساب، AI…';
   let active='all',visible=[],returnFocus=null,dialog=null;
   const categories=panel.querySelector('[data-help-categories]'),results=panel.querySelector('[data-help-results]'),status=panel.querySelector('[data-help-search-status]');
-  function show(){panel.hidden=false;input.setAttribute('aria-expanded','true');render();}
+  function positionPanel(){
+   if(panel.hidden)return;
+   const rect=searchRow.getBoundingClientRect(),viewport=window.visualViewport;
+   const left=viewport?.offsetLeft||0,top=viewport?.offsetTop||0,width=viewport?.width||window.innerWidth,height=viewport?.height||window.innerHeight;
+   if(rect.bottom<=top||rect.top>=top+height){hide();return;}
+   const panelWidth=Math.min(rect.width,width-24),x=Math.max(left+12,Math.min(rect.left,left+width-panelWidth-12));
+   const below=top+height-rect.bottom-20,above=rect.top-top-20,useAbove=below<180&&above>below;
+   const available=Math.max(0,useAbove?above:below);
+   panel.style.width=panelWidth+'px';panel.style.left=x+'px';panel.style.maxHeight=Math.min(560,available)+'px';
+   panel.style.top=(useAbove?Math.max(top+12,rect.top-8-Math.min(panel.scrollHeight,560,available)):rect.bottom+8)+'px';
+  }
+  function show(){panel.hidden=false;input.setAttribute('aria-expanded','true');render();positionPanel();}
   function hide(){panel.hidden=true;input.setAttribute('aria-expanded','false');}
   function render(){
    visible=search(data,input.value,active);categories.replaceChildren();results.replaceChildren();if(clear){clear.classList.toggle('hidden',!input.value);clear.setAttribute('aria-label',en?'Clear search':'مسح البحث');}
@@ -25,6 +36,7 @@
    status.textContent=input.value.trim()?(visible.length?(en?'Related problems: ':'مشاكل مرتبطة ببحثك: ')+visible.length:(en?'No matching issue. Try PDF, Gmail, WhatsApp or AI.':'مفيش مشكلة مطابقة. جرّب كلمة زي PDF أو إيميل أو واتساب أو AI.')):(en?'Choose a category or describe the problem.':'اختار تصنيف أو اكتب المشكلة اللي بتقابلك.');
    for(const cat of data.categories){const entries=visible.filter(x=>x.category===cat.id);if(!entries.length)continue;const group=node('section',null,'help-search-group');const h=node('h3');const icon=node('span',cat.icon,'material-symbols-outlined');icon.setAttribute('aria-hidden','true');h.append(icon,document.createTextNode(cat.title));group.append(h);
     const list=node('ul');for(const issue of entries.slice(0,input.value.trim()||active!=='all'?8:2)){const li=node('li'),b=node('button',null,'help-search-issue');b.type='button';b.append(node('span',issue.title),node('span',en?'View solution →':'شوف الحل ←','help-search-open'));b.addEventListener('click',()=>openIssue(issue,b));li.append(b);list.append(li);}group.append(list);results.append(group);}
+   positionPanel();
    if(!visible.length){const link=node('a',en?'Contact support':'تواصل مع الدعم','help-search-contact');link.href='/'+data.language+'/contact';results.append(link);}
   }
   function openIssue(issue,trigger){
@@ -32,6 +44,7 @@
    returnFocus=trigger;dialog.querySelector('h2').textContent=issue.title;dialog.querySelector('[data-solution-category]').textContent=data.categories.find(c=>c.id===issue.category)?.title||'';const answer=data.documents[issue.topic],body=dialog.querySelector('[data-solution-body]');body.replaceChildren();body.append(node('p',en?'From the current Mrsaal guide: '+answer.title:'من دليل مرسال الحالي: '+answer.title,'help-solution-source'));for(const paragraph of answer.answer.split(/\n\n+/))body.append(node('p',paragraph));
    const footer=dialog.querySelector('footer');footer.replaceChildren();const guide=node('a',en?'More practical guides':'أدلة عملية أكتر');guide.href=answer.href||'/'+data.language+'/blog';const support=node('a',en?'Contact support':'تواصل مع الدعم');support.href='/'+data.language+'/contact';footer.append(guide,support);dialog.showModal();dialog.querySelector('[data-solution-close]').focus();
   }
+  window.addEventListener('resize',positionPanel);window.addEventListener('scroll',positionPanel,{passive:true});window.visualViewport?.addEventListener('resize',positionPanel);window.visualViewport?.addEventListener('scroll',positionPanel);
   input.addEventListener('focus',show);input.addEventListener('input',show);clear?.addEventListener('click',()=>{input.value='';active='all';show();input.focus();});panel.querySelector('[data-help-search-close]').addEventListener('click',()=>{hide();input.focus({preventScroll:true});hide();});
   document.querySelectorAll('[data-quick-search]').forEach(b=>b.addEventListener('click',()=>{input.value=b.dataset.quickSearch;active='all';show();input.focus();}));
   input.addEventListener('keydown',e=>{if(e.key==='ArrowDown'){e.preventDefault();show();results.querySelector('button')?.focus();}if(e.key==='Enter'){e.preventDefault();show();results.querySelector('button')?.click();}if(e.key==='Escape')hide();});

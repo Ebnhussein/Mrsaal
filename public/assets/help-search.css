@@ -3,3 +3,8 @@
 @media(max-width:700px){.help-search-results{padding:16px}.help-search-results [data-help-results]{max-height:360px}.help-search-issue{padding:10px 6px;align-items:flex-start;gap:8px}.help-search-open{font-size:11px}.help-search-categories{gap:6px}.help-search-categories button{font-size:12px;min-height:38px}.help-solution{width:calc(100vw - 20px);max-height:calc(100dvh - 24px);border-radius:16px}.help-solution h2{font-size:18px}.help-solution>header,.help-solution [data-solution-body]{padding:16px}.help-solution p{font-size:14px}.help-search-input-row input{font-size:16px!important}}
 
 .help-solution>header>div{height:auto!important;min-width:0;padding:0!important}
+
+/* Suggestions float above the page without changing its layout. */
+body.stitch-exact .help-search-results{position:fixed;z-index:10000;margin:0;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;box-shadow:0 18px 48px #102e2930;isolation:isolate}
+body.stitch-exact .help-search-results[hidden]{display:none!important}
+body.stitch-exact .help-search-results [data-help-results]{max-height:none;overflow:visible;padding-inline-end:0}
