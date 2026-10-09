@@ -359,10 +359,10 @@
     "settings-ai": [
       {
         "id": "ai-providers",
-        "title": "اربط منصة واحدة كبداية",
-        "body": "اختار منصة من الأزرار أعلى الصفحة. امشِ في ثلاث خطوات: المفتاح، الموديل، اختبار وحفظ. دليل الربط يشرح كل منصة بروابط رسمية وحلول الأخطاء، ويفتح دون تغيير إعداداتك.",
-        "title_en": "Start with one provider",
-        "body_en": "Choose a provider and follow Key, Model, Test & Save. The connection guide has official links and does not change your settings."
+        "title": "اختار مصدر الذكاء الاصطناعي",
+        "body": "ذكاء مرسال هو الافتراضي وموجود ضمن الباقة. تقدر تختار مفاتيحك الشخصية بدلًا منه؛ سعر الباقة ثابت. جرّب ربط منصة واختيار موديل وتفعيلها، وبعدها اختار المصدر واحفظه. استخدام مفاتيحك كبديل تلقائي يحتاج موافقتك. المسودة الناجحة فقط تتخصم؛ المعاينة والتعديل اليدوي والفشل لا تتخصم، والمساعد له حد مستقل.",
+        "title_en": "Choose your AI source",
+        "body_en": "Mrsaal AI is the included default. Personal keys are optional and do not change your plan price. Connect and enable a personal provider, then select and save your source. Personal fallback requires permission. Only successful drafts count; preview, manual edits and failures do not. The help assistant has its own limit."
       },
       {
         "id": "ai-providers",
@@ -381,7 +381,7 @@
       {
         "id": "ai-providers",
         "title": "فعّل ورتّب واحفظ",
-        "body": "التفعيل والأولوية موجودان داخل الخيارات الاختيارية في الخطوة الثانية. الرقم الأقل يبدأ أولًا ثم بدائل المنصة. اضغط حفظ في الخطوة الثالثة لتطبيق الاختيار. بدون منصة شخصية مفعلة تُستخدم إعدادات السيرفر.",
+        "body": "التفعيل والأولوية موجودان داخل الخيارات الاختيارية في الخطوة الثانية. الرقم الأقل يبدأ أولًا ثم بدائل المنصة. اضغط حفظ في الخطوة الثالثة لتطبيق الاختيار. لحفظ المفاتيح دون استخدامها، سيب المصدر على ذكاء مرسال. لتشغيلها اختار المصدر الشخصي واحفظه.",
         "title_en": "Enable, prioritise and save",
         "body_en": "Enable the provider and set its priority in optional settings. Lower numbers run first, then their fallbacks. Save to apply your choices."
       },
@@ -550,10 +550,10 @@
       "id": "ai",
       "title": "منصات AI والموديلات",
       "keywords": "ai api gemini openrouter openai groq موديل مفتاح بطيء فشل 404 429",
-      "answer": "1. اربط منصة واحدة كبداية: اختار منصة من الأزرار أعلى الصفحة. امشِ في ثلاث خطوات: المفتاح، الموديل، اختبار وحفظ. دليل الربط يشرح كل منصة بروابط رسمية وحلول الأخطاء، ويفتح دون تغيير إعداداتك.\n\n2. المفتاح وجلب الموديلات: الصق المفتاح الخاص بنفس المنصة واضغط تحديث القائمة. المفتاح المحفوظ يمكن الاحتفاظ به بترك الخانة فارغة. جلب القائمة وحده لا يحفظ المفتاح.\n\n3. اختار واختبر: في الخطوة الثانية اختار الأساسي. افتح «اختياري: البدائل وترتيب المنصة» لو محتاج بديلًا أو اثنين. في الخطوة الثالثة اختبر الأساسي؛ الطلب قد يستهلك رصيدًا ولا يختبر البدائل تلقائيًا.\n\n4. فعّل ورتّب واحفظ: التفعيل والأولوية موجودان داخل الخيارات الاختيارية في الخطوة الثانية. الرقم الأقل يبدأ أولًا ثم بدائل المنصة. اضغط حفظ في الخطوة الثالثة لتطبيق الاختيار. بدون منصة شخصية مفعلة تُستخدم إعدادات السيرفر.\n\n5. المجاني وحدود الاستخدام: OpenRouter يعرض المجاني فقط افتراضيًا؛ إلغاء الاختيار قد يسمح بتكلفة. باقي المنصات حسب حسابك ورصيدك. نجاح الاختبار الآن لا يضمن عدم الوصول للحد لاحقًا. تقييد الطلبات المؤقت يختلف عن استهلاك الحصة اليومية؛ راجع نوع الخطأ. مرسال يعيد المحاولة مرة واحدة للأخطاء المؤقتة القصيرة ثم ينتقل للبدائل المحددة، ولا يتجاوز مواعيد الانتظار أو حدود الحساب.",
+      "answer": "1. اختار مصدر الذكاء الاصطناعي: ذكاء مرسال هو الافتراضي وموجود ضمن الباقة. تقدر تختار مفاتيحك الشخصية بدلًا منه؛ سعر الباقة ثابت. جرّب ربط منصة واختيار موديل وتفعيلها، وبعدها اختار المصدر واحفظه. استخدام مفاتيحك كبديل تلقائي يحتاج موافقتك. المسودة الناجحة فقط تتخصم؛ المعاينة والتعديل اليدوي والفشل لا تتخصم، والمساعد له حد مستقل.\n\n2. المفتاح وجلب الموديلات: الصق المفتاح الخاص بنفس المنصة واضغط تحديث القائمة. المفتاح المحفوظ يمكن الاحتفاظ به بترك الخانة فارغة. جلب القائمة وحده لا يحفظ المفتاح.\n\n3. اختار واختبر: في الخطوة الثانية اختار الأساسي. افتح «اختياري: البدائل وترتيب المنصة» لو محتاج بديلًا أو اثنين. في الخطوة الثالثة اختبر الأساسي؛ الطلب قد يستهلك رصيدًا ولا يختبر البدائل تلقائيًا.\n\n4. فعّل ورتّب واحفظ: التفعيل والأولوية موجودان داخل الخيارات الاختيارية في الخطوة الثانية. الرقم الأقل يبدأ أولًا ثم بدائل المنصة. اضغط حفظ في الخطوة الثالثة لتطبيق الاختيار. لحفظ المفاتيح دون استخدامها، سيب المصدر على ذكاء مرسال. لتشغيلها اختار المصدر الشخصي واحفظه.\n\n5. المجاني وحدود الاستخدام: OpenRouter يعرض المجاني فقط افتراضيًا؛ إلغاء الاختيار قد يسمح بتكلفة. باقي المنصات حسب حسابك ورصيدك. نجاح الاختبار الآن لا يضمن عدم الوصول للحد لاحقًا. تقييد الطلبات المؤقت يختلف عن استهلاك الحصة اليومية؛ راجع نوع الخطأ. مرسال يعيد المحاولة مرة واحدة للأخطاء المؤقتة القصيرة ثم ينتقل للبدائل المحددة، ولا يتجاوز مواعيد الانتظار أو حدود الحساب.",
       "action": "ai",
       "title_en": "AI providers and models",
-      "answer_en": "In Settings → AI providers, choose a provider and follow Key, Model, Test & Save. Use the Connection guide for official key links. Fetching models does not save the key. Choose a primary model and optional fallbacks; lower provider priority numbers run first. Enable and save the provider. Tests check the primary model only and may use credit. OpenRouter defaults to free models, which still have quotas. 401/403 indicate key or access problems; 402 often indicates credit; 404 an unavailable model; 429 quota or request limits. A new key does not guarantee a new quota. Try a smaller model for timeouts and keep the mobile tab open. Without a configured personal provider, available server settings are used.",
+      "answer_en": "In Settings → AI providers, Mrsaal AI is included by default. Personal providers are optional; choose and save your source explicitly. Your plan price remains unchanged. Only successful drafts use credits; preview, edits and failures do not. The assistant has a separate counter. For personal providers, follow Key, Model, Test & Save. Use the Connection guide for official key links. Fetching models does not save the key. Choose a primary model and optional fallbacks; lower provider priority numbers run first. Enable and save the provider. Tests check the primary model only and may use credit. OpenRouter defaults to free models, which still have quotas. 401/403 indicate key or access problems; 402 often indicates credit; 404 an unavailable model; 429 quota or request limits. A new key does not guarantee a new quota. Try a smaller model for timeouts and keep the mobile tab open. Mrsaal AI is the default; personal providers run only when selected or explicitly allowed as a fallback. Successful personal drafts do not spend included Mrsaal credits, but provider fees and daily protection limits may apply.",
       "keywords_en": "ai api gemini openrouter openai groq model key quota timeout slow 404 429"
     },
     {
