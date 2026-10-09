@@ -58,3 +58,7 @@ html::-webkit-scrollbar-track,body.stitch-exact::-webkit-scrollbar-track{backgro
 html::-webkit-scrollbar-thumb,body.stitch-exact::-webkit-scrollbar-thumb{background:#497969;border:2px solid #edf5f1;border-radius:10px}
 html:has(body[data-theme=dark])::-webkit-scrollbar-track,body.stitch-exact[data-theme=dark]::-webkit-scrollbar-track{background:#152b24}
 html:has(body[data-theme=dark])::-webkit-scrollbar-thumb,body.stitch-exact[data-theme=dark]::-webkit-scrollbar-thumb{background:#81bda4;border-color:#152b24}
+
+/* Keep the guide introduction and controls readable on small screens. */
+@media(max-width:700px){body[data-page=blog] .sx-blog-intro,body[data-page=blog] .sx-blog-tools{display:flex!important;visibility:visible!important;width:100%;height:auto!important;min-width:0;box-sizing:border-box}body[data-page=blog] .sx-blog-intro h1{display:block!important;font-size:28px!important;line-height:1.5!important}body[data-page=blog] .sx-blog-intro p{display:block!important;margin-block:8px;max-width:100%;overflow-wrap:anywhere}body[data-page=help] #categoriesGrid{grid-template-columns:1fr!important}body[data-page=help] .category-card{padding:18px!important;min-width:0}body[data-page=help] #categoriesGrid h3{font-size:17px!important}body[data-page=help] #categoriesGrid p{font-size:14px!important}}
+#categoriesGrid .category-card:focus-visible{outline:2px solid rgb(var(--sx-primary));outline-offset:3px}
