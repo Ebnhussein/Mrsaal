@@ -1,6 +1,6 @@
 'use strict';
 // One responsive navigation shell for the public website (not the workspace).
-const copy={ar:{brand:'مرسال',menu:'فتح القائمة',close:'إغلاق القائمة',theme:'تبديل المظهر',language:'تبديل اللغة',start:'ابدأ مجانًا',login:'تسجيل الدخول',tag:'قدّم لشركات أكتر في وقت أقل',nav:'التنقل الرئيسي',bottom:'التنقل السريع',links:['الرئيسية','المميزات','الخطط','الدليل','الدعم','عن مرسال','تواصل معنا']},en:{brand:'Mrsaal',menu:'Open menu',close:'Close menu',theme:'Change appearance',language:'Change language',start:'Start free',login:'Sign in',tag:'Apply to more companies in less time',nav:'Main navigation',bottom:'Quick navigation',links:['Home','Features','Plans','Guides','Help','About','Contact']}};
+const copy={ar:{brand:'مرسال',menu:'فتح القائمة',close:'إغلاق القائمة',theme:'تبديل المظهر',language:'تبديل اللغة',start:'ابدأ تقديمك',login:'تسجيل الدخول',tag:'شركاتك، ورسائلك، ومتابعتك في مكان واحد',nav:'التنقل الرئيسي',bottom:'التنقل السريع',links:['الرئيسية','المميزات','الخطط','الدليل','الدعم','عن مرسال','تواصل معنا']},en:{brand:'Mrsaal',menu:'Open menu',close:'Close menu',theme:'Change appearance',language:'Change language',start:'Start applying',login:'Sign in',tag:'Your companies, messages and follow-ups in one workspace',nav:'Main navigation',bottom:'Quick navigation',links:['Home','Features','Plans','Guides','Help','About','Contact']}};
 const pages=['home','product','plans','blog','help','about','contact'];
 const icons=['home','apps','payments','auto_stories','support_agent','info','alternate_email'];
 function shell(lang,page,suffix){
