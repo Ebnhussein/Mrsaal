@@ -2,10 +2,11 @@
 (()=>{
  const lang=document.documentElement.lang==='en'?'en':'ar',english=lang==='en',body=document.body;
  const words=english?{short:'Describe your request in at least 10 characters.',signin:'Sign in first to submit your request and follow the reply. ',login:'Sign in',subject:'Website contact request',failed:'Could not submit your request. Please try again.',saved:'Your support ticket has been created. Follow replies from Help in your workspace.',checking:'Checking service availability...',ready:'Application server is available',initialising:'Application server is starting',unknown:'Could not check service status. Check your connection.',empty:'No matching results. Try another search.'}:{short:'اكتب تفاصيل طلبك في 10 حروف على الأقل.',signin:'سجّل الدخول أولًا لإرسال طلبك ومتابعة رد الدعم. ',login:'تسجيل الدخول',subject:'طلب من صفحة التواصل',failed:'تعذر إرسال الطلب. حاول مرة أخرى.',saved:'تم تسجيل طلبك. تابع الرد من المساعدة داخل مساحة مرسال.',checking:'جارٍ التحقق من حالة الخدمة...',ready:'خادم التطبيق متاح',initialising:'خادم التطبيق قيد التشغيل',unknown:'تعذر فحص الحالة. راجع اتصالك بالإنترنت.',empty:'مفيش نتائج مطابقة. جرّب بحث تاني.'};
- const toggle=document.querySelector('[data-theme-toggle]');
- function theme(value){body.dataset.theme=value;toggle?.setAttribute('aria-pressed',String(value==='dark'));}
+ const toggles=[...document.querySelectorAll('[data-theme-toggle]')];
+ function theme(value){body.dataset.theme=value;toggles.forEach(toggle=>toggle.setAttribute('aria-pressed',String(value==='dark')));}
  try{theme(localStorage.getItem('mrsaal-site-theme')||'light');}catch{theme('light');}
- toggle?.addEventListener('click',()=>{const value=body.dataset.theme==='dark'?'light':'dark';theme(value);try{localStorage.setItem('mrsaal-site-theme',value);}catch{}});
+ toggles.forEach(toggle=>toggle.addEventListener('click',()=>{const value=body.dataset.theme==='dark'?'light':'dark';theme(value);try{localStorage.setItem('mrsaal-site-theme',value);}catch{}}));
+ document.querySelectorAll('a[href$="#how-it-works"]').forEach(a=>a.addEventListener('click',e=>{if(window.matchMedia('(max-width:700px)').matches&&document.getElementById('how-it-works-mobile')){e.preventDefault();document.getElementById('how-it-works-mobile').scrollIntoView();}}));
  const trigger=document.querySelector('[data-menu-toggle]'),menu=document.getElementById('mobile-menu');
  trigger?.addEventListener('click',()=>{menu.hidden=!menu.hidden;trigger.setAttribute('aria-expanded',String(!menu.hidden));});
  const drawerTrigger=document.getElementById('mrsaal-drawer-toggle'),drawer=document.getElementById('mrsaal-drawer'),overlay=document.getElementById('mrsaal-drawer-overlay'),drawerClose=document.getElementById('mrsaal-drawer-close');let previousFocus=null;
