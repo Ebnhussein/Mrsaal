@@ -14,7 +14,7 @@ function renderExact(page,legacy,{posts=[],post=null}={},language='ar'){
  if(page==='help'){
   html=html.replace(/(<input\b[^>]*id="helpSearchInput"[^>]*>)/,tag=>tag+'<div data-help-search-anchor></div>');
   html=html.replace('<div data-help-search-anchor></div>',require('./help-search').markup(lang));
-  html=html.replace('</head>','<link rel="stylesheet" href="/assets/help-search.css?v=help-search-20261009"><script defer src="/assets/help-search.js?v=help-search-20261009"></script></head>');
+  html=html.replace('</head>','<link rel="stylesheet" href="/assets/help-search.css?v=help-search-floating-20261009-2"><script defer src="/assets/help-search.js?v=help-search-floating-20261009-2"></script></head>');
  }
  if(page==='plans')html=html.replace(/<main\b[\s\S]*?<\/main>/,()=>require('./public-minimal').plansContent(lang));
  if(page==='product')html=html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/,(_,open,content,close)=>open+require('./public-minimal').mobileProduct(lang)+'<div class="sx-desktop-home">'+lazyDesktop(content)+'</div>'+close);
