@@ -17,7 +17,7 @@ body[data-theme=dark] .auth-panel{--surface:#132a25;--text:#edf7f1;--border:#426
 .auth-panel form,.auth-panel form>div,.auth-panel input,.auth-panel .launch-actions,.auth-panel .btn{min-inline-size:0;max-inline-size:100%;box-sizing:border-box}
 .auth-panel .btn{white-space:normal;overflow-wrap:anywhere}.auth-panel #account-pending-email{display:block;max-inline-size:100%}
 @media(max-width:900px){
- body.stitch-exact[data-page=login],body.stitch-exact[data-page=signup]{width:100%;min-width:0;max-width:100%;overflow-x:hidden}
+ body.stitch-exact[data-page=login],body.stitch-exact[data-page=signup]{width:100%;min-width:0;max-width:100%;overflow:visible}
  .stitch-exact>main.auth-layout{display:block!important;width:calc(100% - 24px)!important;max-width:520px;max-inline-size:calc(100% - 24px);margin:12px auto 24px!important;inset:auto;transform:none;padding-inline:0!important}
  .auth-layout>.auth-panel{display:block;width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:20px 16px!important;position:static;transform:none}
  .auth-layout .account-brand{font-size:16px;line-height:1.6;white-space:normal}.auth-layout h1{font-size:24px!important;line-height:1.5!important}
@@ -28,15 +28,14 @@ body[data-theme=dark] .auth-panel{--surface:#132a25;--text:#edf7f1;--border:#426
 
 /* The offscreen honeypot must not enlarge the RTL scrollable area. */
 .account-page{position:relative;box-sizing:border-box}
-html.mrsaal-auth-document,html.mrsaal-auth-document>body{width:100%;max-width:100%;min-width:0;margin:0;overflow-x:hidden;overscroll-behavior-x:none}
-html.mrsaal-auth-document{touch-action:pan-y pinch-zoom}
-html.mrsaal-auth-document>body{box-sizing:border-box}
+html.mrsaal-auth-document{width:100%;max-width:100%;min-width:0;height:100%;margin:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior-x:none;overscroll-behavior-y:auto;touch-action:auto;-webkit-overflow-scrolling:touch}
+html.mrsaal-auth-document>body{width:100%;max-width:100%;min-width:0;min-height:100%;height:auto;max-height:none;margin:0;box-sizing:border-box;overflow:visible;overscroll-behavior-y:auto;touch-action:auto}
 .mrsaal-auth-document .account-page .account-honeypot input{width:1px!important;min-width:0!important;min-height:0!important;height:1px!important;margin:0;padding:0;border:0}
 @media(max-width:900px){
  .mrsaal-auth-document .sx-site-header{width:100%;max-width:100%;box-sizing:border-box}
  .mrsaal-auth-document .sx-header-inner{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
  .mrsaal-auth-document .sx-header-brand{min-width:0;flex:1}.mrsaal-auth-document .sx-header-actions{flex-shrink:0}
  .mrsaal-auth-document .sx-site-brand{min-width:0;font-size:16px}.mrsaal-auth-document .sx-site-brand span{overflow:hidden;text-overflow:ellipsis}
- .mrsaal-auth-document .auth-layout{overflow-x:clip}
+ .mrsaal-auth-document .auth-layout{height:auto;max-height:none;overflow:visible;touch-action:auto}
 }
 @media(max-width:380px){.mrsaal-auth-document .sx-header-inner{padding-inline:8px!important;gap:4px!important}.mrsaal-auth-document .sx-site-brand img{width:24px;height:24px}.mrsaal-auth-document .sx-header-brand{gap:0}}
