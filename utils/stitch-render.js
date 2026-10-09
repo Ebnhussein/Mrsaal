@@ -25,6 +25,6 @@ function renderExact(page,legacy,{posts=[],post=null}={},language='ar'){
  }
  const suffix=post?'blog/'+encodeURIComponent(post.slug):page==='home'?'':page;
  html=html.replace('</head>',`<link rel="alternate" hreflang="ar" href="https://mrsaal.ebnhussein.co/ar/${suffix}"><link rel="alternate" hreflang="en" href="https://mrsaal.ebnhussein.co/en/${suffix}"></head>`);
- return applyShell(html,lang,page,suffix).replaceAll('v=responsive-2','v=minimal-plans-20261009');
+ return applyShell(html,lang,page,suffix).replaceAll('v=responsive-2','v=paid-plans-20261009-2');
 }
 module.exports={renderExact};
