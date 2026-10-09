@@ -857,5 +857,9 @@
   "اعتماد كل مسودة مطلوب قبل إرسال الحملة": "Every draft must be approved before sending a campaign.",
   "لم يُرصد فتح البريد بعد": "No email open detected yet",
   "فتح البريد مؤشر تقريبي؛ بعض تطبيقات البريد تحجب التتبع أو تسجّل الفتح تلقائيًا. عدم رصد الفتح لا يعني أن الرسالة لم تُقرأ. الردود تُراجع كل دقيقة، وأثناء فتح التقارير كل ٣٠ ثانية؛ آخر ٣٠ يومًا.": "Email opens are approximate: some email apps block tracking or register opens automatically. No detected open does not mean the message is unread. Replies from the last 30 days are checked every minute and every 30 seconds while Reports is open.",
-  "حالة التتبع تتحدث عند وصول حدث جديد من الخدمة.": "Tracking updates when a new event arrives from the service."
+  "حالة التتبع تتحدث عند وصول حدث جديد من الخدمة.": "Tracking updates when a new event arrives from the service.",
+  "كل إعداداتك الشخصية، في مكان واحد.": "All your personal settings in one place.",
+  "راجع خطوات تجهيز حسابك وقت ما تحتاجها.": "Review your setup steps whenever you need them.",
+  "بياناتك وخصوصيتك": "Your data and privacy",
+  "راجع استخدامك أو احتفظ بنسخة من بياناتك.": "Review your usage or keep a copy of your data."
 }
