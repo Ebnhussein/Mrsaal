@@ -6,21 +6,23 @@ const XLSX = require('xlsx');
 const {spreadsheetRows,column}=require('../utils/upload-files');
 const { v4: uuidv4 } = require('uuid');
 const { requireAuth } = require('../middleware/auth');
+const asyncHandler=require('../middleware/async-handler');
 const { get, all, run } = require('../utils/db');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireAuth, asyncHandler(async (req, res) => {
   const companies = await all(
     'SELECT * FROM companies WHERE user_id = $1 ORDER BY created_at DESC',
     [req.session.userId]
   );
   res.json(companies);
-});
+}));
 
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, asyncHandler(async (req, res) => {
   const { name, email, phone, field, location } = req.body;
-  if (!name) return res.status(400).json({ error: 'اسم الشركة مطلوب' });
+  if ([name,email,phone,field,location].some(v=>v!=null&&typeof v!=='string') || (name||'').length>200 || (email||'').length>254 || (phone||'').length>40 || (field||'').length>200 || (location||'').length>200) return res.status(400).json({error:'راجع نوع البيانات وطول الحقول.'});
+  if (!name?.trim()) return res.status(400).json({ error: 'اسم الشركة مطلوب' });
   if (!email && !phone) return res.status(400).json({ error: 'الإيميل أو رقم الموبايل مطلوب' });
   const id = uuidv4();
   await run(
@@ -28,7 +30,7 @@ router.post('/', requireAuth, async (req, res) => {
     [id, req.session.userId, name.trim(), (email||'').trim().toLowerCase(), (phone||'').trim(), (field||'').trim(), (location||'').trim()]
   );
   res.json({ ok: true, id });
-});
+}));
 
 router.post('/import', requireAuth, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'لا يوجد ملف' });
@@ -41,7 +43,7 @@ router.post('/import', requireAuth, upload.single('file'), (req, res) => {
   }
 });
 
-router.post('/import/commit', requireAuth, upload.single('file'), async (req, res) => {
+router.post('/import/commit', requireAuth, upload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'لا يوجد ملف' });
   const { nameCol, emailCol, phoneCol, fieldCol, locationCol } = req.body;
   try {
@@ -71,12 +73,16 @@ router.post('/import/commit', requireAuth, upload.single('file'), async (req, re
     }
     res.json({ added, skipped });
   } catch (err) {
-    res.status(err.status||500).json({ error: err.message });
+    if(err.status&&err.status<500)return res.status(err.status).json({error:err.message});
+    throw err;
   }
-});
+}));
 
-router.patch('/:id', requireAuth, async (req, res) => {
+router.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
   const { status, selected, scheduled_at } = req.body;
+  if (status!==undefined&&!['pending','sent','failed','scheduled','skipped','processing','uncertain','cancelled'].includes(status)) return res.status(400).json({error:'حالة الشركة غير صحيحة.'});
+  if (selected!==undefined&&![true,false,0,1].includes(selected)) return res.status(400).json({error:'اختيار الشركة غير صحيح.'});
+  if (scheduled_at!==undefined&&scheduled_at!==null&&(!Number.isSafeInteger(scheduled_at)||scheduled_at<0)) return res.status(400).json({error:'موعد الجدولة غير صحيح.'});
   const fields = [], vals = [];
   let i = 1;
   if (status       !== undefined) { fields.push(`status=$${i++}`);       vals.push(status); }
@@ -86,28 +92,31 @@ router.patch('/:id', requireAuth, async (req, res) => {
   vals.push(req.params.id, req.session.userId);
   await run(`UPDATE companies SET ${fields.join(',')} WHERE id=$${i} AND user_id=$${i+1}`, vals);
   res.json({ ok: true });
-});
+}));
 
-router.patch('/', requireAuth, async (req, res) => {
+router.patch('/', requireAuth, asyncHandler(async (req, res) => {
   const { ids, selected } = req.body;
-  if (!ids?.length) return res.json({ ok: true });
+  if (![true,false,0,1].includes(selected)) return res.status(400).json({error:'اختيار الشركة غير صحيح.'});
+  if (!Array.isArray(ids)||ids.length>10000||ids.some(id=>typeof id!=='string'||!id||id.length>160)) return res.status(400).json({error:'اختار قائمة شركات صحيحة.'});
+  if (!ids.length) return res.json({ ok: true });
   const placeholders = ids.map((_, i) => `$${i + 2}`).join(',');
   await run(
     `UPDATE companies SET selected=$1 WHERE id IN (${placeholders}) AND user_id=$${ids.length + 2}`,
     [selected ? 1 : 0, ...ids, req.session.userId]
   );
   res.json({ ok: true });
-});
+}));
 
-router.delete('/', requireAuth, async (req, res) => {
+router.delete('/', requireAuth, asyncHandler(async (req, res) => {
   const { ids } = req.body;
-  if (!ids?.length) return res.json({ ok: true });
+  if (!Array.isArray(ids)||ids.length>10000||ids.some(id=>typeof id!=='string'||!id||id.length>160)) return res.status(400).json({error:'اختار قائمة شركات صحيحة.'});
+  if (!ids.length) return res.json({ ok: true });
   const placeholders = ids.map((_, i) => `$${i + 2}`).join(',');
   const result = await run(
     `DELETE FROM companies WHERE id IN (${placeholders}) AND user_id=$1`,
     [req.session.userId, ...ids]
   );
   res.json({ deleted: result.rowCount });
-});
+}));
 
 module.exports = router;

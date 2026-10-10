@@ -93,8 +93,11 @@ router.get('/log', requireAuth, wrap(async (req, res) => {
 }));
 
 router.delete('/log', requireAuth, wrap(async (req, res) => {
-  await run('DELETE FROM email_log WHERE user_id=$1', [req.session.userId]);
-  res.json({ ok: true });
+  const result=await run(`DELETE FROM email_log e WHERE e.user_id=$1
+    AND e.status IN ('sent','failed','skipped','cancelled')
+    AND NOT EXISTS (SELECT 1 FROM scheduled_jobs j WHERE j.user_id=$1 AND j.log_id=e.id AND j.status IN ('pending','processing','uncertain'))
+    AND NOT EXISTS (SELECT 1 FROM delivery_attempts d WHERE d.user_id=$1 AND d.log_id=e.id AND d.status IN ('processing','uncertain'))`, [req.session.userId]);
+  res.json({ ok: true, deleted:result.rowCount, note:'السجلات المجدولة والجاري إرسالها وغير المؤكدة محفوظة.' });
 }));
 
 router.get('/sync-replies', requireAuth, wrap(async (req, res) => {
