@@ -41,3 +41,9 @@ test('expired AI budget starts no provider request',async()=>{
  let calls=0;const ai=load('utils/ai-legacy.js',{'@google/genai':{GoogleGenAI:class{constructor(){calls++;}}},'./ai-retry':require('../utils/ai-retry'),'./ai-health':{}},{GEMINI_API_KEY:'test'});
  await assert.rejects(ai.callGemini('prompt',1200,null,null,null,Date.now()-1),e=>e.code==='TIMEOUT');assert.equal(calls,0);
 });
+test('campaign AI failure returns the safe provider hint and restores editable draft',async()=>{
+ const {r,handlers}=router(),updates=[];
+ const error=Object.assign(new Error('انتهت مهلة الرد. جرّب موديلًا أسرع.'),{code:'AI_UNAVAILABLE'});
+ load('routes/campaigns.js',{express:{Router:()=>r},'../middleware/auth':{requireAuth(){}},'../middleware/async-handler':require('../middleware/async-handler'),'../utils/db':{get:async(sql)=>sql.includes('FROM campaigns')?{id:'campaign',cv_id:'cv',channel:'email'}:sql.includes('FROM campaign_items')?{id:'item',company_id:'company'}:sql.includes('FROM companies')?{id:'company'}:null,run:async(sql)=>{updates.push(sql);return {rowCount:1};}},'../utils/cv-store':{active:async()=>({content:'Developer'})},'../utils/ai':{generate:async()=>{throw error;}}});
+ const res=response();await handlers['post/:id/items/:item/generate']({params:{id:'campaign',item:'item'},session:{userId:'owner'}},res,e=>{throw e;});assert.equal(res.statusCode,503);assert.equal(res.data.code,'AI_UNAVAILABLE');assert.equal(res.data.error,error.message);assert(updates.at(-1).includes("status='draft'"));
+});
