@@ -62,3 +62,20 @@ html:has(body[data-theme=dark])::-webkit-scrollbar-thumb,body.stitch-exact[data-
 /* Keep the guide introduction and controls readable on small screens. */
 @media(max-width:700px){body[data-page=blog] .sx-blog-intro,body[data-page=blog] .sx-blog-tools{display:flex!important;visibility:visible!important;width:100%;height:auto!important;min-width:0;box-sizing:border-box}body[data-page=blog] .sx-blog-intro h1{display:block!important;font-size:28px!important;line-height:1.5!important}body[data-page=blog] .sx-blog-intro p{display:block!important;margin-block:8px;max-width:100%;overflow-wrap:anywhere}body[data-page=help] #categoriesGrid{grid-template-columns:1fr!important}body[data-page=help] .category-card{padding:18px!important;min-width:0}body[data-page=help] #categoriesGrid h3{font-size:17px!important}body[data-page=help] #categoriesGrid p{font-size:14px!important}}
 #categoriesGrid .category-card:focus-visible{outline:2px solid rgb(var(--sx-primary));outline-offset:3px}
+
+/* Home uses one complete content tree at every screen size. */
+.sx-home-responsive{display:block;width:100%;min-width:0}
+@media(max-width:700px){
+ body[data-page=home] .sx-home-responsive section{padding:28px 16px!important;min-width:0;box-sizing:border-box}
+ body[data-page=home] .sx-home-responsive section>div{min-width:0;max-width:100%}
+ body[data-page=home] .sx-home-responsive h1{font-size:clamp(26px,7vw,32px)!important;line-height:1.5!important}
+ body[data-page=home] .sx-home-responsive h2{font-size:23px!important;line-height:1.6!important}
+ body[data-page=home] .sx-home-responsive h3{font-size:18px!important;line-height:1.65!important}
+ body[data-page=home] .sx-home-responsive p{font-size:14px!important;line-height:1.85!important;overflow-wrap:anywhere}
+ body[data-page=home] .sx-home-responsive .grid{min-width:0}
+ body[data-page=home] .sx-home-responsive .grid>div{min-width:0}
+ body[data-page=home] .sx-home-responsive img{max-width:100%;height:auto}
+ body[data-page=home] .sx-home-responsive .p-space-xl{padding:20px!important}
+ body[data-page=home] .sx-home-responsive .faq-toggle{min-height:48px;font-size:16px!important;line-height:1.7}
+ body[data-page=home] .sx-home-responsive .font-code-md{overflow-wrap:anywhere}
+}
