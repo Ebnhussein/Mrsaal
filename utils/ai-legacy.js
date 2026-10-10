@@ -224,7 +224,7 @@ async function callGemini(
 
       // اللوج لا يحتوي على المفاتيح أو السيرة الذاتية.
       console.warn(
-        `⚠️ AI failed: ${provider} / ${model}; status=${status}`
+        `⚠️ AI failed: ${provider} / ${model}; status=${status}; code=${code}`
       );
 
       // لو المفتاح مرفوض، نتخطى باقي موديلات نفس المزود.
@@ -244,9 +244,9 @@ async function callGemini(
     }
   }
 
-  throw new Error(
+  throw Object.assign(new Error(
     'تعذر تنفيذ طلب الذكاء الاصطناعي. '+(failures.slice(0,3).join(' | ')||(Date.now()>=deadline?'انتهت مهلة الكتابة. جرّب موديلًا أسرع.':'لم يتم ضبط مفتاح لمنصة متاحة.'))
-  );
+  ),{code:'AI_UNAVAILABLE',status:503});
 }
 
 function parseEmail(text) {

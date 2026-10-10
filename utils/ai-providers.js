@@ -105,7 +105,7 @@ async function callUserAI(userId,prompt,maxTokens,validate,operationDeadline=nul
    if(['AUTH','QUOTA','CREDITS'].includes(code))blocked.add(row.provider);
   }
  }
- throw new Error('تعذر تنفيذ طلب الذكاء الاصطناعي. '+(failed.slice(0,3).join(' | ')||ERROR_HINTS.TIMEOUT));
+ throw Object.assign(new Error('تعذر تنفيذ طلب الذكاء الاصطناعي. '+(failed.slice(0,3).join(' | ')||ERROR_HINTS.TIMEOUT)),{code:'AI_UNAVAILABLE',status:503});
 }
 
 module.exports={PROVIDERS,provider,listModels,generate,callUserAI,usable};
