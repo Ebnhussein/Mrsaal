@@ -1,0 +1,57 @@
+{
+  "base_commit": "2970ff7453c32c52ddd739efa5d5b923cfec9998",
+  "files": [
+    {
+      "path": "public/assets/app.js",
+      "sha256": "36c053b8875bbee7d9329bcad483a2831447f287149a2ed38bf7c3eb85a99d9e"
+    },
+    {
+      "path": "public/index.html",
+      "sha256": "b22e50f58d40fc2d6f84ea2d46a9b773e26dfb33455f9c60e10a6374eae7fcb5"
+    },
+    {
+      "path": "routes/campaigns.js",
+      "sha256": "2f6bd72c9117f5b046c3aff6147729be31d4affc72fc2fe2f199d25af150b2dd"
+    },
+    {
+      "path": "routes/companies.js",
+      "sha256": "e73415b5684f9425bd33a438c4a4dea9a1a091958244aee82b2c398f13aac344"
+    },
+    {
+      "path": "routes/cv.js",
+      "sha256": "8ca82552f6b03f1869322575e84ed3686d336f84f4e685de95c7bb521ec0c2cd"
+    },
+    {
+      "path": "routes/email.js",
+      "sha256": "074f0c0afc93675649ae02d96642cc08e724a6e95c6022594e4ecfa4ce58fe4f"
+    },
+    {
+      "path": "tests/launch.test.cjs",
+      "sha256": "6be096646f7e41585d88eda8793a13990b1236eb9d7717c2a5d0aacd7a03e96c"
+    },
+    {
+      "path": "tests/review-reliability.test.cjs",
+      "sha256": "db3a53c31389a8a59a986ecec4ab772c35eb0b3df4514cff673dfac9d6736c88"
+    },
+    {
+      "path": "utils/ai-legacy.js",
+      "sha256": "bea6f852d2f95773004cf40337b4456c288c520ff000c05886434b9ef51d33ec"
+    },
+    {
+      "path": "utils/ai-providers.js",
+      "sha256": "20b581775f6b5d8cdbb027002ee909fc653b627b38ae3ea0f280841352e2f0d4"
+    },
+    {
+      "path": "utils/ai.js",
+      "sha256": "bb5de9aaf99bd622828bad2872d942a9131e39f87e70a73bb950341ac26cac3c"
+    },
+    {
+      "path": "utils/delivery.js",
+      "sha256": "b3f5130a0e2b2006fefc3ace73fae465fe592edaf53c59f9bdb5cc0f8db74a2f"
+    },
+    {
+      "path": "utils/schedule-send.js",
+      "sha256": "4b7588a517a779fe498c4c870c5fc6f783ec853d522a6ea0c58528f5c39eccde"
+    }
+  ]
+}
