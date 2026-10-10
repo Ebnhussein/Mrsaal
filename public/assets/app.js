@@ -53,8 +53,8 @@ async function api(path, method='GET', body=null) {
 
   if (!r.ok) {
     const e = await r.json().catch(()=>({error:r.statusText}));
-    if (r.status===401) { document.getElementById('login-screen').style.display='flex'; throw new Error('انتهت الجلسة'); }
-    throw new Error(e.error||r.statusText);
+    if (r.status===401) { document.getElementById('login-screen').style.display='flex'; throw Object.assign(new Error('انتهت الجلسة'),{httpStatus:401}); }
+    const error=new Error(e.error||r.statusText);error.httpStatus=r.status;error.deliveryStatus=e.status;error.code=e.code;error.logId=e.logId;throw error;
   }
   return r.json();
 }
@@ -63,8 +63,8 @@ async function apiForm(path, formData) {
   const r = await fetch(path, {method:'POST', body:formData});
   if (!r.ok) {
     const e = await r.json().catch(()=>({error:r.statusText}));
-    if (r.status===401) { document.getElementById('login-screen').style.display='flex'; throw new Error('انتهت الجلسة'); }
-    throw new Error(e.error||r.statusText);
+    if (r.status===401) { document.getElementById('login-screen').style.display='flex'; throw Object.assign(new Error('انتهت الجلسة'),{httpStatus:401}); }
+    const error=new Error(e.error||r.statusText);error.httpStatus=r.status;error.deliveryStatus=e.status;error.code=e.code;error.logId=e.logId;throw error;
   }
   return r.json();
 }
@@ -320,7 +320,7 @@ function renderCompanies() {
     </table></div>`;
 }
 
-function stLabel(s){return{pending:'انتظار',sent:'أُرسل',failed:'فشل',scheduled:'مجدول',skipped:'تخطي'}[s]||s}
+function stLabel(s){return{pending:'انتظار',sent:'أُرسل',failed:'فشل',scheduled:'مجدول',skipped:'تخطي',processing:'جاري الإرسال',uncertain:'إرسال غير مؤكد',cancelled:'أُلغي'}[s]||s}
 function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 
 async function toggleChk(id,val) {
@@ -486,12 +486,15 @@ async function confirmSend() {
     didSend=true; await loadLog(); toast(result.skipped?result.reason:(scheduledAt?'تم الجدولة':'تم الإرسال'),result.skipped?'info':'success');
   } catch(err) {
     const co=companies.find(c=>c.id===prevCompanyId);
-    if(co) co.status='failed';
+    const uncertain=['uncertain','processing'].includes(err.deliveryStatus)||!err.httpStatus;
+    if(co) co.status=uncertain?(err.deliveryStatus||'uncertain'):'failed';
+    if(uncertain){didSend='uncertain';err.message='حالة الإرسال غير مؤكدة. راجع التقارير والقناة قبل محاولة إرسال جديدة. '+err.message;}
+    await loadLog();
     renderCompanies(); updateSendStats();
     status.textContent='❌ '+err.message; status.style.color='var(--red)';
     toast('فشل: '+err.message,'error');
   } finally {
-    btn.disabled=false;document.getElementById('preview-channel').disabled=false; btn.innerHTML='إرسال'; if(didSend&&previewBatchActive)processNextInQueue();
+    btn.disabled=didSend==='uncertain';document.getElementById('preview-channel').disabled=didSend==='uncertain'; btn.innerHTML=didSend==='uncertain'?'راجع حالة الإرسال':'إرسال'; if(didSend===true&&previewBatchActive)processNextInQueue();
   }
 }
 
@@ -618,8 +621,8 @@ reportOverlay.addEventListener('keydown',event=>{
 
 async function clearLog(){
   if(!confirm('مسح كل السجل؟')) return;
-  await api('/api/email/log','DELETE');
-  await loadLog(); toast('تم مسح السجل','info');
+  const result=await api('/api/email/log','DELETE');
+  await loadLog(); toast(result.note||'تم مسح السجل','info');
 }
 
 function exportCSV(){
