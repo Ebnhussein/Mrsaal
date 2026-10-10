@@ -12,8 +12,9 @@ const DEFAULT_MODELS = [
   { provider: 'openrouter', model: 'openrouter/free' }
 ];
 
-const MODEL_TIMEOUT_MS = 20000;
-const TOTAL_TIMEOUT_MS = 45000;
+const setting=(name,value,min,max)=>{const n=Number(process.env[name]);return Number.isFinite(n)&&n>=min&&n<=max?Math.floor(n):value;};
+const MODEL_TIMEOUT_MS=setting('AI_MODEL_TIMEOUT_MS',20000,5000,60000);
+const TOTAL_TIMEOUT_MS=setting('AI_TOTAL_TIMEOUT_MS',45000,MODEL_TIMEOUT_MS,90000);
 
 function getModelChain(selectedGeminiModel) {
   let models;
@@ -165,10 +166,12 @@ async function callGemini(
   maxTokens = 1200,
   apiKey = null,
   modelName = null,
-  validate = null
+  validate = null,
+  operationDeadline = null
 ) {
   const models = getModelChain(modelName);
-  const deadline = Date.now() + TOTAL_TIMEOUT_MS;
+  const deadline = Math.min(operationDeadline || Infinity, Date.now() + TOTAL_TIMEOUT_MS);
+  if(Date.now()>=deadline)throw Object.assign(new Error('انتهت مهلة الكتابة. جرّب موديلًا أسرع.'),{code:'TIMEOUT'});
   const blockedProviders = new Set();
   const failures=[];
 
@@ -180,7 +183,9 @@ async function callGemini(
   for (const { provider, model } of models) {
     const key = keys[provider]?.trim();
 
-    if (!key || blockedProviders.has(provider) || health.available(provider,key,model)) continue;
+    if (!key || blockedProviders.has(provider)) continue;
+    const cooldown=health.available(provider,key,model);
+    if(cooldown){failures.push(`${provider} / ${model}: الموديل في فترة انتظار بعد خطأ سابق`);continue;}
 
     const remaining = deadline - Date.now();
     if (remaining <= 0) break;
@@ -196,7 +201,7 @@ async function callGemini(
 
       const text = await withRecovery(async()=>{
         try{return await request({prompt,maxTokens,model,apiKey:key,timeout:Math.min(timeout,Math.max(1,deadline-Date.now()))});}
-        catch(error){if(!error.code||typeof error.code==='number'){const status=Number(error.status||error.code)||0;error.code=status===429?'RATE_LIMIT':status>=500?'TEMPORARY':error.name==='TypeError'?'NETWORK':'UNKNOWN';}throw error;}
+        catch(error){if(hardQuota({error:{message:error.message}})){error.code='QUOTA';}if(!error.code||typeof error.code==='number'){const status=Number(error.status||error.code)||0;error.code=status===429?'RATE_LIMIT':status>=500?'TEMPORARY':error.name==='TypeError'?'NETWORK':'UNKNOWN';}throw error;}
       },deadline);
 
       if (typeof text !== 'string' || !text.trim()) {
@@ -213,7 +218,7 @@ async function callGemini(
       health.success(provider,key,model);return result;
     } catch (error) {
       const status = Number(error.status || error.code) || 0;
-      const code=status===401||status===403?'AUTH':status===404?'MODEL_UNAVAILABLE':status===429?'RATE_LIMIT':status===402?'CREDITS':status>=500?'TEMPORARY':error.name==='AbortError'||error.name==='TimeoutError'?'TIMEOUT':'UNKNOWN';health.failed(provider,key,model,code);
+      const code=typeof error.code==='string'&&error.code!=='UNKNOWN'?error.code:status===401||status===403?'AUTH':status===404?'MODEL_UNAVAILABLE':status===429?'RATE_LIMIT':status===402?'CREDITS':status>=500?'TEMPORARY':error.name==='AbortError'||error.name==='TimeoutError'?'TIMEOUT':'UNKNOWN';health.failed(provider,key,model,code,error.retryAfterMs);
       const reason=error.code==='FORMAT'?'الرد وصل بتنسيق غير صالح':error.code==='TRUNCATED'?'الرد اتقطع قبل اكتماله':error.code==='EMPTY'?'الموديل لم يرجع نصًا':error.code==='QUOTA'?'الحد اليومي مستهلك':status===429?'تقييد مؤقت لعدد الطلبات':status===401||status===403?'راجع صلاحيات المفتاح':status===404?'الموديل غير متاح':error.name==='AbortError'||error.name==='TimeoutError'?'انتهت مهلة الرد':status>=500?'الموديل مزدحم مؤقتًا':'تعذر استلام رد صالح أو الاتصال';
       failures.push(`${provider} / ${model}: ${reason}`);
 
@@ -240,7 +245,7 @@ async function callGemini(
   }
 
   throw new Error(
-    'تعذر تنفيذ طلب الذكاء الاصطناعي. '+(failures.slice(0,3).join(' | ')||'لم يتم ضبط مفتاح لمنصة متاحة.')
+    'تعذر تنفيذ طلب الذكاء الاصطناعي. '+(failures.slice(0,3).join(' | ')||(Date.now()>=deadline?'انتهت مهلة الكتابة. جرّب موديلًا أسرع.':'لم يتم ضبط مفتاح لمنصة متاحة.'))
   );
 }
 

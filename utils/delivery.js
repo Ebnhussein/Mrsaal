@@ -23,7 +23,7 @@ async function deliver(userId,{companyId,channel,subject='',body,senderAccountId
  enteredProvider=true;
  const sent=channel==='email'?await require('./gmail').sendEmail({user,account,to,subject,body,attachment,trackingPixelUrl:(process.env.BASE_URL||'https://mrsaal.ebnhussein.co').replace(/\/$/,'')+'/track/open/'+logId+'.gif'}):await require('./whatsapp').sendWhatsAppMessage(userId,to,body,attachment);
  delivered=true;await require('./usage-limits').commit(userId,credit);
- await run("UPDATE email_log SET status='sent',message_id=$1,thread_id=$2 WHERE id=$3 AND user_id=$4",[sent.messageId,sent.threadId,logId,userId]);
+ await run("UPDATE email_log SET status='sent',sent_at=EXTRACT(EPOCH FROM NOW())::BIGINT,message_id=$1,thread_id=$2 WHERE id=$3 AND user_id=$4",[sent.messageId,sent.threadId,logId,userId]);
  await run("UPDATE companies SET status='sent' WHERE id=$1 AND user_id=$2",[companyId,userId]);
  const result={ok:true,status:'sent',channel,logId,messageId:sent.messageId};await run("UPDATE delivery_attempts SET status='sent',result=$1 WHERE id=$2",[JSON.stringify(result),attempt.id]);return result;
  }catch(e){

@@ -79,11 +79,11 @@ async function generate(id,key,model,prompt,maxTokens=1200,timeout=MODEL_TIMEOUT
  if(finish==='length'||finish==='MAX_TOKENS')throw aiError('TRUNCATED');
  if(typeof text!=='string'||!text.trim())throw aiError('EMPTY');return text.trim();
 }
-async function callUserAI(userId,prompt,maxTokens,validate){
+async function callUserAI(userId,prompt,maxTokens,validate,operationDeadline=null){
  const rows=await all('SELECT * FROM ai_connections WHERE user_id=$1 AND enabled=true ORDER BY priority,provider',[userId]);
  const chain=rows.flatMap(r=>(Array.isArray(r.selected_models)?r.selected_models:[]).map(model=>({row:r,model}))).slice(0,12);
  if(!chain.length)return null;
- const end=Date.now()+TOTAL_TIMEOUT_MS,failed=[],blocked=new Set();
+ const end=Math.min(operationDeadline||Infinity,Date.now()+TOTAL_TIMEOUT_MS),failed=[],blocked=new Set();
  for(const {row,model}of chain){
   if(blocked.has(row.provider))continue;
   if(Date.now()>=end)break;
