@@ -14,17 +14,17 @@ function renderExact(page,legacy,{posts=[],post=null}={},language='ar'){
  if(page==='help'){
   html=html.replace(/(<input\b[^>]*id="helpSearchInput"[^>]*>)/,tag=>tag+'<div data-help-search-anchor></div>');
   html=html.replace('<div data-help-search-anchor></div>',require('./help-search').markup(lang));
-  html=html.replace('</head>','<link rel="stylesheet" href="/assets/help-search.css?v=guides-hub-20261010-1"><script defer src="/assets/help-search.js?v=guides-hub-20261010-1"></script></head>');
+  html=html.replace('</head>','<link rel="stylesheet" href="/assets/help-search.css?v=home-full-mobile-20261010-1"><script defer src="/assets/help-search.js?v=home-full-mobile-20261010-1"></script></head>');
  }
  if(page==='plans')html=html.replace(/<main\b[\s\S]*?<\/main>/,()=>require('./public-minimal').plansContent(lang));
  if(page==='product')html=html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/,(_,open,content,close)=>open+require('./public-minimal').mobileProduct(lang)+'<div class="sx-desktop-home">'+lazyDesktop(content)+'</div>'+close);
- if(page==='home')html=html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/,(_,open,content,close)=>open+require('./public-minimal').mobileHome(lang)+'<div class="sx-desktop-home">'+lazyDesktop(content)+'</div>'+close);
+ if(page==='home')html=html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/,(_,open,content,close)=>open+'<div class="sx-home-responsive">'+lazyDesktop(content)+'</div>'+close);
  if(page==='blog'){
   const articles=mergeGuides(posts);
   const searchData={language:lang,mode:'guides',categories:Object.entries(categories).map(([id,c])=>({id,title:c[lang],icon:'menu_book'})),issues:articles.map(p=>({id:p.slug,category:categoryKey(p.category),title:p['title_'+lang],keywords:p['excerpt_'+lang],href:'/'+lang+'/blog/'+encodeURIComponent(p.slug)}))};
   if(searchData.issues.some(p=>p.category==='other'))searchData.categories.push({id:'other',title:lang==='en'?'Other guides':'أدلة أخرى',icon:'menu_book'});
   const guidePanel=require('./help-search').markup(lang).replace(/<script id="help-search-data"[\s\S]*?<\/script>/,()=>'<script id="help-search-data" type="application/json">'+JSON.stringify(searchData).replace(/</g,'\\u003c')+'</script>');
-  html=html.replace('</main>',guidePanel+'</main>').replace('</head>','<link rel="stylesheet" href="/assets/help-search.css?v=guides-hub-20261010-1"><script defer src="/assets/help-search.js?v=guides-hub-20261010-1"></script></head>');
+  html=html.replace('</main>',guidePanel+'</main>').replace('</head>','<link rel="stylesheet" href="/assets/help-search.css?v=home-full-mobile-20261010-1"><script defer src="/assets/help-search.js?v=home-full-mobile-20261010-1"></script></head>');
   html=html.replace('@@POSTS@@','<div class="sx-post-grid">'+articles.map(p=>{const key=categoryKey(p.category);return `<article class="sx-post" data-post-category="${key}">${p.image&&['draft','companies','channels'].includes(p.image)?`<img src="/assets/stitch-exact/mrsaal-${p.image}.webp" alt="" loading="lazy" width="1536" height="1024">`:''}<small>${escape(categories[key]?.[lang]||p.category)}</small><h2>${escape(p['title_'+lang])}</h2><p>${escape(p['excerpt_'+lang])}</p><a href="/${lang}/blog/${encodeURIComponent(p.slug)}">${lang==='en'?'Read the guide →':'اقرأ الدليل ←'}</a></article>`;}).join('')+'</div>');
  }
  if(['privacy','terms','article'].includes(page)){const content=legacy.match(/<main>([\s\S]*?)<\/main>/)?.[1]||'';html=html.replace('@@CONTENT@@','<div class="sx-content">'+content+'</div>');}
@@ -35,6 +35,6 @@ function renderExact(page,legacy,{posts=[],post=null}={},language='ar'){
  }
  const suffix=post?'blog/'+encodeURIComponent(post.slug):page==='home'?'':page;
  html=html.replace('</head>',`<link rel="alternate" hreflang="ar" href="https://mrsaal.ebnhussein.co/ar/${suffix}"><link rel="alternate" hreflang="en" href="https://mrsaal.ebnhussein.co/en/${suffix}"></head>`);
- return applyShell(html,lang,page,suffix).replaceAll('v=responsive-2','v=guides-hub-20261010-1');
+ return applyShell(html,lang,page,suffix).replaceAll('v=responsive-2','v=home-full-mobile-20261010-1');
 }
 module.exports={renderExact};
