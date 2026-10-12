@@ -1,6 +1,6 @@
 const health=require('./ai-health');
 const { GoogleGenAI } = require('@google/genai');
-const {withRecovery,retryAfter,hardQuota}=require('./ai-retry');
+const {withRecovery,withOutputRecovery,compactPrompt,retryAfter,hardQuota}=require('./ai-retry');
 
 // =====================================================
 // قائمة الموديلات الافتراضية — ضيف أو رتّب الموديلات هنا.
@@ -199,10 +199,10 @@ async function callGemini(
         ? requestGemini
         : requestOpenRouter;
 
-      const text = await withRecovery(async()=>{
-        try{return await request({prompt,maxTokens,model,apiKey:key,timeout:Math.min(timeout,Math.max(1,deadline-Date.now()))});}
+      const text = await withOutputRecovery(compact=>withRecovery(async()=>{
+        try{const output=await request({prompt:compact?compactPrompt(prompt):prompt,maxTokens,model,apiKey:key,timeout:Math.min(timeout,Math.max(1,deadline-Date.now()))});if(typeof output!=='string'||!output.trim())throw makeError(0,'EMPTY');return output;}
         catch(error){if(hardQuota({error:{message:error.message}})){error.code='QUOTA';}if(!error.code||typeof error.code==='number'){const status=Number(error.status||error.code)||0;error.code=status===429?'RATE_LIMIT':status>=500?'TEMPORARY':error.name==='TypeError'?'NETWORK':'UNKNOWN';}throw error;}
-      },deadline);
+      },deadline),deadline);
 
       if (typeof text !== 'string' || !text.trim()) {
         throw makeError(0,'EMPTY');

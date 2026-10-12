@@ -11,4 +11,11 @@ async function withRecovery(operation,deadline){
   await pause(wait);return operation();
  }
 }
-module.exports={withRecovery,retryAfter,hardQuota};
+async function withOutputRecovery(operation,deadline){
+ try{return await operation(false);}catch(error){
+  if(!['EMPTY','TRUNCATED'].includes(error.code)||deadline-Date.now()<5000)throw error;
+  return operation(true);
+ }
+}
+function compactPrompt(prompt){return prompt+'\nتعليمات إعادة محاولة الرد الناقص: أرجع الإجابة النهائية فقط، مختصرة وبدون مقدمات أو شرح. احتفظ بالتنسيق المطلوب والحقائق. لو المطلوب مسودة رسالة، اجعل body لا يتجاوز 100 كلمة وnotes مختصرة.';}
+module.exports={withRecovery,withOutputRecovery,compactPrompt,retryAfter,hardQuota};

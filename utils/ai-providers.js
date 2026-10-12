@@ -1,6 +1,6 @@
 'use strict';
 const health=require('./ai-health');
-const {withRecovery,retryAfter,hardQuota}=require('./ai-retry');
+const {withRecovery,withOutputRecovery,compactPrompt,retryAfter,hardQuota}=require('./ai-retry');
 const {all}=require('./db');const {unseal}=require('./connection-secrets');
 const PROVIDERS={gemini:{name:'Google Gemini',base:'https://generativelanguage.googleapis.com/v1beta'},openrouter:{name:'OpenRouter',base:'https://openrouter.ai/api/v1'},openai:{name:'OpenAI',base:'https://api.openai.com/v1'},groq:{name:'Groq',base:'https://api.groq.com/openai/v1'}};
 function provider(id){if(!Object.hasOwn(PROVIDERS,id)){const e=new Error('منصة غير مدعومة');e.status=400;throw e;}return PROVIDERS[id];}
@@ -90,7 +90,7 @@ async function callUserAI(userId,prompt,maxTokens,validate,operationDeadline=nul
   const key=unseal(row.credentials).key;const unavailable=health.available(row.provider,key,model);
   if(unavailable){failed.push(`${PROVIDERS[row.provider]?.name} / ${model}: ${ERROR_HINTS[unavailable.code]||ERROR_HINTS.TEMPORARY}`);continue;}
   try {
-   const text=await withRecovery(()=>generate(row.provider,key,model,prompt,maxTokens,Math.min(MODEL_TIMEOUT_MS,Math.max(1,end-Date.now()))),end);
+   const text=await withOutputRecovery(compact=>withRecovery(()=>generate(row.provider,key,model,compact?compactPrompt(prompt):prompt,maxTokens,Math.min(MODEL_TIMEOUT_MS,Math.max(1,end-Date.now()))),end),end);
    if(validate&&!validate(text))throw aiError('FORMAT');
    health.success(row.provider,key,model);return text;
   } catch(e) {
