@@ -12,3 +12,10 @@ test('insufficient data blocked',async()=>{const e=engine([{...reviewed,needsUse
 test('fixed template makes zero calls and blocks missing vars',async()=>{const e=engine([]),p=profile.defaults();p.mode='template';p.email.template='أهلًا {company_name}';const r=await e.ai.generateEmail({...args,instructions:profile.encode(p),subjectTemplate:'تواصل'});assert.equal(r.body,'أهلًا ألف');assert.equal(e.prompts.length,0);p.email.template='{your_name}';await assert.rejects(e.ai.generateEmail({...args,instructions:profile.encode(p)}),/متغير/);});
 test('style analysis needs examples; never mutates approved profile',async()=>{const e=engine([{summary:'مصري مباشر'}]),p=profile.defaults();await assert.rejects(e.ai.analyzeStyle(p,args));p.examples=['أهلًا','صباح الخير'];const r=await e.ai.analyzeStyle(p,args);assert.equal(r.summary,'مصري مباشر');assert.equal(p.summary,'');});
 test('revision passes original draft and intent, without sending',async()=>{const e=engine([reviewed]);await e.ai.generate({...args,revision:{action:'اختصر',draft}},'email');assert.match(e.prompts[0],/اختصر/);});
+test('complete subject/body draft does not retry merely for missing optional review metadata',async()=>{
+ const e=engine([draft]);const result=await e.ai.generateEmail(args);assert.equal(result.body,draft.body);assert.equal(result.subject,draft.subject);assert.equal(e.prompts.length,1);assert.equal(result.review.length,0);assert.equal(result.reviewed,false);
+});
+test('optional metadata keeps its types and an explicit request for more input still blocks drafting',async()=>{
+ for(const extra of [{notes:'invalid'},{needsUserInput:'false'}])await assert.rejects(engine([{...draft,...extra}]).ai.generateEmail(args));
+ await assert.rejects(engine([{...draft,needsUserInput:true}]).ai.generateEmail(args),/معلومات/);
+});
