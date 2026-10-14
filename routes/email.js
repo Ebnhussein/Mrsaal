@@ -28,14 +28,14 @@ router.post('/generate', requireAuth, wrap(async (req, res) => {
   const channel=chooseChannel(company,req.body.channel);
   const reason=skipReason(company,channel);
   if(reason){return res.json({skipped:true,status:'skipped',channel,reason});}
-  const cv = await get('SELECT content FROM cv_profiles WHERE user_id=$1 ORDER BY (id=COALESCE((SELECT active_cv_id FROM users WHERE id=$1),$$ $$)) DESC,created_at DESC LIMIT 1', [req.session.userId]);
+  const cv = await get('SELECT * FROM cv_profiles WHERE user_id=$1 ORDER BY (id=COALESCE((SELECT active_cv_id FROM users WHERE id=$1),$$ $$)) DESC,created_at DESC LIMIT 1', [req.session.userId]);
   if (!cv) return res.status(400).json({ error: 'لا توجد سيرة ذاتية محفوظة' });
   const tpl = await get('SELECT * FROM templates WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1', [req.session.userId]);
   const userSettings = await get('SELECT gemini_key, gemini_model FROM users WHERE id=$1', [req.session.userId]);
   try {
     if (channel==='email') {
       const email = await generateEmail({
-        userId:req.session.userId, cv: cv.content, company,
+        userId:req.session.userId, cv: cv.content, cvSummary:require('../utils/cv-summary').approved(cv), company,
         instructions: tpl?.instructions,
         subjectTemplate: tpl?.subject_template,
         apiKey: userSettings?.gemini_key || null,
@@ -45,7 +45,7 @@ router.post('/generate', requireAuth, wrap(async (req, res) => {
     }
     if (channel==='whatsapp') {
       const message = await generateWhatsAppMessage({
-        userId:req.session.userId, cv: cv.content, company,
+        userId:req.session.userId, cv: cv.content, cvSummary:require('../utils/cv-summary').approved(cv), company,
         instructions: tpl?.instructions,
         apiKey: userSettings?.gemini_key || null,
         modelName: userSettings?.gemini_model || null

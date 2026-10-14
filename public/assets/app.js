@@ -163,6 +163,7 @@ async function loadCV() {
  try {
   const cv=await api('/api/cv');if(revision!==cvLoadRevision)return;
   cvCurrentId=cv?.id||null;
+  window.MrsaalCVSummary?.render(cv);
   document.getElementById('cv-status').innerHTML=cv?pill(cv.filename||'نص السيرة',cv.has_attachment?'PDF محفوظ ويُرفق تلقائيًا بالإيميل':'نص فقط — ارفع PDF لإرفاقه بالإيميل'):'';
   cvReady=!!cv?.content?.trim();document.getElementById('cv-text').value=cv?.content||'';refreshWorkspace();
   try{const rows=await api('/api/cv/list');if(revision!==cvLoadRevision)return;cvVersions=rows;renderCVVersions();}catch(e){const host=document.getElementById('cv-versions');if(host){host.replaceChildren();const retry=document.createElement('button');retry.type='button';retry.className='btn btn-secondary';retry.textContent=cvLabel('تعذر تحميل النسخ — إعادة المحاولة','Could not load versions — retry');retry.onclick=()=>loadCV();host.append(retry);}}

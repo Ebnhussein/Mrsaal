@@ -15,6 +15,9 @@ async function ensureLaunchSchema(){await run(`
  DELETE FROM registration_limits WHERE window_started<NOW()-INTERVAL '24 hours';
  ALTER TABLE users ADD COLUMN IF NOT EXISTS supabase_id TEXT UNIQUE;
  ALTER TABLE users ADD COLUMN IF NOT EXISTS active_cv_id TEXT;
+ ALTER TABLE cv_profiles ADD COLUMN IF NOT EXISTS ai_summary TEXT NOT NULL DEFAULT '';
+ ALTER TABLE cv_profiles ADD COLUMN IF NOT EXISTS ai_summary_approved_at TIMESTAMPTZ;
+ ALTER TABLE cv_profiles ADD COLUMN IF NOT EXISTS ai_summary_source_hash TEXT;
  ALTER TABLE users ADD COLUMN IF NOT EXISTS send_limit INTEGER NOT NULL DEFAULT 100;
  ALTER TABLE users ADD COLUMN IF NOT EXISTS ai_limit INTEGER NOT NULL DEFAULT 100;
  ALTER TABLE users ADD COLUMN IF NOT EXISTS ai_source TEXT NOT NULL DEFAULT 'mrsaal';

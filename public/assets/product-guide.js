@@ -1,6 +1,6 @@
 /* Shared bilingual guide for tours and the product assistant. */
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.MrsaalGuide=factory();})(typeof window!=='undefined'?window:globalThis,function(){return {
-  "version": "2026-10-08-launch",
+  "version": "2026-10-14-cv-summary",
   "tours": {
     "home": [
       {
@@ -459,12 +459,12 @@
     {
       "id": "cv",
       "title": "رفع السيرة من الموبايل",
-      "keywords": "pdf سيرة cv موبايل ملف",
-      "answer": "1. ارفع ملفًا قابلًا للقراءة: PDF أو TXT حتى 20 MB. على الموبايل استخدم تطبيق الملفات ونزّل الملف من Drive أو واتساب أولًا. لو لا يظهر في الاختيار استخدم اختيار كل الملفات.\n\n2. استنى نتيجة الرفع: رسالة النجاح معناها إن النص اتقرأ واتحفظ. لو الملف تالف أو مصوّر بدون نص، هتظهر رسالة خطأ، وتظل السيرة السابقة محفوظة. جرّب استخراج النص أو ملفًا آخر.\n\n3. راجع النص قبل الكتابة: تأكد إن اسمك وخبراتك والأرقام واضحة. مرسال يستخدم النص ده في AI؛ استخراج PDF قد يغيّر ترتيب السطور، فراجع النتيجة بنفسك.\n\n4. الحفظ اليدوي يحافظ على المرفق: رفع PDF يحفظ النص والمرفق. تعديل النص وحفظه يحافظ على PDF الأصلي ويُرفق بالإيميل أو واتساب؛ تعديل النص لا يغيّر محتوى ملف PDF نفسه. لو السيرة نص فقط ارفع PDF لإرفاقه. ملفات PDF المصوّرة تحتاج OCR خارج مرسال حاليًا.",
+      "keywords": "pdf سيرة cv موبايل ملف ملخص تلخيص بطء اسرع",
+      "answer": "1. ارفع ملفًا قابلًا للقراءة: PDF أو TXT حتى 20 MB. على الموبايل استخدم تطبيق الملفات ونزّل الملف من Drive أو واتساب أولًا. لو لا يظهر في الاختيار استخدم اختيار كل الملفات.\n\n2. استنى نتيجة الرفع: رسالة النجاح معناها إن النص اتقرأ واتحفظ. لو الملف تالف أو مصوّر بدون نص، هتظهر رسالة خطأ، وتظل السيرة السابقة محفوظة. جرّب استخراج النص أو ملفًا آخر.\n\n3. راجع النص قبل الكتابة: تأكد إن اسمك وخبراتك والأرقام واضحة. مرسال يستخدم النص ده في AI؛ استخراج PDF قد يغيّر ترتيب السطور، فراجع النتيجة بنفسك.\n\n4. الحفظ اليدوي يحافظ على المرفق: رفع PDF يحفظ النص والمرفق. تعديل النص وحفظه يحافظ على PDF الأصلي ويُرفق بالإيميل أو واتساب؛ تعديل النص لا يغيّر محتوى ملف PDF نفسه. لو السيرة نص فقط ارفع PDF لإرفاقه. ملفات PDF المصوّرة تحتاج OCR خارج مرسال حاليًا.\n\nملخص السيرة: في الإعدادات → السيرة الذاتية هتلاقي «ملخص السيرة للكتابة الأسرع». الاقتراح مقتبس من نص السيرة وليس تحليل AI؛ راجعه وأضف أي خبرة ناقصة، ثم أكد صحته واضغط اعتمد الملخص. ذكاء مرسال المحلي يستخدم الملخص المعتمد بدل النص الطويل؛ PDF الأصلي يظل للمرفقات. لكل نسخة ملخص منفصل. «استخدم النص الكامل» يلغي اعتماد الملخص.",
       "action": "cv",
       "title_en": "Upload a CV from mobile",
-      "answer_en": "In Settings → CV & documents, upload a PDF or TXT up to 20 MB. Download files from Drive or WhatsApp to your device first and use Browse all files if needed. A readable PDF saves both text and the attachment. Scanned PDFs require external OCR. Review extracted text. Saving text edits keeps the original PDF but does not change its contents. If your CV is text-only, upload a PDF to include an attachment. Failed parsing preserves the previous CV.",
-      "keywords_en": "pdf cv resume mobile upload attachment document"
+      "answer_en": "In Settings → CV & documents, upload a PDF or TXT up to 20 MB. Download files from Drive or WhatsApp to your device first and use Browse all files if needed. A readable PDF saves both text and the attachment. Scanned PDFs require external OCR. Review extracted text. Saving text edits keeps the original PDF but does not change its contents. If your CV is text-only, upload a PDF to include an attachment. Failed parsing preserves the previous CV. In Settings → CV, review CV summary for faster writing. This candidate is extracted text, not AI analysis. Add missing facts, confirm accuracy and approve. Local Mrsaal AI then uses the approved summary while the original PDF remains the attachment. Each version has its own summary. Use full CV text resets approval.",
+      "keywords_en": "pdf cv resume mobile upload attachment document summary summarise slow faster"
     },
     {
       "id": "companies",

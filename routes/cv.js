@@ -9,6 +9,19 @@ const { get,all,run,pool } = require('../utils/db');
 const { replaceLatest } = require('../utils/user-records');
 const upload = multer({storage:multer.memoryStorage(),limits:{fileSize:20*1024*1024}});
 router.use(requireAuth);
+router.get('/summary',asyncHandler(async(req,res)=>{
+ const cv=await require('../utils/cv-store').active(req.session.userId,req.query.cvId||null);if(!cv)return res.status(404).json({error:'السيرة غير موجودة'});
+ const summary=require('../utils/cv-summary');const saved=summary.approved(cv);
+ res.json({cvId:cv.id,sourceHash:summary.hash(cv.content),text:saved||summary.propose(cv.content),approved:!!saved,maxChars:summary.MAX_CHARS,sourceCharacters:cv.content?.length||0});
+}));
+router.post('/summary',asyncHandler(async(req,res)=>{
+ const summary=require('../utils/cv-summary');const text=summary.validate(req.body.text,req.body.approved);
+ const cv=await require('../utils/cv-store').active(req.session.userId,req.body.cvId);if(!cv||!req.body.cvId)return res.status(404).json({error:'السيرة غير موجودة'});
+ if(req.body.sourceHash!==summary.hash(cv.content))return res.status(409).json({error:'السيرة تغيرت. افتح الملخص من جديد.'});
+ const result=await run('UPDATE cv_profiles SET ai_summary=$1,ai_summary_source_hash=$2,ai_summary_approved_at=NOW() WHERE id=$3 AND user_id=$4 AND content=$5',[text,summary.hash(cv.content),cv.id,req.session.userId,cv.content]);
+ if(!result.rowCount)return res.status(409).json({error:'السيرة تغيرت. افتح الملخص من جديد.'});res.json({ok:true});
+}));
+router.post('/summary/reset',asyncHandler(async(req,res)=>{await run("UPDATE cv_profiles SET ai_summary='',ai_summary_source_hash=NULL,ai_summary_approved_at=NULL WHERE id=$1 AND user_id=$2",[req.body.cvId,req.session.userId]);res.json({ok:true});}));
 router.get('/list',asyncHandler(async(req,res)=>res.json(await all('SELECT id,name,filename,created_at,(pdf_data IS NOT NULL) AS has_attachment,(id=COALESCE((SELECT active_cv_id FROM users WHERE id=$1),$2)) AS active FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC',[req.session.userId,'']))));
 router.post('/select',asyncHandler(async(req,res)=>{if(!await get('SELECT id FROM cv_profiles WHERE user_id=$1 AND id=$2',[req.session.userId,req.body.id]))return res.status(404).json({error:'السيرة غير موجودة'});await run('UPDATE users SET active_cv_id=$1 WHERE id=$2',[req.body.id,req.session.userId]);res.json({ok:true});}));
 router.delete('/:id',asyncHandler(async(req,res)=>{

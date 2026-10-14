@@ -40,3 +40,10 @@ test('greetings and identity including a common typo answer immediately, without
  const {api,context}=support({version:2,scope:'outside',text:'ignored',topics:[]});const r=await api.respond('hi اكتب قصة خارج مرسال');assert.equal(r.scope,'outside');assert(context.prompt);
  const english=await support(null,true).api.respond('hi',{language:'en'});assert(english.text.includes('Mrsaal assistant'));
 });
+
+test('support prompt uses bounded excerpts and recent history while the complete guide remains available',async()=>{
+ const {api,context}=support({version:2,scope:'help',text:'راجع إعدادات السيرة واعتمد الملخص.',topics:['cv']});
+ await api.respond('ملخص السيرة',{history:Array.from({length:10},(_,i)=>({role:'user',content:'HISTORY'+i+' '+('x'.repeat(1600))}))});
+ assert(!context.prompt.includes('HISTORY0'));assert(context.prompt.includes('HISTORY9'));assert(context.prompt.length<5200);assert(context.prompt.includes('اعتمد الملخص'));
+ const fallback=await support(null,true).api.respond('ملخص السيرة');assert(fallback.articles.some(a=>a.text.includes('1800')||a.text.includes('لكل نسخة ملخص منفصل')));
+});

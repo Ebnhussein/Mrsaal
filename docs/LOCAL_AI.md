@@ -77,3 +77,11 @@ Drafts and support answers request a typed JSON schema with temperature 0. The L
 `Local AI timing` logs elapsed milliseconds, prompt character count, requested output tokens, reported prompt/completion token counts, finish reason and whether the request was aborted. It never logs CV text, messages or keys. Use these metrics for one real draft before deciding whether to change model/hardware or gateway configuration. A short synthetic API reply is not a performance guarantee for a full CV.
 
 Support greetings and identity questions return an immediate local introduction without spending AI quota. Product questions still use the configured AI and current product guide; unavailable AI is explicitly identified and a guide is offered. Outside requests remain restricted.
+
+## Reviewed CV summaries
+
+Settings → CV offers an editable candidate copied from original CV lines. It uses no AI request, never fabricates facts, and is never used until explicitly approved. Candidates may omit relevant facts; users must add them before approving. The limit is 1800 characters. The approved summary is stored per CV version and tied to a SHA-256 hash of its source text. A changed source invalidates approval. Revert to full text with Use full CV text.
+
+All draft-generation endpoints pass the server-verified summary. Only the platform local generation path uses it; explicit personal providers keep the full CV. Attachments still use the original saved PDF. Fixed templates are unchanged. CV and writing style precede variable company/revision information in local prompts to improve prefix reuse; cache retention and speed remain dependent on Ollama and other traffic.
+
+Support selects at most two relevant guide topics, with excerpts of up to 1100 characters each and four recent messages of at most 450 characters. It asks a clarifying question when excerpts lack necessary detail and offers the full source guide as fallback. The product guide now documents summary approval, so the assistant uses the updated knowledge automatically.
