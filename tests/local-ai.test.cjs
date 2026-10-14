@@ -46,3 +46,14 @@ test('real PostgreSQL slots work across app instances, rate limits bind to owner
  await pg.exec("DELETE FROM users WHERE id='owner'");assert.equal((await pg.query("SELECT * FROM local_ai_usage WHERE user_id='owner'")).rows.length,0);
  }finally{await pg.close();}
 });
+test('validated local output requests JSON mode and strips only complete thinking and Markdown envelope',async()=>{
+ const g=gateway({data:{choices:[{message:{content:'<think>private reasoning</think>\n```json\n{"subject":"Hello","body":"Draft","notes":[],"needsUserInput":false}\n```'},finish_reason:'stop'}]}});
+ const result=await g.api.callLocalAI('p',1200,text=>JSON.parse(text).body==='Draft',Date.now()+10000,'owner');assert.equal(JSON.parse(result).subject,'Hello');assert(!result.includes('think'));assert.equal(JSON.parse(g.requests[0].opts.body).response_format.type,'json_object');
+ assert.equal(g.api.cleanEnvelope('<think>not complete'),'<think>not complete');
+ const invalid=gateway({data:{choices:[{message:{content:'{"subject":"Only subject"}'},finish_reason:'stop'}]}});await assert.rejects(invalid.api.callLocalAI('p',100,t=>!!JSON.parse(t).body,Date.now()+10000,'owner'),e=>e.reason==='FORMAT');
+});
+test('local format retry stays within one quota reservation and preserves user content',async()=>{
+ const calls=[],credits=[],draft={subject:'Hello',body:'Honest draft',notes:[],needsUserInput:false};
+ const ai=load('utils/ai.js',{'./ai-legacy':{callGemini:async()=>{throw Error('legacy');}},'./ai-local':{callLocalAI:async(prompt)=>{calls.push(prompt);if(calls.length===1)throw Object.assign(new Error('format'),{reason:'FORMAT',code:'AI_UNAVAILABLE'});return JSON.stringify(draft);}},'./db':{get:async()=>({})},'./ai-leases':{acquire:async()=>1,release:async()=>{}},'./usage-limits':{reserve:async()=>{credits.push('reserve');return 'credit';},commit:async()=>credits.push('commit'),release:async()=>credits.push('refund')},'./writing-profile':require('../utils/writing-profile')},{process:{env}});
+ const result=await ai.generateEmail({userId:'owner',cv:'Real CV facts',company:{name:'Company'}});assert.equal(result.body,'Honest draft');assert.equal(calls.length,2);assert(calls.every(p=>p.includes('Real CV facts')));assert(calls[1].includes('الحقول الأربعة'));assert(!calls[0].includes('المطلوب JSON فقط {"subject":"...","body":"..."}'));assert.deepEqual(credits,['reserve','commit']);
+});

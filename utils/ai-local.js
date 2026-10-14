@@ -9,7 +9,7 @@ function settings(){
  try{base=new URL(process.env.LOCAL_AI_BASE_URL);}catch{throw error('AI_UNAVAILABLE','إعداد خدمة ذكاء مرسال المحلي غير صحيح.');}
  if(!['http:','https:'].includes(base.protocol)||base.username||base.password||base.search||base.hash)throw error('AI_UNAVAILABLE','راجع عنوان خدمة ذكاء مرسال المحلي.');
  if(!process.env.LOCAL_AI_API_KEY?.trim())throw error('AI_UNAVAILABLE','مفتاح خدمة ذكاء مرسال المحلي لم يُضبط بعد.');
- return {url:base.href.replace(/\/$/,'')+'/chat/completions',scope:createHash('sha256').update(base.href.replace(/\/$/,'')).digest('hex'),model:process.env.LOCAL_AI_MODEL?.trim()||'local-ai',key:process.env.LOCAL_AI_API_KEY.trim(),concurrent:integer('LOCAL_AI_MAX_CONCURRENT',1,1,8),rate:integer('LOCAL_AI_REQUESTS_PER_MINUTE',3,1,30),tokens:integer('LOCAL_AI_MAX_OUTPUT_TOKENS',1600,128,8000),chars:integer('LOCAL_AI_MAX_PROMPT_CHARS',50000,1000,100000)};
+ return {url:base.href.replace(/\/$/,'')+'/chat/completions',scope:createHash('sha256').update(base.href.replace(/\/$/,'')).digest('hex'),model:process.env.LOCAL_AI_MODEL?.trim()||'local-ai',key:process.env.LOCAL_AI_API_KEY.trim(),concurrent:integer('LOCAL_AI_MAX_CONCURRENT',1,1,8),rate:integer('LOCAL_AI_REQUESTS_PER_MINUTE',3,1,30),tokens:integer('LOCAL_AI_MAX_OUTPUT_TOKENS',1600,128,8000),chars:integer('LOCAL_AI_MAX_PROMPT_CHARS',50000,1000,100000),jsonMode:process.env.LOCAL_AI_JSON_MODE!=='off'};
 }
 async function acquire(config,ttl){
  for(let slot=1;slot<=config.concurrent;slot++){
@@ -38,15 +38,21 @@ async function callLocalAI(prompt,maxTokens=1200,validate=null,deadline=Date.now
   if(Date.now()>=deadline||controller.signal.aborted)throw error('TIMEOUT','انتهت مهلة الكتابة.');
   started=true;
   console.log('AI trying: local / '+config.model.replace(/[^a-zA-Z0-9_/:.\-]/g,'').slice(0,100));
-  const response=await fetch(config.url,{method:'POST',redirect:'error',signal:controller.signal,headers:{Authorization:'Bearer '+config.key,'Content-Type':'application/json'},body:JSON.stringify({model:config.model,messages:[{role:'system',content:'استخدم الحقائق المقدمة فقط والتزم بالتنسيق المطلوب. أرجع الإجابة النهائية فقط دون شرح التفكير.'},{role:'user',content:prompt}],max_tokens:Math.min(Math.max(1,Number(maxTokens)||1200),config.tokens),stream:false})});
+  const response=await fetch(config.url,{method:'POST',redirect:'error',signal:controller.signal,headers:{Authorization:'Bearer '+config.key,'Content-Type':'application/json'},body:JSON.stringify({model:config.model,messages:[{role:'system',content:'استخدم الحقائق المقدمة فقط والتزم بالتنسيق المطلوب. أرجع الإجابة النهائية فقط دون شرح التفكير.'+(validate?' الرد يجب أن يكون كائن JSON واحدًا صالحًا فقط، بكل الحقول المطلوبة في الطلب، بدون مقدمات أو Markdown أو تعليقات.':'')},{role:'user',content:prompt}],max_tokens:Math.min(Math.max(1,Number(maxTokens)||1200),config.tokens),...(validate&&config.jsonMode?{response_format:{type:'json_object'}}:{}),stream:false})});
   const data=await response.json().catch(()=>null);if(controller.signal.aborted)throw error('TIMEOUT','انتهت مهلة كتابة المسودة.');
   knownFinished=true;await record(userId,data?.usage);metered=true;
   if(!response.ok||data?.error){console.warn('Local AI request rejected; status='+response.status);throw error('AI_UNAVAILABLE',response.status===401||response.status===403?'ربط ذكاء مرسال المحلي محتاج مراجعة من الإدارة.':response.status===429?'خدمة ذكاء مرسال مشغولة حاليًا. حاول بعد قليل.':'خدمة ذكاء مرسال المحلي غير متاحة حاليًا.',response.status===429?429:503);}
   const choice=data?.choices?.[0],text=choice?.message?.content;
   if(choice?.finish_reason==='length')throw error('AI_UNAVAILABLE','رد ذكاء مرسال المحلي اتقطع. اختصر الطلب أو راجع سقف التوكنز من الإدارة.');
   if(typeof text!=='string'||!text.trim())throw error('AI_UNAVAILABLE','ذكاء مرسال المحلي لم يرجع نصًا صالحًا.');
-  if(validate&&!validate(text.trim()))throw error('AI_UNAVAILABLE','المسودة رجعت بتنسيق غير صالح. جرّب مرة تانية أو اكتبها يدويًا.');
-  console.log('AI succeeded: local');return text.trim();
+  const cleaned=validate?cleanEnvelope(text):text.trim();
+  if(validate&&!validate(cleaned)){
+   let parsed;try{parsed=JSON.parse(cleaned);}catch{}
+   const recognized=parsed&&typeof parsed==='object'?['subject','body','notes','needsUserInput','version','scope','text','topics','summary'].filter(key=>Object.hasOwn(parsed,key)):[];
+   console.warn('Local AI output invalid:',JSON.stringify({jsonObject:!!parsed&&typeof parsed==='object'&&!Array.isArray(parsed),recognizedFields:recognized,characters:cleaned.length}));
+   throw Object.assign(error('AI_UNAVAILABLE','المسودة رجعت بتنسيق غير صالح. جرّب مرة تانية أو اكتبها يدويًا.'),{reason:'FORMAT'});
+  }
+  console.log('AI succeeded: local');return cleaned;
  }catch(e){
   if(e.code==='AI_UNAVAILABLE'||e.code==='TIMEOUT')throw e;
   console.warn('Local AI connection failed; code='+ (controller.signal.aborted?'TIMEOUT':'NETWORK'));
@@ -58,4 +64,13 @@ async function callLocalAI(prompt,maxTokens=1200,validate=null,deadline=Date.now
   if(knownFinished||!started)await run('DELETE FROM local_ai_slots WHERE scope=$1 AND slot=$2 AND token=$3',[config.scope,lease.slot,lease.token]).catch(()=>console.warn('Local AI slot release deferred'));
  }
 }
-module.exports={configured,callLocalAI,settings};
+function cleanEnvelope(text){
+ let result=text.trim().replace(/^\uFEFF/,'');
+ while(/^<think>/i.test(result)){
+  const end=result.toLowerCase().indexOf('</think>');
+  if(end<0)return result; // Incomplete thinking is never treated as a finished answer.
+  result=result.slice(end+8).trim();
+ }
+ return result.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
+}
+module.exports={configured,callLocalAI,settings,cleanEnvelope};
