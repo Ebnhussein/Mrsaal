@@ -45,11 +45,12 @@ async function api(path, method='GET', body=null) {
   let r;
   const aiRequest=path==='/api/writing/generate'||path==='/api/writing/analyze'||path==='/api/email/generate';
   const controller=aiRequest?new AbortController():null;
+  const finishQueue=aiRequest?window.MrsaalAIQueue?.start(path==='/api/writing/analyze'?document.getElementById('writing-status'):document.getElementById('prev-body')?.parentElement):null;
   const timer=controller?setTimeout(()=>controller.abort(),105000):null;
   if(controller)opts.signal=controller.signal;
   try { r=await fetch(path,opts); }
   catch(error){throw new Error(error.name==='AbortError'?'انتهت مهلة الكتابة. جرّب موديل أسرع من إعدادات الذكاء الاصطناعي.':'الاتصال اتقطع. خلي الصفحة مفتوحة وتأكد من الإنترنت ثم حاول تاني.');}
-  finally {if(timer)clearTimeout(timer);}
+  finally {if(timer)clearTimeout(timer);finishQueue?.();}
 
   if (!r.ok) {
     const e = await r.json().catch(()=>({error:r.statusText}));
@@ -274,9 +275,8 @@ async function commitImport() {
 
 async function loadCompanies() {
   try {
-    const data = await api('/api/companies');
-    if(!Array.isArray(data)) throw new Error('السيرفر لم يُرجع قائمة شركات صحيحة');
-    companies = data; writingCompanies();
+    const data=[];let offset=0;do{const page=await api('/api/companies?offset='+offset+'&limit=250');if(!Array.isArray(page.companies))throw new Error('تعذر تحميل قائمة الشركات');data.push(...page.companies);if(page.nextOffset!==null&&(!Number.isInteger(page.nextOffset)||page.nextOffset<=offset))throw new Error('تعذر متابعة تحميل الشركات');offset=page.nextOffset;}while(offset!==null);
+    companies = data; companyPage=0;writingCompanies();
     renderCompanies();
     updateSendStats();refreshWorkspace();
     return true;
@@ -287,7 +287,10 @@ async function loadCompanies() {
   }
 }
 
-function filterCompanies() { renderCompanies(); }
+let companyPage=0;const companyPageSize=25;
+function filterCompanies() { companyPage=0;renderCompanies(); }
+function companyPageRows(){const rows=filteredCompanyRows();companyPage=Math.min(companyPage,Math.max(0,Math.ceil(rows.length/companyPageSize)-1));return rows.slice(companyPage*companyPageSize,(companyPage+1)*companyPageSize);}
+function companyPager(host,total){const max=Math.max(1,Math.ceil(total/companyPageSize));if(max===1)return;const nav=document.createElement('nav');nav.className='company-pager';nav.dataset.companyPager='';nav.setAttribute('aria-label',cvLabel('صفحات الشركات','Company pages'));for(const [label,delta]of [[cvLabel('السابق','Previous'),-1],[cvLabel('التالي','Next'),1]]){const b=document.createElement('button');b.type='button';b.className='btn btn-secondary';b.textContent=label;b.disabled=delta<0?companyPage===0:companyPage>=max-1;b.onclick=()=>{companyPage+=delta;renderCompanies();};nav.append(b);if(delta===-1){const count=document.createElement('span');count.textContent=(companyPage+1)+' / '+max;nav.append(count);}}host.append(nav);}
 
 function filteredCompanyRows(){
  const filter=document.getElementById('filter-status')?.value||'all',contact=document.getElementById('filter-contact')?.value||'all',term=document.getElementById('company-search').value.trim().toLowerCase();
@@ -303,7 +306,7 @@ function renderCompanies() {
     document.getElementById('companies-container').innerHTML = `<div class="empty"><div class="empty-ico">🏢</div><div class="empty-t">${filter!=='all'?'لا يوجد نتائج':'لا توجد شركات بعد'}</div><div class="empty-s">${filter!=='all'?'جرب تغيير الفلتر':'استورد ملف الشركات من الزر اللي فوق'}</div></div>`;
     return;
   }
-  const rows = filtered.map(c=>`
+  const rows = companyPageRows().map(c=>`
     <tr>
       <td><input type="checkbox" class="chk" ${c.selected?'checked':''} onchange="toggleChk('${c.id}',this.checked).catch(connectionError)"></td>
       <td data-user-content><strong>${esc(c.name)}</strong></td>
@@ -319,6 +322,7 @@ function renderCompanies() {
       <thead><tr><th><input type="checkbox" class="chk" data-select-visible aria-label="تحديد النتائج الظاهرة" onchange="selectVisibleCompanies(this.checked).catch(connectionError)"/></th><th>الشركة</th><th>الإيميل</th><th>التليفون</th><th>المجال</th><th>الموقع</th><th>الحالة</th><th>إجراء</th></tr></thead>
       <tbody>${rows}</tbody>
     </table></div>`;
+  companyPager(document.getElementById('companies-container'),filtered.length);
 }
 
 function stLabel(s){return{pending:'انتظار',sent:'أُرسل',failed:'فشل',scheduled:'مجدول',skipped:'تخطي',processing:'جاري الإرسال',uncertain:'إرسال غير مؤكد',cancelled:'أُلغي'}[s]||s}
@@ -332,7 +336,7 @@ async function bulkSelect(val) {
  const rows=[...companies];await api('/api/companies','PATCH',{ids:rows.map(c=>c.id),selected:val});rows.forEach(c=>c.selected=val);renderCompanies();updateChannelSummary();
 }
 async function selectVisibleCompanies(val){
- const rows=filteredCompanyRows();if(!rows.length)return;
+ const rows=companyPageRows();if(!rows.length)return;
  try{await api('/api/companies','PATCH',{ids:rows.map(c=>c.id),selected:val});rows.forEach(c=>c.selected=val);}finally{renderCompanies();updateChannelSummary();}
 }
 
@@ -656,7 +660,7 @@ async function loadWhatsAppStatus() {
   try {
     const state=await api('/api/whatsapp/status');waState=state.status;refreshWorkspace();
     const labels={connected:'🟢 متصل',connecting:'🟡 جاري الاتصال...',qr:'امسح رمز QR من تطبيق واتساب',disconnected:'⚪ غير متصل'};
-    document.getElementById('wa-status').textContent=(labels[state.status]||state.status)+(state.phone?' — '+state.phone:'')+(state.error?' — '+state.error:'');
+    document.getElementById('wa-status').textContent=(labels[state.status]||state.status)+(state.phone?' — '+state.phone:'')+(state.error?' — '+state.error:'')+(state.status==='disconnected'&&Number.isInteger(state.availableSlots)?' · '+cvLabel('أماكن الربط المتاحة: ','Available connection slots: ')+state.availableSlots:'');
     const image=document.getElementById('wa-qr');
     image.style.display=state.qr?'block':'none';
     if(state.qr)image.src=state.qr;else image.removeAttribute('src');

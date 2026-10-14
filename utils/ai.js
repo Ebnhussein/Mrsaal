@@ -29,7 +29,7 @@ async function callGemini(prompt,maxTokens=1200,apiKey=null,modelName=null,valid
  const personal=async()=>{if(Date.now()>=operation.deadline)throw Object.assign(new Error('انتهت مهلة الكتابة.'),{code:'TIMEOUT'});await operation.usePersonal?.();const text=await require('./ai-providers').callUserAI(userId,prompt,maxTokens,validate,operation.deadline);if(text===null)throw new Error('اختار منصة شخصية وموديل مفعّل من الإعدادات، أو استخدم ذكاء مرسال.');return text;};
  if(operation.source==='personal')return personal();
  try{return await platformCall(prompt,maxTokens,null,null,validate,operation.deadline,userId);}
- catch(e){if(!operation.fallback)throw e;return personal();}
+ catch(e){if(!operation.fallback||e.code==='AI_CANCELLED')throw e;return personal();}
 }
 
 const {decode}=require('./writing-profile');

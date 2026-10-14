@@ -3,7 +3,7 @@ set -euo pipefail
 umask 077
 # Install restic on the VPS; configure /etc/mrsaal-backup.env, mode 600.
 source /etc/mrsaal-backup.env
-: "${RESTIC_REPOSITORY:?}" "${RESTIC_PASSWORD_FILE:?}" "${POSTGRES_CONTAINER:?}" "${PGUSER:?}" "${PGDATABASE:?}" "${APP_SOURCE:?}"
+: "${RESTIC_REPOSITORY:?}" "${RESTIC_PASSWORD_FILE:?}" "${POSTGRES_CONTAINER:?}" "${PGUSER:?}" "${PGDATABASE:?}" "${APP_SOURCE:?}" "${APP_ENV_FILE:?}"
 exec 9>/var/lock/mrsaal-backup.lock
 flock -n 9 || exit 0
 backup_workdir="$(mktemp -d)"
@@ -15,3 +15,6 @@ install -m 600 "$APP_ENV_FILE" "$backup_workdir/app.env"
 restic backup --tag mrsaal "$backup_workdir" "$APP_SOURCE" --exclude '**/node_modules' --exclude '**/.git'
 restic forget --tag mrsaal --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune
 restic check
+# Local health marker contains no credentials.
+mkdir -p /var/lib/mrsaal-backup
+printf '{"backupSucceededAt":"%s"}\n' "$(date -u +%FT%TZ)" > /var/lib/mrsaal-backup/backup-status.json

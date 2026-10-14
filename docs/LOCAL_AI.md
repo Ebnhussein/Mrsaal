@@ -85,3 +85,9 @@ Settings → CV offers an editable candidate copied from original CV lines. It u
 All draft-generation endpoints pass the server-verified summary. Only the platform local generation path uses it; explicit personal providers keep the full CV. Attachments still use the original saved PDF. Fixed templates are unchanged. CV and writing style precede variable company/revision information in local prompts to improve prefix reuse; cache retention and speed remain dependent on Ollama and other traffic.
 
 Support selects at most two relevant guide topics, with excerpts of up to 1100 characters each and four recent messages of at most 450 characters. It asks a clarifying question when excerpts lack necessary detail and offers the full source guide as fallback. The product guide now documents summary approval, so the assistant uses the updated knowledge automatically.
+
+## Public beta queue and admission
+
+See docs/PUBLIC-BETA-AR.md for operational steps and acceptance checks. Busy local requests may wait up to 45 seconds inside the original operation deadline, in a shared PostgreSQL queue capped at five waiting users. Queue metadata holds no CV/prompt text. The UI displays status and permits cancellation of the observed request ID. Account suspension also requests cancellation of local waiting/running work. An interrupted upstream request retains its slot until safe expiry to avoid concurrent backend computation.
+
+Global admissions default to six requests/minute and 300/day per endpoint scope. All local attempts for an account across assistant/style/drafts share the ai_limit daily operational cap in addition to the existing per-kind success-credit rules. Failed and cancelled attempts may still count as actual local usage; a failed draft operation refunds its success credit. Set LOCAL_AI_QUEUE_WAIT_MS=0 to disable waiting. Personal providers are unchanged and are not cancelled by the local queue endpoint.

@@ -11,13 +11,15 @@ function settings(){
  if(!process.env.LOCAL_AI_API_KEY?.trim())throw error('AI_UNAVAILABLE','مفتاح خدمة ذكاء مرسال المحلي لم يُضبط بعد.');
  return {url:base.href.replace(/\/$/,'')+'/chat/completions',scope:createHash('sha256').update(base.href.replace(/\/$/,'')).digest('hex'),model:process.env.LOCAL_AI_MODEL?.trim()||'local-ai',key:process.env.LOCAL_AI_API_KEY.trim(),concurrent:integer('LOCAL_AI_MAX_CONCURRENT',1,1,8),rate:integer('LOCAL_AI_REQUESTS_PER_MINUTE',3,1,30),tokens:integer('LOCAL_AI_MAX_OUTPUT_TOKENS',1600,128,8000),chars:integer('LOCAL_AI_MAX_PROMPT_CHARS',50000,1000,100000),jsonMode:process.env.LOCAL_AI_JSON_MODE!=='off'};
 }
-async function acquire(config,ttl){
- for(let slot=1;slot<=config.concurrent;slot++){
-  const token=randomUUID();
-  const row=await get(`INSERT INTO local_ai_slots(scope,slot,token,expires_at) VALUES($1,$2,$3,NOW()+($4::integer*INTERVAL '1 second')) ON CONFLICT(scope,slot) DO UPDATE SET token=EXCLUDED.token,expires_at=EXCLUDED.expires_at WHERE local_ai_slots.expires_at<NOW() RETURNING token`,[config.scope,slot,token,ttl]);
+async function acquire(config,ttl,userId,deadline){
+ const queue=require('./local-ai-queue');
+ const claim=async()=>{for(let slot=1;slot<=config.concurrent;slot++){
+  const token=randomUUID();const row=await get(`INSERT INTO local_ai_slots(scope,slot,token,expires_at,user_id,cancel_requested) VALUES($1,$2,$3,NOW()+($4::integer*INTERVAL '1 second'),$5,false) ON CONFLICT(scope,slot) DO UPDATE SET token=EXCLUDED.token,expires_at=EXCLUDED.expires_at,user_id=EXCLUDED.user_id,cancel_requested=false WHERE local_ai_slots.expires_at<NOW() RETURNING token`,[config.scope,slot,token,Math.max(1,Math.ceil((deadline-Date.now())/1000)+15),userId]);
   if(row)return {slot,token};
- }
- throw error('AI_UNAVAILABLE','ذكاء مرسال مشغول بطلب آخر حاليًا. استنى قليلًا وجرب تاني.',429);
+ }return null;};
+ const first=await queue.first(config.scope);
+ if(!first){const available=await claim();if(available)return available;}
+ return queue.wait(config,userId,deadline,claim);
 }
 function number(value){return Number.isSafeInteger(value)&&value>=0?value:null;}
 async function record(userId,usage){
@@ -27,17 +29,20 @@ async function record(userId,usage){
  try{await run(`INSERT INTO local_ai_usage(user_id,requests,metered_requests,prompt_tokens,completion_tokens,total_tokens) VALUES($1,1,$2,$3,$4,$5) ON CONFLICT(user_id,day) DO UPDATE SET requests=local_ai_usage.requests+1,metered_requests=local_ai_usage.metered_requests+EXCLUDED.metered_requests,prompt_tokens=local_ai_usage.prompt_tokens+EXCLUDED.prompt_tokens,completion_tokens=local_ai_usage.completion_tokens+EXCLUDED.completion_tokens,total_tokens=local_ai_usage.total_tokens+EXCLUDED.total_tokens`,[userId,reported?1:0,prompt||0,completion||0,total??((prompt||0)+(completion||0))]);}catch{console.warn('Local AI usage recording failed');}
 }
 async function callLocalAI(prompt,maxTokens=1200,validate=null,deadline=Date.now()+45000,userId=null){
- const config=settings();
+ const requestStarted=Date.now(),config=settings();
  if(typeof prompt!=='string'||prompt.length>config.chars)throw error('AI_UNAVAILABLE','المحتوى أطول من الحد المتاح للكتابة. قلّل الأمثلة أو النص وحاول مجددًا.',400);
  const timeout=deadline-Date.now();if(timeout<=0)throw error('TIMEOUT','انتهت مهلة الكتابة.');
- const lease=await acquire(config,Math.ceil(timeout/1000)+15);
+ const lease=await acquire(config,Math.ceil(timeout/1000)+15,userId,deadline);
  let knownFinished=false,started=false,metered=false;
  const began=Date.now(),requestedTokens=Math.min(Math.max(1,Number(maxTokens)||1200),config.tokens);
  let finishReason=null,usage=null;
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),Math.max(1,deadline-Date.now()));
+ const controller=new AbortController();let userCancelled=false,cancelPollBusy=false;
+ const cancelPoll=userId?setInterval(async()=>{if(cancelPollBusy)return;cancelPollBusy=true;try{const state=await get('SELECT cancel_requested FROM local_ai_slots WHERE scope=$1 AND slot=$2 AND token=$3',[config.scope,lease.slot,lease.token]);if(state?.cancel_requested){userCancelled=true;controller.abort();}}catch{}finally{cancelPollBusy=false;}},750):null;
+ const timer=setTimeout(()=>controller.abort(),Math.max(1,deadline-Date.now()));
  try{
   if(userId){const allowed=await get(`INSERT INTO local_ai_windows(user_id,minute,amount) VALUES($1,date_trunc('minute',NOW()),1) ON CONFLICT(user_id) DO UPDATE SET minute=EXCLUDED.minute,amount=CASE WHEN local_ai_windows.minute<>EXCLUDED.minute THEN 1 ELSE local_ai_windows.amount+1 END WHERE local_ai_windows.minute<>EXCLUDED.minute OR local_ai_windows.amount<$2 RETURNING amount`,[userId,config.rate]);if(!allowed)throw error('AI_UNAVAILABLE','طلبت الكتابة أكثر من مرة خلال دقيقة. استنى للدقيقة التالية.',429);}
   if(Date.now()>=deadline||controller.signal.aborted)throw error('TIMEOUT','انتهت مهلة الكتابة.');
+  if(userId)await require('./local-ai-queue').globalAllowance(config.scope,userId);
   started=true;
   console.log('AI trying: local / '+config.model.replace(/[^a-zA-Z0-9_/:.\-]/g,'').slice(0,100));
   const response=await fetch(config.url,{method:'POST',redirect:'error',signal:controller.signal,headers:{Authorization:'Bearer '+config.key,'Content-Type':'application/json'},body:JSON.stringify({model:config.model,messages:[{role:'system',content:'استخدم الحقائق المقدمة فقط والتزم بالتنسيق المطلوب. أرجع الإجابة النهائية فقط دون شرح التفكير.'+(validate?' الرد يجب أن يكون كائن JSON واحدًا صالحًا فقط، بكل الحقول المطلوبة في الطلب، بدون مقدمات أو Markdown أو تعليقات.':'')},{role:'user',content:prompt}],max_tokens:requestedTokens,temperature:0,...(validate&&config.jsonMode?{response_format:validate.schema&&process.env.LOCAL_AI_JSON_MODE!=='object'?{type:'json_schema',json_schema:{name:'mrsaal_response',strict:true,schema:validate.schema}}:{type:'json_object'}}:{}),stream:false})});
@@ -56,12 +61,13 @@ async function callLocalAI(prompt,maxTokens=1200,validate=null,deadline=Date.now
   }
   console.log('AI succeeded: local');return cleaned;
  }catch(e){
+  if(userCancelled)throw Object.assign(error('AI_CANCELLED','اتلغى طلب الذكاء الاصطناعي.',409),{reason:'CANCELLED'});
   if(e.code==='AI_UNAVAILABLE'||e.code==='TIMEOUT')throw e;
   console.warn('Local AI connection failed; code='+ (controller.signal.aborted?'TIMEOUT':'NETWORK'));
   throw error(controller.signal.aborted?'TIMEOUT':'AI_UNAVAILABLE',controller.signal.aborted?'ذكاء مرسال المحلي استغرق وقتًا أطول من المهلة المتاحة.':'تعذر الاتصال بذكاء مرسال المحلي. تأكد أن جهاز تشغيل الموديل متصل.');
  }finally{
-  clearTimeout(timer);
-  console.log('Local AI timing:',JSON.stringify({elapsedMs:Date.now()-began,promptCharacters:prompt.length,requestedTokens,finishReason:['stop','length','content_filter'].includes(finishReason)?finishReason:null,promptTokens:number(usage?.prompt_tokens),completionTokens:number(usage?.completion_tokens),aborted:controller.signal.aborted}));
+  clearTimeout(timer);if(cancelPoll)clearInterval(cancelPoll);
+  console.log('Local AI timing:',JSON.stringify({elapsedMs:Date.now()-began,queueWaitMs:began-requestStarted,totalElapsedMs:Date.now()-requestStarted,promptCharacters:prompt.length,requestedTokens,finishReason:['stop','length','content_filter'].includes(finishReason)?finishReason:null,promptTokens:number(usage?.prompt_tokens),completionTokens:number(usage?.completion_tokens),aborted:controller.signal.aborted}));
   if(started&&!metered)await record(userId,null);
   // A lost connection may leave the backend computing. Keep the slot until expiry.
   if(knownFinished||!started)await run('DELETE FROM local_ai_slots WHERE scope=$1 AND slot=$2 AND token=$3',[config.scope,lease.slot,lease.token]).catch(()=>console.warn('Local AI slot release deferred'));

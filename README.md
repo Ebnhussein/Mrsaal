@@ -106,3 +106,7 @@ npm test
 
 ## تحديث الحملات والحسابات 2026-10-08
 راجع INSTALL-LAUNCH-AR.md للرفع وSupabase، وTEST-CHECKLIST-AR.md للتجربة. الإرسال الجماعي يحتاج اعتماد المسودات من الحملات قبل البدء. استخدم npm ci مع package-lock.json، ولا تحذف الملفات الجديدة في utils/routes/ops.
+
+
+## Public beta readiness (2026-10-14)
+راجع [docs/PUBLIC-BETA-AR.md](docs/PUBLIC-BETA-AR.md) للإعدادات، وفصل Google Sign-In عن Gmail verification، واختبارات القبول. سكربتا ops/readiness-check.sh وops/verify-restore.sh يجهزان فحص السيرفر والاستعادة إلى قاعدة مؤقتة؛ لم يتم تشغيلهما على الإنتاج بواسطة هذا التحديث. تفعيل MFA وتوثيق Google وضبط Supabase وCloudflare إجراءات خارجية.

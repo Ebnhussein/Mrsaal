@@ -3,7 +3,7 @@ const { requireAuth }=require('../middleware/auth');
 const wa=require('../utils/whatsapp');
 router.use(requireAuth);
 router.use((req,res,next)=>{res.set('Cache-Control','no-store');next();});
-router.get('/status',(req,res)=>res.json(wa.status(req.session.userId)));
+router.get('/status',(req,res)=>res.json({...wa.status(req.session.userId),...wa.capacity()}));
 router.post('/connect',async(req,res)=>{
   try {res.json(await wa.connect(req.session.userId));}
   catch(err){res.status(503).json({error:err.message});}

@@ -18,7 +18,7 @@ const pages=new Set(['product','blog','plans','help','login','signup','about','c
 router.get('/:lang(ar|en)/blog/:slug',wrap(async(req,res)=>{const post=await get("SELECT * FROM website_posts WHERE slug=$1 AND status='published'",[req.params.slug])||guides.find(g=>g.slug===req.params.slug);if(!post)return res.status(404).send('Article not found');res.send(render(req.params.lang,'article',{post}));}));
 router.get('/:lang(ar|en)/:page?',wrap(async(req,res,next)=>{
  const page=req.params.page||'home';if(page!=='home'&&!pages.has(page))return next();
- if(['login','signup'].includes(page)&&req.session?.userId)return res.redirect(await isAdmin(req.session.userId)?'/admin':'/app');
+ if(['login','signup'].includes(page)&&req.session?.userId&&!(page==='login'&&req.query.reauth==='1'))return res.redirect(await isAdmin(req.session.userId)?'/admin':'/app');
  
  if(['login','signup'].includes(page))res.set({'Cache-Control':'no-store','X-Robots-Tag':'noindex'});
  const posts=page==='blog'?await all("SELECT slug,category,title_ar,title_en,excerpt_ar,excerpt_en FROM website_posts WHERE status='published' ORDER BY published_at DESC"):[];

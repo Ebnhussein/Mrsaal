@@ -38,7 +38,7 @@ async function respond(question,context={},credentials={}){
   if(!validChat(result,allowed))return answer(result,language);
   if(result.scope==='outside')return {scope:'outside',text:language==='en'?'I can only help with using Mrsaal. Choose a topic such as CV upload, company import, writing preferences or sending.':OUTSIDE,articles:[]};
   return {scope:result.scope,mode:'ai',text:result.text.trim(),articles:[...new Set(result.topics)].map(id=>{const d=localizedDoc(catalogue.get(id),language);return {id,title:d.title,text:'',action:d.action};})};
- }catch(error){console.warn('Support AI failed:',error.code||'PROVIDER_FAILURE');
+ }catch(error){if(error.code==='AI_CANCELLED')throw error;console.warn('Support AI failed:',error.code||'PROVIDER_FAILURE');
   if(selected.length){const result=answer({scope:'help',topics:selected.slice(0,2).map(d=>d.id)},language);result.text=language==='en'?'AI is unavailable right now. This Mrsaal guide can help you continue.':'تعذر الرد بالذكاء الاصطناعي الآن؛ ده شرح من دليل مرسال يساعدك تكمل.';result.mode='local';return result;}
   return {scope:'unclear',mode:'local',text:language==='en'?'AI is unavailable right now. Is your issue with CV, companies, AI or sending? You can also use a ready-made guide or contact support.':'تعذر اتصال AI الآن. تقصد مشكلة في السي في، الشركات، الذكاء الاصطناعي ولا الإرسال؟ تقدر كمان تختار شرحًا جاهزًا أو تتواصل مع الدعم.',articles:[]};
  }

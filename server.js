@@ -13,12 +13,13 @@ let closing = false;
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
 app.use(require('./middleware/security-headers'));
+app.use(require('./middleware/request-guard'));
 app.get('/robots.txt',(req,res)=>res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://mrsaal.ebnhussein.co/sitemap.xml\n')); 
 
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({
   extended: true,
-  limit: '50mb'
+  limit: '2mb'
 }));
 
 app.get('/privacy.html',(req,res)=>res.redirect(301,'/ar/privacy'));
@@ -83,6 +84,8 @@ async function lazyInit() {
       }
     }));
 
+    app.use(require('./middleware/mutation-rate'));
+    app.use(require('./middleware/admin-session'));
     app.use(require('./utils/access-control').gate);
     app.use(require('./utils/helpdesk').monitor);
     app.use('/api/admin', require('./routes/admin'));
@@ -101,6 +104,7 @@ async function lazyInit() {
 
     // مساعد مرسال — يحتاج routes/support.js وباقي ملفات المساعد
     app.use('/api/support', require('./routes/support'));
+    app.use('/api/ai-queue', require('./routes/ai-queue'));
 
     app.use('/api/email', require('./routes/email'));
     app.use('/api/settings', require('./routes/settings'));

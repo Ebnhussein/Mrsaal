@@ -23,7 +23,7 @@ router.post('/chat',async(req,res)=>{
   const result=await respond(q.trim(),{previousTopics:req.body.previousTopics,history,language:req.body.language==='en'?'en':'ar'},{userId:id,apiKey:u?.gemini_key,modelName:u?.gemini_model});
   conversations.set(id,{time:Date.now(),messages:[...history,{role:'user',content:q.trim()},{role:'assistant',content:result.text}].slice(-6)});res.json(result);
  }
- catch{res.status(503).json({error:'تعذر تشغيل المساعد. جرب الشروحات الجاهزة.'});}
+ catch(error){res.status(error.code==='AI_CANCELLED'?409:503).json({error:error.code==='AI_CANCELLED'?'اتلغى الطلب.':'تعذر تشغيل المساعد. جرب الشروحات الجاهزة.',code:error.code==='AI_CANCELLED'?'AI_CANCELLED':undefined});}
  finally{busy.delete(id);}
 });
 module.exports=router;

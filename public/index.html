@@ -8,16 +8,17 @@
 <link href="/assets/favicon.svg" rel="icon" type="image/svg+xml"/><link href="/assets/app.css" rel="stylesheet"/>
 <link href="/assets/writing.css" rel="stylesheet"/>
 <link href="/assets/tour.css" rel="stylesheet"/>
-<script defer="" src="/assets/product-guide.js?v=cv-summary-20261014"></script>
+<script defer="" src="/assets/product-guide.js?v=beta-readiness-20261014"></script>
 <script defer="" src="/assets/tour.js"></script>
 <link href="/assets/support.css?v=20261008-ai-reliability-2" rel="stylesheet"/>
-<script defer="" src="/assets/support.js?v=20261008-ai-reliability-2"></script>
+<script defer="" src="/assets/support.js?v=beta-readiness-20261014"></script>
 <link href="/assets/connections.css?v=plans-source-20261009" rel="stylesheet"/>
 <script defer="" src="/assets/connections.js?v=paid-plans-20261009-2"></script>
 <link href="/assets/layout.css?v=20261008-ai-reliability-2" rel="stylesheet"/>
 <link href="/assets/tickets.css" rel="stylesheet"/>
 <link href="/assets/stitch.css?v=20261008-stitch-1" rel="stylesheet"/>
-<link href="/assets/workspace-redesign.css?v=applications-1" rel="stylesheet"/><script defer="" src="/assets/workspace-locale.js?v=reports-1"></script><script defer="" src="/assets/workspace-redesign.js?v=applications-1"></script><link href="/assets/applications.css?v=applications-1" rel="stylesheet"/><script defer="" src="/assets/applications.js?v=applications-1"></script><link href="/assets/reports-mobile.css?v=reports-1" rel="stylesheet"/><script defer="" src="/assets/reports-mobile.js?v=reports-1"></script><link rel="stylesheet" href="/assets/notifications.css?v=notifications-1"/><script defer src="/assets/notifications.js?v=notifications-1"></script><link rel="stylesheet" href="/assets/launch.css?v=draft-loading-20261012"/><link href="/assets/cv-summary.css?v=20261014" rel="stylesheet"/>
+<link href="/assets/workspace-redesign.css?v=applications-1" rel="stylesheet"/><script defer="" src="/assets/workspace-locale.js?v=reports-1"></script><script defer="" src="/assets/workspace-redesign.js?v=beta-readiness-20261014"></script><link href="/assets/applications.css?v=applications-1" rel="stylesheet"/><script defer="" src="/assets/applications.js?v=applications-1"></script><link href="/assets/reports-mobile.css?v=reports-1" rel="stylesheet"/><script defer="" src="/assets/reports-mobile.js?v=reports-1"></script><link rel="stylesheet" href="/assets/notifications.css?v=notifications-1"/><script defer src="/assets/notifications.js?v=notifications-1"></script><link rel="stylesheet" href="/assets/launch.css?v=beta-readiness-20261014"/><link href="/assets/cv-summary.css?v=20261014" rel="stylesheet"/>
+<link href="/assets/readiness.css?v=20261014" rel="stylesheet"/>
 </head>
 <body class="mrsaal-workspace stitch-workspace">
 <div id="app-loading" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px">
@@ -188,8 +189,9 @@
 </div>
 <div class="toast" id="toast"></div>
 <script src="/assets/writing.js"></script>
+<script src="/assets/ai-queue.js?v=20261014"></script>
 <script src="/assets/cv-summary.js?v=20261014"></script>
-<script src="/assets/app.js?v=cv-summary-20261014"></script>
+<script src="/assets/app.js?v=beta-readiness-20261014"></script>
 <script src="/assets/workspace.js"></script><script src="/assets/tickets.js?v=20261008-ai-reliability-2"></script>
 <nav aria-label="التنقل السريع" class="work-bottom-nav"><button class="nav-item" data-page="home" onclick="nav('home')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1Z"></path></svg><span>الرئيسية</span></button><button class="nav-item" data-page="companies" onclick="nav('companies')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><rect height="18" rx="2" width="16" x="4" y="3"></rect><path d="M9 21v-5h6v5M8 7h1m6 0h1M8 11h1m6 0h1"></path></svg><span>الشركات</span><span class="nav-badge">0</span></button><button class="nav-item" data-page="settings" data-work-setting="template" onclick="openSettings('template')" type="button"><span aria-hidden="true" class="material-symbols-outlined">edit_note</span><span>الرسائل</span></button><button class="nav-item" data-page="report" onclick="nav('report')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M4 3v18h17M8 16v-5m5 5V7m5 9v-8"></path></svg><span>التقارير</span><span class="nav-badge" hidden="">0</span></button><button class="nav-item" data-page="settings" onclick="openSettings('account')" type="button"><svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M4 7h16M4 17h16"></path><circle cx="9" cy="7" r="3"></circle><circle cx="16" cy="17" r="3"></circle></svg><span>الإعدادات</span></button></nav><div class="applications-overlay" hidden="" id="applications-drawer"><section aria-labelledby="applications-title" aria-modal="true" class="applications-drawer" role="dialog"><header class="applications-drawer-header"><div><h2 id="applications-title">تجهيز الإرسال</h2><p>راجع القناة والشركات والتوقيت قبل التأكيد.</p></div><button class="btn btn-secondary" onclick="MrsaalTour.start('send')" type="button">شرح الإرسال</button><button aria-label="إغلاق تجهيز الإرسال" class="btn btn-secondary" onclick="MrsaalApplications.close()" type="button">×</button></header><div class="applications-drawer-content"><div class="applications-send" id="page-send">
 <div class="g4" hidden="" style="margin-bottom:20px">
@@ -247,5 +249,5 @@
 <button class="btn btn-primary" id="btn-send" onclick="startSend()">مراجعة وبدء الإرسال</button>
 <button class="btn btn-danger" id="btn-stop" onclick="stopSend()" style="display:none">إيقاف الإرسال</button>
 </div>
-</div></div></section></div><script src="/assets/launch.js?v=draft-loading-20261012"></script></body>
+</div></div></section></div><script src="/assets/launch.js?v=beta-readiness-20261014"></script></body>
 </html>

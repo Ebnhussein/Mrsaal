@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const path=require('node:path');
-function load(file,deps,extra={}){const box={module:{exports:{}},require:id=>Object.hasOwn(deps,id)?deps[id]:require(id),process:{env:{}},console:{log(){},warn(){}},URL,AbortController,setTimeout,clearTimeout,...extra};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),box);return box.module.exports;}
+function load(file,deps,extra={}){const box={module:{exports:{}},require:id=>Object.hasOwn(deps,id)?deps[id]:id==='./local-ai-queue'?{first:async()=>null,wait:async()=>{throw Object.assign(new Error('busy'),{code:'AI_UNAVAILABLE',status:429});},globalAllowance:async()=>{}}:require(id),process:{env:{}},console:{log(){},warn(){}},URL,AbortController,setTimeout,clearTimeout,setInterval,clearInterval,...extra};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),box);return box.module.exports;}
 const env={LOCAL_AI_BASE_URL:'https://ai.ebnhussein.co/v1',LOCAL_AI_API_KEY:'server-only-key',LOCAL_AI_MODEL:'local-ai'};
 function gateway({busy=false,throttle=false,data={choices:[{message:{content:'valid draft'},finish_reason:'stop'}],usage:{prompt_tokens:40,completion_tokens:10,total_tokens:50}},status=200,fetchImpl}={}){
  const queries=[],requests=[];const db={get:async(sql,args)=>{queries.push([sql,args]);if(sql.includes('local_ai_slots'))return busy?null:{token:args[2]};if(sql.includes('local_ai_windows'))return throttle?null:{amount:1};},run:async(sql,args)=>queries.push([sql,args])};

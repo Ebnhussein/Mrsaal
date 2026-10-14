@@ -9,9 +9,15 @@ const sessions = new Map();
 let libraryPromise;
 let schemaPromise;
 let stopping = false;
-const MAX_SESSIONS = Number(process.env.WHATSAPP_MAX_SESSIONS || 10);
+const configuredMax=Number(process.env.WHATSAPP_MAX_SESSIONS);
+const MAX_SESSIONS=Number.isInteger(configuredMax)&&configuredMax>=1&&configuredMax<=100?configuredMax:10;
+function occupied(){return [...sessions.values()].filter(e=>e.status!=='disconnected').length;}
+function capacity(){return {capacity:MAX_SESSIONS,availableSlots:Math.max(0,MAX_SESSIONS-occupied())};}
+function cleanDisconnected(userId,entry){clearTimeout(entry.cleanup);entry.cleanup=setTimeout(()=>{if(sessions.get(userId)===entry&&entry.status==='disconnected')disconnect(userId,false).catch(()=>{});},60000);entry.cleanup.unref?.();}
 
 function library() {
+  if(libraryPromise)return libraryPromise;
+  require('./safe-signal').install();
   return libraryPromise ||= import('@whiskeysockets/baileys').then(mod => {
     const base = typeof mod.default === 'object' ? mod.default : {};
     return {...base, ...mod, default: typeof mod.default === 'function' ? mod.default : base.default};
@@ -122,12 +128,12 @@ async function openSocket(userId,entry) {
       const terminal=[lib.DisconnectReason.loggedOut,lib.DisconnectReason.badSession,lib.DisconnectReason.connectionReplaced,lib.DisconnectReason.multideviceMismatch].includes(code);
       if(terminal || entry.retries>=5) {
         require('./notifications').whatsappDisconnected(userId,entry);
-        entry.status='disconnected';entry.error=terminal?'انتهى الاتصال. افصل الربط ثم اربط واتساب من جديد.':'تعذر الاتصال. جرّب الربط من جديد.';
+        entry.status='disconnected';cleanDisconnected(userId,entry);entry.error=terminal?'انتهى الاتصال. افصل الربط ثم اربط واتساب من جديد.':'تعذر الاتصال. جرّب الربط من جديد.';
         return;
       }
       entry.status='connecting';entry.retries++;
       entry.timer=setTimeout(()=>{
-        entry.pending=openSocket(userId,entry).catch(()=>{entry.status='disconnected';entry.error='تعذر إعادة الاتصال بواتساب';require('./notifications').whatsappDisconnected(userId,entry);});
+        entry.pending=openSocket(userId,entry).catch(()=>{entry.status='disconnected';cleanDisconnected(userId,entry);entry.error='تعذر إعادة الاتصال بواتساب';require('./notifications').whatsappDisconnected(userId,entry);});
       },Math.min(1000*2**entry.retries,30000));
     }
   });
@@ -138,12 +144,12 @@ async function connect(userId) {
   let entry=sessions.get(userId);
   if(entry && ['connected','connecting','qr'].includes(entry.status)) return status(userId);
   if(entry) await disconnect(userId,false);
-  if(sessions.size>=MAX_SESSIONS) throw new Error('وصل السيرفر لعدد جلسات واتساب المتاحة');
+  if(occupied()>=MAX_SESSIONS) throw new Error('وصل السيرفر لعدد جلسات واتساب المتاحة');
   entry={status:'connecting',qr:null,phone:null,error:null,retries:0,cancelled:false,writes:Promise.resolve(),sendQueue:Promise.resolve()};
   sessions.set(userId,entry);
   entry.pending=openSocket(userId,entry);
   try {await entry.pending;} catch(err) {
-    entry.status='disconnected';entry.error='تعذر بدء جلسة واتساب. راجع لوج التطبيق.';
+    entry.status='disconnected';cleanDisconnected(userId,entry);entry.error='تعذر بدء جلسة واتساب. راجع لوج التطبيق.';
     console.error('WhatsApp start failed:',err.code||err.name);
     throw new Error(entry.error);
   }
@@ -152,7 +158,7 @@ async function connect(userId) {
 async function disconnect(userId,forget=true) {
   const entry=sessions.get(userId);
   if(entry) {
-    entry.cancelled=true;clearTimeout(entry.timer);
+    entry.cancelled=true;clearTimeout(entry.timer);clearTimeout(entry.cleanup);
     await entry.pending?.catch(()=>{});
     if(forget && entry.sock) await entry.sock.logout().catch(()=>{});
     entry.sock?.end(new Error('Session closed'));
@@ -208,4 +214,4 @@ async function shutdown() {
   stopping=true;
   for(const id of [...sessions.keys()]) await disconnect(id,false);
 }
-module.exports={connect,disconnect,status,requireConnected,sendWhatsAppMessage,restoreSessions,shutdown};
+module.exports={capacity,connect,disconnect,status,requireConnected,sendWhatsAppMessage,restoreSessions,shutdown};

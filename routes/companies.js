@@ -12,11 +12,9 @@ const { get, all, run } = require('../utils/db');
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 router.get('/', requireAuth, asyncHandler(async (req, res) => {
-  const companies = await all(
-    'SELECT * FROM companies WHERE user_id = $1 ORDER BY created_at DESC',
-    [req.session.userId]
-  );
-  res.json(companies);
+  const offset=Math.max(0,Math.min(100000,parseInt(req.query?.offset)||0)),limit=Math.max(1,Math.min(250,parseInt(req.query?.limit)||250));
+  const companies=await all('SELECT * FROM companies WHERE user_id=$1 ORDER BY created_at DESC,id LIMIT $2 OFFSET $3',[req.session.userId,limit+1,offset]);
+  const more=companies.length>limit;res.json({companies:companies.slice(0,limit),nextOffset:more?offset+limit:null});
 }));
 
 router.post('/', requireAuth, asyncHandler(async (req, res) => {
@@ -24,12 +22,8 @@ router.post('/', requireAuth, asyncHandler(async (req, res) => {
   if ([name,email,phone,field,location].some(v=>v!=null&&typeof v!=='string') || (name||'').length>200 || (email||'').length>254 || (phone||'').length>40 || (field||'').length>200 || (location||'').length>200) return res.status(400).json({error:'راجع نوع البيانات وطول الحقول.'});
   if (!name?.trim()) return res.status(400).json({ error: 'اسم الشركة مطلوب' });
   if (!email && !phone) return res.status(400).json({ error: 'الإيميل أو رقم الموبايل مطلوب' });
-  const id = uuidv4();
-  await run(
-    `INSERT INTO companies (id, user_id, name, email, phone, field, location) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-    [id, req.session.userId, name.trim(), (email||'').trim().toLowerCase(), (phone||'').trim(), (field||'').trim(), (location||'').trim()]
-  );
-  res.json({ ok: true, id });
+  const result=await require('../utils/company-store').add(req.session.userId,[{name:name.trim(),email:(email||'').trim().toLowerCase(),phone:(phone||'').trim(),field:(field||'').trim(),location:(location||'').trim()}]);
+  res.json({ok:true,id:result.ids[0]||null,duplicate:result.added===0});
 }));
 
 router.post('/import', requireAuth, upload.single('file'), (req, res) => {
@@ -50,28 +44,12 @@ router.post('/import/commit', requireAuth, upload.single('file'), asyncHandler(a
     const {rows,width}=spreadsheetRows(req.file,XLSX);
     const ni=column(nameCol,width,true),ei=column(emailCol,width),pi=column(phoneCol,width),fi=column(fieldCol,width),li=column(locationCol,width);
     if(ei<0&&pi<0)return res.status(400).json({error:'اختار عمود الإيميل أو الهاتف على الأقل.'});
-    let added = 0, skipped = 0;
-    for (const row of rows.slice(1).filter(r => r.some(c => c))) {
-      const name  = String(row[ni] || '').trim();
-      const email = ei >= 0 ? String(row[ei] || '').trim().toLowerCase() : '';
-      const phone = pi >= 0 ? String(row[pi] || '').trim().replace(/\s/g, '') : '';
-      if (!name || (!email && !phone) || (email && !email.includes('@'))) { skipped++; continue; }
-      if (email) {
-        const exists = await get('SELECT id FROM companies WHERE user_id=$1 AND email=$2', [req.session.userId, email]);
-        if (exists) { skipped++; continue; }
-      } else if (phone) {
-        const exists = await get('SELECT id FROM companies WHERE user_id=$1 AND phone=$2', [req.session.userId, phone]);
-        if (exists) { skipped++; continue; }
-      }
-      await run(
-        `INSERT INTO companies (id, user_id, name, email, phone, field, location) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-        [uuidv4(), req.session.userId, name, email, phone,
-         fi >= 0 ? String(row[fi] || '') : '',
-         li >= 0 ? String(row[li] || '') : '']
-      );
-      added++;
+    const incoming=[];let invalid=0;
+    for(const row of rows.slice(1).filter(r=>r.some(c=>c))){
+      const data={name:String(row[ni]||'').trim(),email:ei>=0?String(row[ei]||'').trim().toLowerCase():'',phone:pi>=0?String(row[pi]||'').trim().replace(/\s/g,''):'',field:fi>=0?String(row[fi]||'').trim():'',location:li>=0?String(row[li]||'').trim():''};
+      if(!data.name||(!data.email&&!data.phone)||(data.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))||data.name.length>200||data.email.length>254||data.phone.length>40||data.field.length>200||data.location.length>200){invalid++;continue;}incoming.push(data);
     }
-    res.json({ added, skipped });
+    const result=await require('../utils/company-store').add(req.session.userId,incoming);res.json({added:result.added,skipped:result.skipped+invalid});
   } catch (err) {
     if(err.status&&err.status<500)return res.status(err.status).json({error:err.message});
     throw err;

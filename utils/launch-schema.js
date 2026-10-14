@@ -11,6 +11,7 @@ async function ensureLaunchSchema(){await run(`
  ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_completed_at TIMESTAMPTZ;
  ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMPTZ;
  ALTER TABLE users ADD COLUMN IF NOT EXISTS registration_required BOOLEAN NOT NULL DEFAULT false;
+ CREATE TABLE IF NOT EXISTS api_mutation_limits(user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,minute TIMESTAMPTZ NOT NULL,amount INTEGER NOT NULL);
  CREATE TABLE IF NOT EXISTS registration_limits(key TEXT PRIMARY KEY,window_started TIMESTAMPTZ NOT NULL,requests INTEGER NOT NULL,last_sent TIMESTAMPTZ NOT NULL);
  DELETE FROM registration_limits WHERE window_started<NOW()-INTERVAL '24 hours';
  ALTER TABLE users ADD COLUMN IF NOT EXISTS supabase_id TEXT UNIQUE;
@@ -18,6 +19,8 @@ async function ensureLaunchSchema(){await run(`
  ALTER TABLE cv_profiles ADD COLUMN IF NOT EXISTS ai_summary TEXT NOT NULL DEFAULT '';
  ALTER TABLE cv_profiles ADD COLUMN IF NOT EXISTS ai_summary_approved_at TIMESTAMPTZ;
  ALTER TABLE cv_profiles ADD COLUMN IF NOT EXISTS ai_summary_source_hash TEXT;
+ ALTER TABLE users ADD COLUMN IF NOT EXISTS storage_limit_mb INTEGER NOT NULL DEFAULT 100;
+ ALTER TABLE users ADD COLUMN IF NOT EXISTS company_limit INTEGER NOT NULL DEFAULT 2000;
  ALTER TABLE users ADD COLUMN IF NOT EXISTS send_limit INTEGER NOT NULL DEFAULT 100;
  ALTER TABLE users ADD COLUMN IF NOT EXISTS ai_limit INTEGER NOT NULL DEFAULT 100;
  ALTER TABLE users ADD COLUMN IF NOT EXISTS ai_source TEXT NOT NULL DEFAULT 'mrsaal';
@@ -34,6 +37,14 @@ async function ensureLaunchSchema(){await run(`
  CREATE TABLE IF NOT EXISTS message_drafts(user_id TEXT REFERENCES users(id) ON DELETE CASCADE,company_id TEXT REFERENCES companies(id) ON DELETE CASCADE,channel TEXT CHECK(channel IN ('email','whatsapp')),subject TEXT NOT NULL DEFAULT '',body TEXT NOT NULL DEFAULT '',updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),PRIMARY KEY(user_id,company_id,channel));
  CREATE TABLE IF NOT EXISTS ai_feedback(id BIGSERIAL PRIMARY KEY,user_id TEXT REFERENCES users(id) ON DELETE CASCADE,company_id TEXT,channel TEXT,rating INTEGER CHECK(rating BETWEEN 1 AND 5),note TEXT,created_at TIMESTAMPTZ DEFAULT NOW());
  CREATE TABLE IF NOT EXISTS local_ai_slots(scope TEXT NOT NULL,slot INTEGER NOT NULL,token TEXT NOT NULL,expires_at TIMESTAMPTZ NOT NULL,PRIMARY KEY(scope,slot));
+ ALTER TABLE local_ai_slots ADD COLUMN IF NOT EXISTS user_id TEXT REFERENCES users(id) ON DELETE CASCADE;
+ ALTER TABLE local_ai_slots ADD COLUMN IF NOT EXISTS cancel_requested BOOLEAN NOT NULL DEFAULT false;
+ CREATE TABLE IF NOT EXISTS local_ai_queue(id TEXT PRIMARY KEY,scope TEXT NOT NULL,user_id TEXT UNIQUE REFERENCES users(id) ON DELETE CASCADE,status TEXT NOT NULL CHECK(status IN ('waiting','cancelled')),created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),expires_at TIMESTAMPTZ NOT NULL);
+ CREATE INDEX IF NOT EXISTS local_ai_queue_order ON local_ai_queue(scope,created_at,id);
+ CREATE TABLE IF NOT EXISTS local_ai_global_windows(scope TEXT PRIMARY KEY,minute TIMESTAMPTZ NOT NULL,amount INTEGER NOT NULL);
+ CREATE TABLE IF NOT EXISTS local_ai_global_usage(scope TEXT NOT NULL,day DATE NOT NULL,amount INTEGER NOT NULL,PRIMARY KEY(scope,day));
+ DELETE FROM local_ai_queue WHERE expires_at<NOW();
+ DELETE FROM local_ai_global_usage WHERE day<CURRENT_DATE-30;
  CREATE TABLE IF NOT EXISTS local_ai_windows(user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,minute TIMESTAMPTZ NOT NULL,amount INTEGER NOT NULL DEFAULT 0);
  CREATE TABLE IF NOT EXISTS local_ai_usage(user_id TEXT REFERENCES users(id) ON DELETE CASCADE,day DATE NOT NULL DEFAULT CURRENT_DATE,requests BIGINT NOT NULL DEFAULT 0,metered_requests BIGINT NOT NULL DEFAULT 0,prompt_tokens BIGINT NOT NULL DEFAULT 0,completion_tokens BIGINT NOT NULL DEFAULT 0,total_tokens BIGINT NOT NULL DEFAULT 0,PRIMARY KEY(user_id,day));
  CREATE TABLE IF NOT EXISTS ai_leases(user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,token TEXT NOT NULL,until TIMESTAMPTZ NOT NULL);

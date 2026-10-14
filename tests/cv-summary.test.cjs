@@ -6,14 +6,14 @@ test('extractive candidate never invents facts, is bounded, and never bypasses a
  const cv={content,ai_summary:candidate,ai_summary_source_hash:summary.hash(content)};assert.equal(summary.approved(cv),'');cv.ai_summary_approved_at=new Date();assert.equal(summary.approved(cv),candidate);cv.content+=' changed';assert.equal(summary.approved(cv),'');
  assert.throws(()=>summary.validate(candidate,false));assert.throws(()=>summary.validate('x'.repeat(1801),true));assert.equal(summary.validate('Confirmed CV facts: JavaScript developer.',true),'Confirmed CV facts: JavaScript developer.');
 });
-function load(file,deps,extra={}){const box={module:{exports:{}},require:id=>Object.hasOwn(deps,id)?deps[id]:require(id),process:{env:{}},console,...extra};vm.runInNewContext(fs.readFileSync(require.resolve('../'+file),'utf8'),box);return box.module.exports;}
+function load(file,deps,extra={}){const box={module:{exports:{}},require:id=>Object.hasOwn(deps,id)?deps[id]:require(id),process:{env:{}},console,Buffer,...extra};vm.runInNewContext(fs.readFileSync(require.resolve('../'+file),'utf8'),box);return box.module.exports;}
 test('summary routes bind owner/version and source hash, persist approval and reset without changing PDF',async()=>{
  const {PGlite}=require('@electric-sql/pglite'),pg=new PGlite();
  const db={get:async(s,p)=>(await pg.query(s,p)).rows[0],all:async(s,p)=>(await pg.query(s,p)).rows,run:async(s,p)=>p?pg.query(s,p):pg.exec(s)};
  try{
   const base=fs.readFileSync(require.resolve('../utils/db'),'utf8').match(/await query\(`([\s\S]*?)`\);/)[1];await pg.exec(base);await load('utils/launch-schema.js',{'./db':db}).ensureLaunchSchema();await load('utils/launch-schema.js',{'./db':db}).ensureLaunchSchema();
   const source='Ahmed is a JavaScript developer. No other experience is listed.';await pg.exec("INSERT INTO users(id) VALUES('owner'),('other')");await pg.query('INSERT INTO cv_profiles(id,user_id,content,pdf_data) VALUES($1,$2,$3,$4)',['cv','owner',source,Buffer.from('%PDF-original')]);
-  const store=load('utils/cv-store.js',{'./db':db});const handlers={};const router={use(){},get(p,...h){handlers['GET '+p]=h.at(-1);},post(p,...h){handlers['POST '+p]=h.at(-1);},delete(){}};const multer=()=>({single:()=>()=>{}});multer.memoryStorage=()=>({});
+  const store=load('utils/cv-store.js',{'./db':db,'./resource-limits':require('../utils/resource-limits')});const handlers={};const router={use(){},get(p,...h){handlers['GET '+p]=h.at(-1);},post(p,...h){handlers['POST '+p]=h.at(-1);},delete(){}};const multer=()=>({single:()=>()=>{}});multer.memoryStorage=()=>({});
   load('routes/cv.js',{express:{Router:()=>router},multer,'pdf-parse':{},'../utils/upload-files':{},'../middleware/auth':{requireAuth(){}},'../middleware/async-handler':f=>f,'../utils/db':db,'../utils/user-records':{},'../utils/cv-store':store,'../utils/cv-summary':summary});
   async function invoke(method,user,body={},query={}){const res={statusCode:200,status(n){this.statusCode=n;return this;},json(v){this.body=v;return this;}};await handlers[method]({session:{userId:user},body,query},res);return res;}
   const info=(await invoke('GET /summary','owner',{}, {cvId:'cv'})).body;assert.equal(info.approved,false);
