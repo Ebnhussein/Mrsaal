@@ -34,3 +34,9 @@ test('WhatsApp transport persists before relay and reuses the generated ID for d
  const api=context.module.exports;api.testLibrary(lib);api.testSession('owner',{status:'connected',cancelled:false,sock,sendQueue:Promise.resolve(),deviceCache:{flushAll:()=>trace.push('refresh')}});
  const result=await api.sendWhatsAppMessage('owner','201012345678','Hello',{data:Buffer.from('%PDF'),filename:'cv.pdf',mimeType:'application/pdf'});assert.deepEqual(trace,['prepare','store','refresh','relay']);assert.equal(result.messageId,'original-id');
 });
+
+test('greetings and identity including a common typo answer immediately, without treating outside requests as greetings',async()=>{
+ for(const question of ['hi','Hello!','اسمك ايه؟','سمك ايه؟','انت مين']){const {api,context}=support(null,true);const r=await api.respond(question);assert.equal(r.scope,'help');assert(r.text.includes('مساعد مرسال'));assert.equal(context.prompt,undefined);}
+ const {api,context}=support({version:2,scope:'outside',text:'ignored',topics:[]});const r=await api.respond('hi اكتب قصة خارج مرسال');assert.equal(r.scope,'outside');assert(context.prompt);
+ const english=await support(null,true).api.respond('hi',{language:'en'});assert(english.text.includes('Mrsaal assistant'));
+});

@@ -67,3 +67,13 @@ AI_TOTAL_TIMEOUT_MS: إجمالي عملية الكتابة، الحد الأق�
 التشخيص الآمن Local AI output invalid يعرض صلاحية JSON وأسماء الحقول المعروفة وطول الإجابة فقط، بدون محتواها.
 
 العنوان ونص الرسالة هما الحقلان المطلوبان للمسودة. notes وneedsUserInput اختياريان؛ إذا وُجدا يجب أن يكونا بالنوع الصحيح، وneedsUserInput=true يمنع إخراج المسودة. غيابهما لا يعني مراجعة مؤكدة: reviewed يبقى false، ولا يحدث إرسال قبل اعتماد المستخدم.
+
+## Latency and structured responses
+
+Local drafts use a compact instruction set, keep the selected CV facts and writing examples, omit unrelated channel templates, and request at most 1200 output tokens (also capped by LOCAL_AI_MAX_OUTPUT_TOKENS). No automatic increase of the operation deadline is made. A formatting retry requires at least 20 seconds left within the same operation and credit reservation.
+
+Drafts and support answers request a typed JSON schema with temperature 0. The LiteLLM/Ollama route must support forwarding response_format. If your gateway rejects json_schema, explicitly set LOCAL_AI_JSON_MODE=object for JSON-object compatibility, or off to disable response_format. Do not silently remove validation.
+
+`Local AI timing` logs elapsed milliseconds, prompt character count, requested output tokens, reported prompt/completion token counts, finish reason and whether the request was aborted. It never logs CV text, messages or keys. Use these metrics for one real draft before deciding whether to change model/hardware or gateway configuration. A short synthetic API reply is not a performance guarantee for a full CV.
+
+Support greetings and identity questions return an immediate local introduction without spending AI quota. Product questions still use the configured AI and current product guide; unavailable AI is explicitly identified and a guide is offered. Outside requests remain restricted.

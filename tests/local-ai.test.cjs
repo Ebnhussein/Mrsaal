@@ -57,3 +57,19 @@ test('local format retry stays within one quota reservation and preserves user c
  const ai=load('utils/ai.js',{'./ai-legacy':{callGemini:async()=>{throw Error('legacy');}},'./ai-local':{callLocalAI:async(prompt)=>{calls.push(prompt);if(calls.length===1)throw Object.assign(new Error('format'),{reason:'FORMAT',code:'AI_UNAVAILABLE'});return JSON.stringify(draft);}},'./db':{get:async()=>({})},'./ai-leases':{acquire:async()=>1,release:async()=>{}},'./usage-limits':{reserve:async()=>{credits.push('reserve');return 'credit';},commit:async()=>credits.push('commit'),release:async()=>credits.push('refund')},'./writing-profile':require('../utils/writing-profile')},{process:{env}});
  const result=await ai.generateEmail({userId:'owner',cv:'Real CV facts',company:{name:'Company'}});assert.equal(result.body,'Honest draft');assert.equal(calls.length,2);assert(calls.every(p=>p.includes('Real CV facts')));assert(calls[1].includes('الحقلين المطلوبين'));assert(!calls[0].includes('المطلوب JSON فقط {"subject":"...","body":"..."}'));assert.deepEqual(credits,['reserve','commit']);
 });
+
+test('local schema constrains field types and still supports explicit object compatibility mode',async()=>{
+ const g=gateway();const validate=t=>t==='valid draft';validate.schema={type:'object',properties:{body:{type:'string'}},required:['body'],additionalProperties:false};
+ await g.api.callLocalAI('p',900,validate,Date.now()+10000,'owner');const body=JSON.parse(g.requests[0].opts.body);assert.equal(body.response_format.type,'json_schema');assert.equal(body.response_format.json_schema.schema.required[0],'body');assert.equal(body.temperature,0);
+ const original=env.LOCAL_AI_JSON_MODE;try{env.LOCAL_AI_JSON_MODE='object';const compatible=gateway();await compatible.api.callLocalAI('p',900,validate,Date.now()+10000,'owner');assert.equal(JSON.parse(compatible.requests[0].opts.body).response_format.type,'json_object');}finally{if(original===undefined)delete env.LOCAL_AI_JSON_MODE;else env.LOCAL_AI_JSON_MODE=original;}
+});
+test('compact local context keeps every CV fact and relevant style while removing duplicate and unrelated templates',()=>{
+ const ai=load('utils/ai.js',{'./ai-legacy':{},'./writing-profile':require('../utils/writing-profile')});const p=require('../utils/writing-profile').defaults();p.whatsapp.template='irrelevant'.repeat(100);p.email.template='unused';p.examples=['my writing'];
+ const full=ai.context({cv:'All factual details '.repeat(350),company:{name:'Company'},instructions:require('../utils/writing-profile').encode(p)},'email');const compact=ai.compactContext(full);assert.equal(compact.facts.cv,full.facts.cv);assert.equal(compact.style.examples[0],'my writing');assert.equal(compact.channelStyle.tone,'professional');assert.equal(compact.style.whatsapp,undefined);assert.equal(compact.channelStyle.template,undefined);assert(JSON.stringify(compact).length<JSON.stringify(full).length);
+});
+
+test('local draft uses compact facts, typed output and a bounded token budget in the real generation path',async()=>{
+ let captured;const profile=require('../utils/writing-profile');const p=profile.defaults();p.whatsapp.template='UNRELATED TEMPLATE';
+ const ai=load('utils/ai.js',{'./ai-legacy':{},'./ai-local':{callLocalAI:async(prompt,tokens,validate)=>{captured={prompt,tokens,schema:validate.schema};const text=JSON.stringify({subject:'Hello',body:'Fact based draft',notes:[],needsUserInput:false});assert(validate(text));return text;}},'./writing-profile':profile},{process:{env}});
+ await ai.generateEmail({cv:'Complete CV facts',company:{name:'Company'},instructions:profile.encode(p)});assert.equal(captured.tokens,1200);assert(captured.schema.required.includes('body'));assert(captured.prompt.includes('Complete CV facts'));assert(!captured.prompt.includes('UNRELATED TEMPLATE'));assert(!captured.prompt.includes('"mode"'));
+});
