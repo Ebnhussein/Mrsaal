@@ -66,7 +66,9 @@ function getModelChain(selectedGeminiModel) {
       );
     }
 
-    return { provider: item.provider, model };
+    if(item.reasoning!==undefined&&!['off','low'].includes(item.reasoning))throw new Error('reasoning لازم تكون off أو low.');
+    if(item.maxTokens!==undefined&&(!Number.isInteger(item.maxTokens)||item.maxTokens<512||item.maxTokens>16000))throw new Error('maxTokens لازم تكون رقم صحيح بين 512 و16000.');
+    return { provider: item.provider, model, reasoning:item.reasoning, maxTokens:item.maxTokens };
   }).filter(item => {
     const key = `${item.provider}:${item.model}`;
     if (seen.has(key)) return false;
@@ -104,7 +106,7 @@ async function requestGemini({
 }
 
 async function requestOpenRouter({
-  prompt, maxTokens, model, apiKey, timeout
+  prompt, maxTokens, model, apiKey, timeout, reasoning
 }) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
@@ -133,6 +135,7 @@ async function requestOpenRouter({
             { role: 'user', content: prompt }
           ],
           max_tokens: maxTokens,
+          ...(reasoning==='off'?{reasoning:{enabled:false}}:reasoning==='low'?{reasoning:{effort:'low'}}:{}),
           stream: false
         })
       }
@@ -147,6 +150,11 @@ async function requestOpenRouter({
     }
 
     const choice = data?.choices?.[0];
+    if(choice?.finish_reason==='length'||typeof choice?.message?.content!=='string'||!choice.message.content.trim()){
+      const safe=value=>String(value||'unknown').replace(/[^a-zA-Z0-9_/:.\-]/g,'').slice(0,100);
+      const count=value=>value!=null&&Number.isFinite(Number(value))?Math.max(0,Number(value)):null;
+      console.warn('AI output diagnostic:',JSON.stringify({requestedModel:safe(model),resolvedModel:safe(data?.model),finishReason:safe(choice?.finish_reason),maxTokens,completionTokens:count(data?.usage?.completion_tokens),reasoningTokens:count(data?.usage?.completion_tokens_details?.reasoning_tokens),visibleCharacters:typeof choice?.message?.content==='string'?choice.message.content.length:0}));
+    }
 
     if (choice?.finish_reason === 'length') {
       throw makeError(0,'TRUNCATED');
@@ -180,7 +188,7 @@ async function callGemini(
     openrouter: process.env.OPENROUTER_API_KEY
   };
 
-  for (const { provider, model } of models) {
+  for (const { provider, model, reasoning, maxTokens:modelMaxTokens } of models) {
     const key = keys[provider]?.trim();
 
     if (!key || blockedProviders.has(provider)) continue;
@@ -200,7 +208,7 @@ async function callGemini(
         : requestOpenRouter;
 
       const text = await withOutputRecovery(compact=>withRecovery(async()=>{
-        try{const output=await request({prompt:compact?compactPrompt(prompt):prompt,maxTokens,model,apiKey:key,timeout:Math.min(timeout,Math.max(1,deadline-Date.now()))});if(typeof output!=='string'||!output.trim())throw makeError(0,'EMPTY');return output;}
+        try{const output=await request({prompt:compact?compactPrompt(prompt):prompt,maxTokens:modelMaxTokens||maxTokens,model,reasoning,apiKey:key,timeout:Math.min(timeout,Math.max(1,deadline-Date.now()))});if(typeof output!=='string'||!output.trim())throw makeError(0,'EMPTY');return output;}
         catch(error){if(hardQuota({error:{message:error.message}})){error.code='QUOTA';}if(!error.code||typeof error.code==='number'){const status=Number(error.status||error.code)||0;error.code=status===429?'RATE_LIMIT':status>=500?'TEMPORARY':error.name==='TypeError'?'NETWORK':'UNKNOWN';}throw error;}
       },deadline),deadline);
 

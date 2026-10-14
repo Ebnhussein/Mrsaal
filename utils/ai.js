@@ -1,6 +1,11 @@
 'use strict';
 // Transport and Gemini/OpenRouter fallbacks are kept in your existing ai-legacy.js.
 const {callGemini:legacyCall}=require('./ai-legacy');
+async function platformCall(prompt,maxTokens,apiKey,modelName,validate,deadline,userId){
+ if(process.env.LOCAL_AI_BASE_URL?.trim())return require('./ai-local').callLocalAI(prompt,maxTokens,validate,deadline,userId);
+ return legacyCall(prompt,maxTokens,apiKey,modelName,validate,deadline);
+}
+
 async function runOperation(userId,kind,fn){
  const modelSetting=Number(process.env.AI_MODEL_TIMEOUT_MS);
  const modelTimeout=Number.isFinite(modelSetting)&&modelSetting>=5000&&modelSetting<=60000?Math.floor(modelSetting):20000;
@@ -18,12 +23,12 @@ async function runOperation(userId,kind,fn){
  finally{await leases.release(userId,lease).catch(()=>{});}
 }
 async function callGemini(prompt,maxTokens=1200,apiKey=null,modelName=null,validate=null,userId=null,operation=null,kind='ai'){
- if(!userId)return legacyCall(prompt,maxTokens,apiKey,modelName,validate,operation?.deadline);
+ if(!userId)return platformCall(prompt,maxTokens,apiKey,modelName,validate,operation?.deadline,null);
  if(!operation)return runOperation(userId,kind,op=>callGemini(prompt,maxTokens,null,null,validate,userId,op,kind));
  if(Date.now()>=operation.deadline){const e=new Error('انتهت مهلة الكتابة. جرّب موديلًا أسرع.');e.code='TIMEOUT';throw e;}
  const personal=async()=>{if(Date.now()>=operation.deadline)throw Object.assign(new Error('انتهت مهلة الكتابة.'),{code:'TIMEOUT'});await operation.usePersonal?.();const text=await require('./ai-providers').callUserAI(userId,prompt,maxTokens,validate,operation.deadline);if(text===null)throw new Error('اختار منصة شخصية وموديل مفعّل من الإعدادات، أو استخدم ذكاء مرسال.');return text;};
  if(operation.source==='personal')return personal();
- try{return await legacyCall(prompt,maxTokens,null,null,validate,operation.deadline);}
+ try{return await platformCall(prompt,maxTokens,null,null,validate,operation.deadline,userId);}
  catch(e){if(!operation.fallback)throw e;return personal();}
 }
 

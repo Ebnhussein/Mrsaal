@@ -15,6 +15,7 @@ router.patch('/users/:id',wrap(async(req,res)=>{
  await client.query('INSERT INTO admin_audit(actor_id,action,target_id) VALUES($1,$2,$3)',[req.session.userId,req.body.suspended?'suspend':'restore',target.id]);await client.query('COMMIT');res.json({ok:true});
  }catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}
 }));
+router.get('/users/:id/local-ai',wrap(async(req,res)=>res.json(await all('SELECT day,requests,metered_requests,prompt_tokens,completion_tokens,total_tokens FROM local_ai_usage WHERE user_id=$1 ORDER BY day DESC LIMIT 30',[req.params.id]))));
 router.get('/users/:id/usage',wrap(async(req,res)=>res.json(await all('SELECT kind,day,amount FROM usage_daily WHERE user_id=$1 ORDER BY day DESC LIMIT 60',[req.params.id]))));
 router.patch('/users/:id/limits',wrap(async(req,res)=>{const {send,ai}=req.body;if(!Number.isInteger(send)||!Number.isInteger(ai)||send<0||ai<0||send>10000||ai>10000)fail('الحدود من صفر إلى 10000');await run('UPDATE users SET send_limit=$1,ai_limit=$2 WHERE id=$3',[send,ai,req.params.id]);await run('INSERT INTO admin_audit(actor_id,action,target_id) VALUES($1,$2,$3)',[req.session.userId,'update_limits',req.params.id]);res.json({ok:true});}));
 router.get('/feedback',wrap(async(req,res)=>res.json(await all('SELECT f.id,f.user_id,u.email,f.channel,f.rating,f.note,f.created_at FROM ai_feedback f JOIN users u ON u.id=f.user_id ORDER BY f.created_at DESC LIMIT 50'))));
