@@ -44,7 +44,9 @@ const messages={
 };
 function language(req){
  const explicit=req.get?.('X-Mrsaal-Language');if(['ar','en'].includes(explicit))return explicit;
+ if(['ar','en'].includes(req.query?.lang))return req.query.lang;
  const fromPath=/^\/(ar|en)(?:\/|$)/.exec(req.path||'');if(fromPath)return fromPath[1];
+ const cookie=/(?:^|;\s*)mrsaal-language=(ar|en)(?:;|$)/.exec(req.get?.('Cookie')||'');if(cookie)return cookie[1];
  try{const ref=new URL(req.get?.('Referer'));const match=/^\/(ar|en)(?:\/|$)/.exec(ref.pathname);if(match)return match[1];}catch{}
  return /^en(?:\b|[-_])/i.test(req.get?.('Accept-Language')||'')?'en':'ar';
 }

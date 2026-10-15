@@ -343,7 +343,7 @@ async function selectVisibleCompanies(val){
 async function deleteSelected() {
   const ids=companies.filter(c=>c.selected).map(c=>c.id);
   if(!ids.length){toast('حدد شركات أولاً','info');return;}
-  if(!confirm(`حذف ${ids.length} شركة؟`)) return;
+  if(!confirm(window.MrsaalLocale?.lang==='en'?`Delete ${ids.length} companies?`:`حذف ${ids.length} شركة؟`)) return;
   await api('/api/companies','DELETE',{ids});
   await loadCompanies();
   toast(`تم حذف ${ids.length}`,'info');
@@ -636,7 +636,7 @@ function exportCSV(){
   const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`مرسال_تقرير_${new Date().toLocaleDateString('ar')}.csv`; a.click();
+  a.download=window.MrsaalLocale?.lang==='en'?`Mrsaal_Report_${new Date().toISOString().slice(0,10)}.csv`:`مرسال_تقرير_${new Date().toISOString().slice(0,10)}.csv`; a.click();
   toast('✅ تم التصدير','success');
 }
 

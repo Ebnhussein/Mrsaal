@@ -39,3 +39,5 @@ html.mrsaal-auth-document>body{width:100%;max-width:100%;min-width:0;min-height:
  .mrsaal-auth-document .auth-layout{height:auto;max-height:none;overflow:visible;touch-action:auto}
 }
 @media(max-width:380px){.mrsaal-auth-document .sx-header-inner{padding-inline:8px!important;gap:4px!important}.mrsaal-auth-document .sx-site-brand img{width:24px;height:24px}.mrsaal-auth-document .sx-header-brand{gap:0}}
+
+.account-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.account-language{min-height:44px;min-width:44px;padding:8px 12px;flex-shrink:0}

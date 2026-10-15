@@ -1,8 +1,10 @@
+// Resolve language before deferred UI controllers run. Public URL language wins.
+(()=>{try{const explicit=/^\/(ar|en)(?:\/|$)/.exec(location.pathname||'')?.[1]||new URLSearchParams(location.search).get('lang');const lang=['ar','en'].includes(explicit)?explicit:localStorage.getItem('mrsaal-workspace-language');if(lang==='ar'||lang==='en'){document.documentElement.lang=lang;document.documentElement.dir=lang==='en'?'ltr':'rtl';}}catch{}})();
 (function(){let t='light';try{t=localStorage.getItem('mrsaal-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}catch{}document.documentElement.dataset.theme=t==='dark'?'dark':'light';})();
 // Every same-origin API request carries the selected UI language, including multipart uploads.
 (()=>{
  const nativeFetch=window.fetch.bind(window);
- function lang(){const q=new URLSearchParams(location.search).get('lang');if(q==='ar'||q==='en')return q;const value=document.documentElement.lang;if(value==='ar'||value==='en')return value;try{return localStorage.getItem('mrsaal-workspace-language')==='en'?'en':'ar';}catch{return 'ar';}}
+ function lang(){const value=document.documentElement.lang;if(value==='ar'||value==='en')return value;const q=new URLSearchParams(location.search).get('lang');if(q==='ar'||q==='en')return q;try{return localStorage.getItem('mrsaal-workspace-language')==='en'?'en':'ar';}catch{return 'ar';}}
  window.MrsaalErrors={
   language:lang,
   network:timeout=>lang()==='en'?(timeout?'AI writing timed out. Approve a shorter CV summary in Settings or choose a faster provider.':'The connection was interrupted. Check your internet; if sending, check Sent and Reports before retrying.'):(timeout?'انتهت مهلة الكتابة. اعتمد ملخص سيرة مختصرًا من الإعدادات أو اختار منصة أسرع.':'الاتصال اتقطع. تأكد من الإنترنت؛ لو كنت بتبعت راجع المرسَل والتقارير قبل المحاولة.'),

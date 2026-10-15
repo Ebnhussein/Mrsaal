@@ -1,4 +1,5 @@
 'use strict';
+try{const language=document.documentElement.lang;if(language==='ar'||language==='en'){localStorage.setItem('mrsaal-workspace-language',language);document.cookie='mrsaal-language='+language+'; Path=/; Max-Age=31536000; SameSite=Lax; Secure';}}catch{}
 (()=>{
  const body=document.body,themeButton=document.querySelector('[data-theme-toggle]');
  function theme(value){body.dataset.theme=value;themeButton?.setAttribute('aria-pressed',String(value==='dark'));}

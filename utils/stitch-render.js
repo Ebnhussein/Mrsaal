@@ -10,7 +10,7 @@ function renderExact(page,legacy,{posts=[],post=null}={},language='ar'){
  if(!pages.has(page))return legacy;const lang=language==='en'?'en':'ar',key=lang+':'+page;
  if(!cache.has(key))cache.set(key,fs.readFileSync(path.join(__dirname,'stitch-pages',...(lang==='en'?['en']:[]),(page==='signup'?'login':page)+'.html'),'utf8'));
  let html=cache.get(key).replace(/::?-webkit-scrollbar\s*\{\s*display\s*:\s*none\s*;?\s*\}/gi,'').replaceAll('ابدأ مجاناً بحساب Google','اعمل حسابك مجانًا').replaceAll('لا يلزم بطاقة ائتمانية • تفعيل فوري عبر حساب Google','بدون بطاقة بنكية • سجل بإيميلك أو Google').replaceAll('Start free with Google','Create your free account').replaceAll('No payment card required · Sign in with Google','No payment card required · Email or Google');
- if(page==='login'||page==='signup'){html=html.replace('<html ','<html class="mrsaal-auth-document" ').replace(/<main\b[\s\S]*?<\/main>/,()=>require('./account-page').accountContent(lang,page)).replace(/<title>[\s\S]*?<\/title>/,'<title>'+(lang==='en'?(page==='signup'?'Create account':'Sign in'):(page==='signup'?'إنشاء حساب':'تسجيل الدخول'))+' | Mrsaal</title>').replace('</head>','<meta name="robots" content="noindex"><link rel="stylesheet" href="/assets/account.css?v=auth-vertical-20261009-4"><script defer src="/assets/account.js?v=auth-vertical-20261009-4"></script></head>');}
+ if(page==='login'||page==='signup'){html=html.replace('<html ','<html class="mrsaal-auth-document" ').replace(/<main\b[\s\S]*?<\/main>/,()=>require('./account-page').accountContent(lang,page)).replace(/<title>[\s\S]*?<\/title>/,'<title>'+(lang==='en'?(page==='signup'?'Create account':'Sign in'):(page==='signup'?'إنشاء حساب':'تسجيل الدخول'))+' | Mrsaal</title>').replace('</head>','<meta name="robots" content="noindex"><link rel="stylesheet" href="/assets/account.css?v=locale-20261015"><script defer src="/assets/account.js?v=locale-20261015"></script></head>');}
  if(page==='help'){
   html=html.replace(/(<input\b[^>]*id="helpSearchInput"[^>]*>)/,tag=>tag+'<div data-help-search-anchor></div>');
   html=html.replace('<div data-help-search-anchor></div>',require('./help-search').markup(lang));
@@ -35,6 +35,8 @@ function renderExact(page,legacy,{posts=[],post=null}={},language='ar'){
  }
  const suffix=post?'blog/'+encodeURIComponent(post.slug):page==='home'?'':page;
  html=html.replace('</head>',`<link rel="alternate" hreflang="ar" href="https://mrsaal.ebnhussein.co/ar/${suffix}"><link rel="alternate" hreflang="en" href="https://mrsaal.ebnhussein.co/en/${suffix}"></head>`);
+ html=html.replace(/(\/assets\/stitch-exact\/interactions\.js)\?v=[^"\s<>]+/g,'$1?v=locale-20261015');
+ html=html.replace('</head>','<script src="/assets/theme-init.js?v=locale-20261015"></script></head>');
  return applyShell(html,lang,page,suffix).replaceAll('v=responsive-2','v=home-full-mobile-20261010-1');
 }
 module.exports={renderExact};
