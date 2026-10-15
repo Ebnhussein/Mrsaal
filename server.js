@@ -12,6 +12,7 @@ let closing = false;
 
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
+app.use(require('./middleware/api-errors').locale);
 app.use(require('./middleware/security-headers'));
 app.use(require('./middleware/request-guard'));
 app.get('/robots.txt',(req,res)=>res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://mrsaal.ebnhussein.co/sitemap.xml\n')); 
@@ -123,13 +124,7 @@ async function lazyInit() {
       res.status(404).type('text/plain').send('Not found');
     });
 
-    app.use((error,req,res,next)=>{
-      if(res.headersSent)return next(error);
-      const status=error.code==='LIMIT_FILE_SIZE'?413:(Number(error.status)||500);
-      const message=status===413?'الملف أكبر من الحجم المسموح.':status<500?error.message:'حصلت مشكلة أثناء تنفيذ الطلب. حاول مرة تانية.';
-      console.error('Request failed:',req.method,req.path,error.code||error.name);
-      res.status(status).json({error:message});
-    });
+    app.use(require('./middleware/api-errors').handler);
 
     await require('./utils/whatsapp').restoreSessions();
 

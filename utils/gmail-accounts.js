@@ -17,7 +17,7 @@ async function resolveAccount(userId,id=null){
  if(!user)throw new Error('الحساب غير موجود');
  const selected=id||user.active_gmail_id;
  const row=selected?await get('SELECT * FROM gmail_accounts WHERE id=$1 AND user_id=$2 AND connected=true',[selected,userId]):await get('SELECT * FROM gmail_accounts WHERE user_id=$1 AND google_id=$2 AND connected=true',[userId,user.google_id]);
- if(!row?.credentials)throw new Error('اختار أو أعد ربط حساب Gmail من قنوات التواصل.');
+ if(!row?.credentials)throw Object.assign(new Error('اختار أو أعد ربط حساب Gmail من قنوات التواصل.'),{status:409,code:'GMAIL_ACCOUNT_REQUIRED'});
  return {...row,...unseal(row.credentials),gmail_account_id:row.id};
 }
 async function persistTokens(account,tokens){

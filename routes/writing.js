@@ -6,7 +6,7 @@ const {replaceLatest}=require('../utils/user-records');
 const {normalize,encode,decode}=require('../utils/writing-profile');
 const {generate,analyzeStyle}=require('../utils/ai');
 router.use(requireAuth);
-const wrap=fn=>(req,res,next)=>Promise.resolve(fn(req,res,next)).catch(err=>{console.warn('Writing studio:',err.status||'failed');res.status(err.status||400).json({error:err.message||'تعذر تنفيذ الطلب'});});
+const wrap=require('../middleware/async-handler');
 const {chooseChannel,skipReason}=require('../utils/delivery-channel');
 const active=new Set();
 async function aiJob(id,fn){if(active.has(id)){const e=new Error('استنى لحد ما الطلب الحالي يخلص.');e.status=429;throw e;}active.add(id);try{return await fn();}finally{active.delete(id);}}

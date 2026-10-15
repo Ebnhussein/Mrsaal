@@ -4,6 +4,12 @@ const {all,run}=require('./db');
 const {buildAuthClient}=require('./gmail');
 const {resolveAccount}=require('./gmail-accounts');
 const active=new Map();
+const reported=new Map();
+function reportFailure(key,error){
+ const info=require('./public-errors').diagnostic(error),code=error.code||'GMAIL_SYNC_FAILED',now=Date.now();
+ if(now-(reported.get(key+':'+code)||0)>300000){console.warn('Reply sync failed:',JSON.stringify({code,...info}));reported.set(key+':'+code,now);}
+ if(reported.size>1000)for(const [k,t]of reported)if(now-t>300000)reported.delete(k);
+}
 async function ensureReplySchema(){
  await run('ALTER TABLE email_log ADD COLUMN IF NOT EXISTS reply_checked_at BIGINT');
  await run('ALTER TABLE email_log ADD COLUMN IF NOT EXISTS reply_message_id TEXT');
@@ -47,9 +53,9 @@ async function performSync(userId){
  AND sent_at >= EXTRACT(EPOCH FROM NOW())-2592000
  AND (reply_checked_at IS NULL OR reply_checked_at < EXTRACT(EPOCH FROM NOW())-30)
  ${userId?'AND user_id=$1':''} ORDER BY reply_checked_at ASC NULLS FIRST LIMIT ${userId?12:60}`,params);
- const clients=new Map();let checked=0,updated=0,failed=0,index=0;
- async function worker(){while(index<logs.length&&Date.now()<deadline){const log=logs[index++];try{
-  const key=log.user_id+':'+log.sender_account_id;
+ const clients=new Map(),blocked=new Map(),failures=new Set();let checked=0,updated=0,failed=0,index=0;
+ async function worker(){while(index<logs.length&&Date.now()<deadline){const log=logs[index++];const key=log.user_id+':'+log.sender_account_id;let backoff=false;try{
+  if(blocked.has(key))throw blocked.get(key);
   if(!clients.has(key))clients.set(key,resolveAccount(log.user_id,log.sender_account_id).then(account=>({account,gmail:google.gmail({version:'v1',auth:buildAuthClient(account)})})));
   const {gmail,account}=await clients.get(key);
   const result=await gmail.users.threads.get({userId:'me',id:log.thread_id,format:'full'},{timeout:12000});
@@ -64,10 +70,10 @@ async function performSync(userId){
    await run('UPDATE email_log SET replied=1,reply_text=$1,reply_message_id=$2,reply_received_at=$3 WHERE id=$4 AND user_id=$5',[text,latest.id,Math.floor(Number(latest.internalDate)/1000),log.id,log.user_id]);updated++;
   }
   checked++;
- }catch(error){failed++;console.warn('Reply sync failed for account:',error.code||error.status||0);}
- finally{await run('UPDATE email_log SET reply_checked_at=EXTRACT(EPOCH FROM NOW()) WHERE id=$1 AND user_id=$2',[log.id,log.user_id]).catch(()=>{});}
+ }catch(error){failed++;const normalized=require('./gmail-errors').gmailError(error);failures.add(normalized.code||'GMAIL_SYNC_FAILED');backoff=true;blocked.set(key,normalized);reportFailure(key,normalized);}
+ finally{await run(backoff?'UPDATE email_log SET reply_checked_at=EXTRACT(EPOCH FROM NOW())+300 WHERE id=$1 AND user_id=$2':'UPDATE email_log SET reply_checked_at=EXTRACT(EPOCH FROM NOW()) WHERE id=$1 AND user_id=$2',[log.id,log.user_id]).catch(()=>{});}
  }}
- await Promise.all([worker(),worker()]);return {checked,updated,failed};
+ await Promise.all([worker(),worker()]);return {checked,updated,failed,failureCodes:[...failures]};
 }
 function syncReplies(userId=null){
  const key=userId||'*';if(active.has(key))return active.get(key);

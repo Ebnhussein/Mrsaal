@@ -101,7 +101,7 @@ router.delete('/log', requireAuth, wrap(async (req, res) => {
 }));
 
 router.get('/sync-replies', requireAuth, wrap(async (req, res) => {
-  try { const result=await syncReplies(req.session.userId); res.json({ ok: true, ...result }); }
+  try { const result=await syncReplies(req.session.userId); if(result.failed&&result.failureCodes?.length){const info=require('../utils/public-errors').describe({code:result.failureCodes[0],status:409},req.mrsaalLanguage);return res.status(409).json({ok:false,...result,error:info.error,code:info.code});} res.json({ ok: true, ...result }); }
   catch (err) { res.status(500).json({ error: err.message }); }
 }));
 

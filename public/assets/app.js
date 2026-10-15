@@ -49,13 +49,13 @@ async function api(path, method='GET', body=null) {
   const timer=controller?setTimeout(()=>controller.abort(),105000):null;
   if(controller)opts.signal=controller.signal;
   try { r=await fetch(path,opts); }
-  catch(error){throw new Error(error.name==='AbortError'?'انتهت مهلة الكتابة. جرّب موديل أسرع من إعدادات الذكاء الاصطناعي.':'الاتصال اتقطع. خلي الصفحة مفتوحة وتأكد من الإنترنت ثم حاول تاني.');}
+  catch(error){throw new Error(window.MrsaalErrors?.network(error.name==='AbortError')||(document.documentElement.lang==='en'?'Connection interrupted. Try again later.':'الاتصال اتقطع. حاول لاحقًا.'));}
   finally {if(timer)clearTimeout(timer);finishQueue?.();}
 
   if (!r.ok) {
     const e = await r.json().catch(()=>({error:r.statusText}));
-    if (r.status===401) { document.getElementById('login-screen').style.display='flex'; throw Object.assign(new Error('انتهت الجلسة'),{httpStatus:401}); }
-    const error=new Error(e.error||r.statusText);error.httpStatus=r.status;error.deliveryStatus=e.status;error.code=e.code;error.logId=e.logId;throw error;
+    if (r.status===401) { document.getElementById('login-screen').style.display='flex'; throw window.MrsaalErrors?window.MrsaalErrors.from(e,401):Object.assign(new Error(e.error||(document.documentElement.lang==='en'?'Your session expired. Sign in again.':'انتهت الجلسة. سجّل الدخول مرة أخرى.')),{httpStatus:401}); }
+    throw window.MrsaalErrors?window.MrsaalErrors.from(e,r.status):Object.assign(new Error(e.error||r.statusText),{httpStatus:r.status,deliveryStatus:e.status,code:e.code,logId:e.logId});
   }
   return r.json();
 }
@@ -64,8 +64,8 @@ async function apiForm(path, formData) {
   const r = await fetch(path, {method:'POST', body:formData});
   if (!r.ok) {
     const e = await r.json().catch(()=>({error:r.statusText}));
-    if (r.status===401) { document.getElementById('login-screen').style.display='flex'; throw Object.assign(new Error('انتهت الجلسة'),{httpStatus:401}); }
-    const error=new Error(e.error||r.statusText);error.httpStatus=r.status;error.deliveryStatus=e.status;error.code=e.code;error.logId=e.logId;throw error;
+    if (r.status===401) { document.getElementById('login-screen').style.display='flex'; throw window.MrsaalErrors?window.MrsaalErrors.from(e,401):Object.assign(new Error(e.error||(document.documentElement.lang==='en'?'Your session expired. Sign in again.':'انتهت الجلسة. سجّل الدخول مرة أخرى.')),{httpStatus:401}); }
+    throw window.MrsaalErrors?window.MrsaalErrors.from(e,r.status):Object.assign(new Error(e.error||r.statusText),{httpStatus:r.status,deliveryStatus:e.status,code:e.code,logId:e.logId});
   }
   return r.json();
 }

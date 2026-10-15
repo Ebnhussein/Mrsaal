@@ -91,3 +91,19 @@ Support selects at most two relevant guide topics, with excerpts of up to 1100 c
 See docs/PUBLIC-BETA-AR.md for operational steps and acceptance checks. Busy local requests may wait up to 45 seconds inside the original operation deadline, in a shared PostgreSQL queue capped at five waiting users. Queue metadata holds no CV/prompt text. The UI displays status and permits cancellation of the observed request ID. Account suspension also requests cancellation of local waiting/running work. An interrupted upstream request retains its slot until safe expiry to avoid concurrent backend computation.
 
 Global admissions default to six requests/minute and 300/day per endpoint scope. All local attempts for an account across assistant/style/drafts share the ai_limit daily operational cap in addition to the existing per-kind success-credit rules. Failed and cancelled attempts may still count as actual local usage; a failed draft operation refunds its success credit. Set LOCAL_AI_QUEUE_WAIT_MS=0 to disable waiting. Personal providers are unchanged and are not cancelled by the local queue endpoint.
+
+### Draft input budget (2026-10-15)
+
+Local drafting now requires a reviewed, approved CV summary when the original CV exceeds 1,800 characters. It fails immediately with `AI_CV_SUMMARY_REQUIRED` (422), before contacting the gateway; it never silently selects an unapproved extract. The original PDF attachment and personal-provider factual source are unchanged. Shorter approved summaries (around 600–1,000 characters when sufficient) reduce CPU prompt evaluation further.
+
+Local drafts use one short style example, bounded style hints, no unrelated channel templates, and a 5,500-character total input budget. An oversized revision gets `AI_PROMPT_TOO_LONG` before gateway access. Extra `AI_SECOND_PASS` reviewing is disabled on the local drafting path. This bounds work; CPU-only inference can still time out and needs measured validation after deployment.
+
+Errors carry a safe code and `X-Request-ID`; API requests carry `X-Mrsaal-Language` (`ar`/`en`). UI language does not change the selected message-writing language or translate user drafts, CVs or reply bodies. Gmail errors distinguish expired authorization, missing permissions, disabled API, quota, and invalid requests. Failed reply checks back off five minutes instead of retrying each affected thread repeatedly. No automatic Gmail disconnection or token deletion occurs.
+
+Acceptance after redeploy:
+- English UI: missing Gmail sender shows an English reconnect instruction; Arabic UI shows Arabic.
+- Reconnect the affected Gmail account, send a manually reviewed test email once, then check reply sync.
+- Long CV without approved summary: immediate instruction, no 90-second loading cycle.
+- Approve the active CV summary, generate once, and inspect sanitized timing logs. Existing drafts remain if generation fails.
+- A provider error shows a specific safe reason; an unknown error shows a reference matching the server log.
+- The original PDF still arrives unchanged. Personal AI still uses the full CV.

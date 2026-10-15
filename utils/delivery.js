@@ -27,11 +27,12 @@ async function deliver(userId,{companyId,channel,subject='',body,senderAccountId
  await run("UPDATE companies SET status='sent' WHERE id=$1 AND user_id=$2",[companyId,userId]);
  const result={ok:true,status:'sent',channel,logId,messageId:sent.messageId};await run("UPDATE delivery_attempts SET status='sent',result=$1 WHERE id=$2",[JSON.stringify(result),attempt.id]);return result;
  }catch(e){
+ if(channel==='email')e=require('./gmail-errors').gmailError(e);
  // A timeout or lost provider acknowledgement may already represent a delivered message.
  const uncertain=delivered||enteredProvider&&!Number.isInteger(Number(e.response?.status||e.statusCode||e.status))||enteredProvider&&Number(e.response?.status||e.statusCode||e.status)>=500;
  if(credit){try{if(uncertain)await require('./usage-limits').commit(userId,credit);else await require('./usage-limits').release(userId,credit);}catch{console.warn('Usage reservation retained for reconciliation',attempt.id);}}
  const status=uncertain?'uncertain':'failed',message=uncertain?'قد تكون الرسالة وصلت. راجع Gmail أو واتساب قبل إعادة الإرسال.':e.message;
- const result={ok:false,status,channel,logId,error:message};
+ const result={ok:false,status,channel,logId,error:message,code:uncertain?'DELIVERY_UNCERTAIN':e.code};
  try{await run('UPDATE email_log SET status=$1,reason=$2 WHERE id=$3 AND user_id=$4',[status,message,logId,userId]);await run('UPDATE delivery_attempts SET status=$1,result=$2 WHERE id=$3',[status,JSON.stringify(result),attempt.id]);}catch{console.warn('Delivery persistence failed; request remains blocked',attempt.id);}
  return result;
  }

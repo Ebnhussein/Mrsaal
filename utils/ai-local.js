@@ -50,8 +50,8 @@ async function callLocalAI(prompt,maxTokens=1200,validate=null,deadline=Date.now
   knownFinished=true;usage=data?.usage;finishReason=data?.choices?.[0]?.finish_reason;await record(userId,usage);metered=true;
   if(!response.ok||data?.error){console.warn('Local AI request rejected; status='+response.status);throw error('AI_UNAVAILABLE',response.status===401||response.status===403?'ربط ذكاء مرسال المحلي محتاج مراجعة من الإدارة.':response.status===429?'خدمة ذكاء مرسال مشغولة حاليًا. حاول بعد قليل.':'خدمة ذكاء مرسال المحلي غير متاحة حاليًا.',response.status===429?429:503);}
   const choice=data?.choices?.[0],text=choice?.message?.content;
-  if(choice?.finish_reason==='length')throw error('AI_UNAVAILABLE','رد ذكاء مرسال المحلي اتقطع. اختصر الطلب أو راجع سقف التوكنز من الإدارة.');
-  if(typeof text!=='string'||!text.trim())throw error('AI_UNAVAILABLE','ذكاء مرسال المحلي لم يرجع نصًا صالحًا.');
+  if(choice?.finish_reason==='length')throw error('AI_TRUNCATED','رد ذكاء مرسال المحلي اتقطع. اختصر الطلب أو راجع سقف التوكنز من الإدارة.');
+  if(typeof text!=='string'||!text.trim())throw error('AI_EMPTY','ذكاء مرسال المحلي لم يرجع نصًا صالحًا.');
   const cleaned=validate?cleanEnvelope(text):text.trim();
   if(validate&&!validate(cleaned)){
    let parsed;try{parsed=JSON.parse(cleaned);}catch{}
@@ -62,7 +62,7 @@ async function callLocalAI(prompt,maxTokens=1200,validate=null,deadline=Date.now
   console.log('AI succeeded: local');return cleaned;
  }catch(e){
   if(userCancelled)throw Object.assign(error('AI_CANCELLED','اتلغى طلب الذكاء الاصطناعي.',409),{reason:'CANCELLED'});
-  if(e.code==='AI_UNAVAILABLE'||e.code==='TIMEOUT')throw e;
+  if(['AI_UNAVAILABLE','AI_TRUNCATED','AI_EMPTY','TIMEOUT'].includes(e.code))throw e;
   console.warn('Local AI connection failed; code='+ (controller.signal.aborted?'TIMEOUT':'NETWORK'));
   throw error(controller.signal.aborted?'TIMEOUT':'AI_UNAVAILABLE',controller.signal.aborted?'ذكاء مرسال المحلي استغرق وقتًا أطول من المهلة المتاحة.':'تعذر الاتصال بذكاء مرسال المحلي. تأكد أن جهاز تشغيل الموديل متصل.');
  }finally{

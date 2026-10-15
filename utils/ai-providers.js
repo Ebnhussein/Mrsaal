@@ -83,18 +83,18 @@ async function callUserAI(userId,prompt,maxTokens,validate,operationDeadline=nul
  const rows=await all('SELECT * FROM ai_connections WHERE user_id=$1 AND enabled=true ORDER BY priority,provider',[userId]);
  const chain=rows.flatMap(r=>(Array.isArray(r.selected_models)?r.selected_models:[]).map(model=>({row:r,model}))).slice(0,12);
  if(!chain.length)return null;
- const end=Math.min(operationDeadline||Infinity,Date.now()+TOTAL_TIMEOUT_MS),failed=[],blocked=new Set();
+ const end=Math.min(operationDeadline||Infinity,Date.now()+TOTAL_TIMEOUT_MS),failed=[],failureDetails=[],blocked=new Set();
  for(const {row,model}of chain){
   if(blocked.has(row.provider))continue;
   if(Date.now()>=end)break;
   const key=unseal(row.credentials).key;const unavailable=health.available(row.provider,key,model);
-  if(unavailable){failed.push(`${PROVIDERS[row.provider]?.name} / ${model}: ${ERROR_HINTS[unavailable.code]||ERROR_HINTS.TEMPORARY}`);continue;}
+  if(unavailable){failureDetails.push({provider:row.provider,model,code:unavailable.code});failed.push(`${PROVIDERS[row.provider]?.name} / ${model}: ${ERROR_HINTS[unavailable.code]||ERROR_HINTS.TEMPORARY}`);continue;}
   try {
    const text=await withOutputRecovery(compact=>withRecovery(()=>generate(row.provider,key,model,compact?compactPrompt(prompt):prompt,maxTokens,Math.min(MODEL_TIMEOUT_MS,Math.max(1,end-Date.now()))),end),end);
    if(validate&&!validate(text))throw aiError('FORMAT');
    health.success(row.provider,key,model);return text;
   } catch(e) {
-   const code=Object.hasOwn(ERROR_HINTS,e.code)?e.code:'UNKNOWN';
+   const code=Object.hasOwn(ERROR_HINTS,e.code)?e.code:'UNKNOWN';failureDetails.push({provider:row.provider,model,code});
    health.failed(row.provider,key,model,code,e.retryAfterMs);
    const safeModel=String(model).replace(/[^a-zA-Z0-9_/:.\-]/g,'').slice(0,100);
    const label=PROVIDERS[row.provider]?.name||'AI';
@@ -105,7 +105,7 @@ async function callUserAI(userId,prompt,maxTokens,validate,operationDeadline=nul
    if(['AUTH','QUOTA','CREDITS'].includes(code))blocked.add(row.provider);
   }
  }
- throw Object.assign(new Error('تعذر تنفيذ طلب الذكاء الاصطناعي. '+(failed.slice(0,3).join(' | ')||ERROR_HINTS.TIMEOUT)),{code:'AI_UNAVAILABLE',status:503});
+ throw Object.assign(new Error('تعذر تنفيذ طلب الذكاء الاصطناعي. '+(failed.slice(0,3).join(' | ')||ERROR_HINTS.TIMEOUT)),{code:'AI_UNAVAILABLE',status:503,failures:failureDetails});
 }
 
 module.exports={PROVIDERS,provider,listModels,generate,callUserAI,usable};

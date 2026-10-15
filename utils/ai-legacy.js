@@ -181,7 +181,7 @@ async function callGemini(
   const deadline = Math.min(operationDeadline || Infinity, Date.now() + TOTAL_TIMEOUT_MS);
   if(Date.now()>=deadline)throw Object.assign(new Error('انتهت مهلة الكتابة. جرّب موديلًا أسرع.'),{code:'TIMEOUT'});
   const blockedProviders = new Set();
-  const failures=[];
+  const failures=[],failureDetails=[];
 
   const keys = {
     gemini: apiKey || process.env.GEMINI_API_KEY,
@@ -193,7 +193,7 @@ async function callGemini(
 
     if (!key || blockedProviders.has(provider)) continue;
     const cooldown=health.available(provider,key,model);
-    if(cooldown){failures.push(`${provider} / ${model}: الموديل في فترة انتظار بعد خطأ سابق`);continue;}
+    if(cooldown){failureDetails.push({provider,model,code:cooldown.code});failures.push(`${provider} / ${model}: الموديل في فترة انتظار بعد خطأ سابق`);continue;}
 
     const remaining = deadline - Date.now();
     if (remaining <= 0) break;
@@ -228,7 +228,7 @@ async function callGemini(
       const status = Number(error.status || error.code) || 0;
       const code=typeof error.code==='string'&&error.code!=='UNKNOWN'?error.code:status===401||status===403?'AUTH':status===404?'MODEL_UNAVAILABLE':status===429?'RATE_LIMIT':status===402?'CREDITS':status>=500?'TEMPORARY':error.name==='AbortError'||error.name==='TimeoutError'?'TIMEOUT':'UNKNOWN';health.failed(provider,key,model,code,error.retryAfterMs);
       const reason=error.code==='FORMAT'?'الرد وصل بتنسيق غير صالح':error.code==='TRUNCATED'?'الرد اتقطع قبل اكتماله':error.code==='EMPTY'?'الموديل لم يرجع نصًا':error.code==='QUOTA'?'الحد اليومي مستهلك':status===429?'تقييد مؤقت لعدد الطلبات':status===401||status===403?'راجع صلاحيات المفتاح':status===404?'الموديل غير متاح':error.name==='AbortError'||error.name==='TimeoutError'?'انتهت مهلة الرد':status>=500?'الموديل مزدحم مؤقتًا':'تعذر استلام رد صالح أو الاتصال';
-      failures.push(`${provider} / ${model}: ${reason}`);
+      failures.push(`${provider} / ${model}: ${reason}`);failureDetails.push({provider,model,code});
 
       // اللوج لا يحتوي على المفاتيح أو السيرة الذاتية.
       console.warn(
@@ -254,7 +254,7 @@ async function callGemini(
 
   throw Object.assign(new Error(
     'تعذر تنفيذ طلب الذكاء الاصطناعي. '+(failures.slice(0,3).join(' | ')||(Date.now()>=deadline?'انتهت مهلة الكتابة. جرّب موديلًا أسرع.':'لم يتم ضبط مفتاح لمنصة متاحة.'))
-  ),{code:'AI_UNAVAILABLE',status:503});
+  ),{code:'AI_UNAVAILABLE',status:503,failures:failureDetails});
 }
 
 function parseEmail(text) {
