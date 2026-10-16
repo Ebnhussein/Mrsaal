@@ -11,21 +11,20 @@ function renderExact(page,legacy,{posts=[],post=null}={},language='ar'){
  if(!cache.has(key))cache.set(key,fs.readFileSync(path.join(__dirname,'stitch-pages',...(lang==='en'?['en']:[]),(page==='signup'?'login':page)+'.html'),'utf8'));
  let html=cache.get(key).replace(/::?-webkit-scrollbar\s*\{\s*display\s*:\s*none\s*;?\s*\}/gi,'').replaceAll('ابدأ مجاناً بحساب Google','اعمل حسابك مجانًا').replaceAll('لا يلزم بطاقة ائتمانية • تفعيل فوري عبر حساب Google','بدون بطاقة بنكية • سجل بإيميلك أو Google').replaceAll('Start free with Google','Create your free account').replaceAll('No payment card required · Sign in with Google','No payment card required · Email or Google');
  if(page==='login'||page==='signup'){html=html.replace('<html ','<html class="mrsaal-auth-document" ').replace(/<main\b[\s\S]*?<\/main>/,()=>require('./account-page').accountContent(lang,page)).replace(/<title>[\s\S]*?<\/title>/,'<title>'+(lang==='en'?(page==='signup'?'Create account':'Sign in'):(page==='signup'?'إنشاء حساب':'تسجيل الدخول'))+' | Mrsaal</title>').replace('</head>','<meta name="robots" content="noindex"><link rel="stylesheet" href="/assets/account.css?v=locale-20261015"><script defer src="/assets/account.js?v=locale-20261015"></script></head>');}
- const concise=require('./site-concise').content(page,lang);if(concise)html=html.replace(/<main\b[\s\S]*?<\/main>/,()=>concise);
  if(page==='help'){
   html=html.replace(/(<input\b[^>]*id="helpSearchInput"[^>]*>)/,tag=>tag+'<div data-help-search-anchor></div>');
   html=html.replace('<div data-help-search-anchor></div>',require('./help-search').markup(lang));
   html=html.replace('</head>','<link rel="stylesheet" href="/assets/help-search.css?v=home-full-mobile-20261010-1"><script defer src="/assets/help-search.js?v=home-full-mobile-20261010-1"></script></head>');
  }
  if(page==='plans')html=html.replace(/<main\b[\s\S]*?<\/main>/,()=>require('./public-minimal').plansContent(lang));
- if(!concise&&page==='product')html=html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/,(_,open,content,close)=>open+require('./public-minimal').mobileProduct(lang)+'<div class="sx-desktop-home">'+lazyDesktop(content)+'</div>'+close);
- if(!concise&&page==='home')html=html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/,(_,open,content,close)=>open+'<div class="sx-home-responsive">'+lazyDesktop(content)+'</div>'+close);
+ if(page==='product')html=html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/,(_,open,content,close)=>open+require('./public-minimal').mobileProduct(lang)+'<div class="sx-desktop-home">'+lazyDesktop(content)+'</div>'+close);
+ if(page==='home')html=html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/,(_,open,content,close)=>open+'<div class="sx-home-responsive">'+lazyDesktop(content)+'</div>'+close);
  if(page==='blog'){
   const articles=mergeGuides(posts);
   const searchData={language:lang,mode:'guides',categories:Object.entries(categories).map(([id,c])=>({id,title:c[lang],icon:'menu_book'})),issues:articles.map(p=>({id:p.slug,category:categoryKey(p.category),title:p['title_'+lang],keywords:p['excerpt_'+lang],href:'/'+lang+'/blog/'+encodeURIComponent(p.slug)}))};
   if(searchData.issues.some(p=>p.category==='other'))searchData.categories.push({id:'other',title:lang==='en'?'Other guides':'أدلة أخرى',icon:'menu_book'});
   const guidePanel=require('./help-search').markup(lang).replace(/<script id="help-search-data"[\s\S]*?<\/script>/,()=>'<script id="help-search-data" type="application/json">'+JSON.stringify(searchData).replace(/</g,'\\u003c')+'</script>');
-  html=html.includes('@@GUIDE_SEARCH@@')?html.replace('@@GUIDE_SEARCH@@',()=>guidePanel):html.replace('</main>',guidePanel+'</main>');html=html.replace('</head>','<link rel="stylesheet" href="/assets/help-search.css?v=home-full-mobile-20261010-1"><script defer src="/assets/help-search.js?v=home-full-mobile-20261010-1"></script></head>');
+  html=html.replace('</main>',guidePanel+'</main>').replace('</head>','<link rel="stylesheet" href="/assets/help-search.css?v=home-full-mobile-20261010-1"><script defer src="/assets/help-search.js?v=home-full-mobile-20261010-1"></script></head>');
   html=html.replace('@@POSTS@@','<div class="sx-post-grid">'+articles.map(p=>{const key=categoryKey(p.category);return `<article class="sx-post" data-post-category="${key}">${p.image&&['draft','companies','channels'].includes(p.image)?`<img src="/assets/stitch-exact/mrsaal-${p.image}.webp" alt="" loading="lazy" width="1536" height="1024">`:''}<small>${escape(categories[key]?.[lang]||p.category)}</small><h2>${escape(p['title_'+lang])}</h2><p>${escape(p['excerpt_'+lang])}</p><a href="/${lang}/blog/${encodeURIComponent(p.slug)}">${lang==='en'?'Read the guide →':'اقرأ الدليل ←'}</a></article>`;}).join('')+'</div>');
  }
  if(['privacy','terms','article'].includes(page)){const content=legacy.match(/<main>([\s\S]*?)<\/main>/)?.[1]||'';html=html.replace('@@CONTENT@@','<div class="sx-content">'+content+'</div>');}
@@ -37,7 +36,7 @@ function renderExact(page,legacy,{posts=[],post=null}={},language='ar'){
  const suffix=post?'blog/'+encodeURIComponent(post.slug):page==='home'?'':page;
  html=html.replace('</head>',`<link rel="alternate" hreflang="ar" href="https://mrsaal.ebnhussein.co/ar/${suffix}"><link rel="alternate" hreflang="en" href="https://mrsaal.ebnhussein.co/en/${suffix}"></head>`);
  html=html.replace(/(\/assets\/stitch-exact\/interactions\.js)\?v=[^"\s<>]+/g,'$1?v=locale-20261015');
- html=html.replace('</head>','<script src="/assets/theme-init.js?v=locale-20261015"></script><link rel="stylesheet" href="/assets/site-concise.css?v=public-minimal-20261016"></head>');
+ html=html.replace('</head>','<script src="/assets/theme-init.js?v=locale-20261015"></script></head>');
  return applyShell(html,lang,page,suffix).replaceAll('v=responsive-2','v=home-full-mobile-20261010-1');
 }
 module.exports={renderExact};
