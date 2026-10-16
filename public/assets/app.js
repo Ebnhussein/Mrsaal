@@ -343,7 +343,7 @@ async function selectVisibleCompanies(val){
 async function deleteSelected() {
   const ids=companies.filter(c=>c.selected).map(c=>c.id);
   if(!ids.length){toast('حدد شركات أولاً','info');return;}
-  if(!confirm(window.MrsaalLocale?.lang==='en'?`Delete ${ids.length} companies?`:`حذف ${ids.length} شركة؟`)) return;
+  if(!await window.MrsaalDialog.confirm(window.MrsaalLocale?.lang==='en'?`Delete ${ids.length} companies?`:`حذف ${ids.length} شركة؟`)) return;
   await api('/api/companies','DELETE',{ids});
   await loadCompanies();
   toast(`تم حذف ${ids.length}`,'info');
@@ -625,7 +625,7 @@ reportOverlay.addEventListener('keydown',event=>{
 });
 
 async function clearLog(){
-  if(!confirm('مسح كل السجل؟')) return;
+  if(!await window.MrsaalDialog.confirm(window.MrsaalLocale?.lang==='en'?'Clear the entire history?':'مسح كل السجل؟')) return;
   const result=await api('/api/email/log','DELETE');
   await loadLog(); toast(result.note||'تم مسح السجل','info');
 }
@@ -677,8 +677,9 @@ async function connectWhatsApp(){
   finally{button.disabled=false;}
 }
 async function disconnectWhatsApp(){
+  if(document.getElementById('wa-disconnect')?.disabled)return;
   if(window.MrsaalWA)return window.MrsaalWA.disconnect();
-  if(!confirm('فصل واتساب؟ هتحتاج تمسح QR من جديد عشان تربطه.'))return;
+  if(!await window.MrsaalDialog.confirm('فصل واتساب؟ هتحتاج تمسح QR من جديد عشان تربطه.'))return;
   try{await api('/api/whatsapp/disconnect','POST',{});await loadWhatsAppStatus();}
   catch(err){toast(err.message,'error');}
 }

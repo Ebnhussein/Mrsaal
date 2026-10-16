@@ -21,7 +21,7 @@ async function fixture(){
  CREATE TABLE email_log(id TEXT PRIMARY KEY,user_id TEXT,channel TEXT,status TEXT,message_id TEXT,thread_id TEXT,sent_at BIGINT,whatsapp_delivered_at BIGINT,whatsapp_read_at BIGINT,open_count INTEGER DEFAULT 0,last_opened_at BIGINT,replied INTEGER DEFAULT 0,reply_text TEXT,whatsapp_reply_at BIGINT,whatsapp_reply_message_id TEXT);
  CREATE TABLE delivery_attempts(id TEXT,user_id TEXT,status TEXT);CREATE TABLE campaigns(id TEXT,user_id TEXT,status TEXT,channel TEXT);CREATE TABLE scheduled_jobs(id TEXT,user_id TEXT,status TEXT,log_id TEXT);`);
  const query=(s,a)=>pg.query(s,a),db={get:async(s,a)=>(await query(s,a)).rows[0]||null,all:async(s,a)=>(await query(s,a)).rows,run:(s,a)=>a?query(s,a):pg.exec(s),pool:{connect:async()=>({query,release(){}})}};
- const calls=[],sessions=[],env={MRSAALWA_ENABLED:'true',MRSAALWA_MAX_SESSIONS:'2'};let legacyStatus='disconnected',startFails=false;
+ const calls=[],sessions=[],env={MRSAALWA_PUBLIC_BETA:'false',MRSAALWA_ENABLED:'true',MRSAALWA_MAX_SESSIONS:'2'};let legacyStatus='disconnected',startFails=false;
  const g={list:async()=>sessions,create:async name=>{const s={id:calls.filter(c=>c[0]==='create').length?sid2:sid,name,status:'created',engineLoaded:false};sessions.push(s);calls.push(['create',s.id]);return s;},session:async id=>{calls.push(['session',id]);const s=sessions.find(x=>x.id===id);if(!s)throw provider.fail('MRSAALWA_SESSION');return s;},start:async id=>{calls.push(['start',id]);if(startFails)throw provider.fail('MRSAALWA_TIMEOUT');Object.assign(sessions.find(x=>x.id===id),{status:'qr_ready',engineLoaded:true});},qr:async()=> 'data:image/png;base64,dGVzdA==',pair:async(id,p)=>{calls.push(['pair',id,p]);return 'ABCD1234';},logout:async id=>calls.push(['logout',id]),remove:async id=>{calls.push(['remove',id]);sessions.splice(sessions.findIndex(x=>x.id===id),1);},send:async(id,phone,content)=>{calls.push(['send',id,phone,content]);return {messageId:'true_'+phone+'@c.us_MSG',threadId:phone+'@c.us'};},messages:async()=>[]};
  const deps={crypto:require('crypto'),'./db':db,'./mrsaalwa-gateway':{...provider,config:()=>({}),createGateway:()=>g},'./whatsapp-content':require('../utils/whatsapp-content'),'./helpdesk':{isAdmin:async()=>false},'./access-control':{checkToolAccess:async()=>{}},'./whatsapp':{status:()=>({status:legacyStatus})},'./notifications':{whatsappDisconnected(){}},'./whatsappTracking':{receipt:async(...args)=>calls.push(['receipt',...args])}};
  const beta=load('../utils/mrsaalwa',deps,{process:{env}});await beta.ensureSchema();
@@ -75,4 +75,15 @@ test('WhatsApp mutation routes require a signed request and recent auth and neve
 });
 test('disconnect can delete an unstarted capacity reservation without requiring a live engine',async()=>{
  const f=await fixture();try{await f.grant('owner');await f.beta.select('owner','mrsaalwa');f.setStartFailure(true);await assert.rejects(f.beta.connect('owner'));await f.beta.disconnect('owner');assert.equal((await f.beta.profile('owner')).session_id,null);assert.equal(f.calls.filter(c=>c[0]==='logout').length,0);assert.equal(f.calls.filter(c=>c[0]==='remove').length,1);await f.beta.select('owner','baileys');assert.equal((await f.beta.profile('owner')).provider,'baileys');}finally{await f.close();}
+});
+
+test('public beta is available by default, respects explicit admin blocking, and defaults only unlinked accounts',async()=>{
+ const f=await fixture();try{delete f.env.MRSAALWA_PUBLIC_BETA;assert.equal(await f.beta.allowed('owner'),true);
+ await f.pg.query("INSERT INTO users VALUES('fresh','fresh@test')");await f.beta.select('fresh','baileys');await f.beta.prepareDefault('fresh');assert.equal((await f.beta.profile('fresh')).provider,'baileys');
+ const p=await f.beta.prepareDefault('owner');assert.equal(p.provider,'mrsaalwa');assert.equal(p.provider_chosen,true);
+ await f.beta.select('owner','baileys');await f.beta.prepareDefault('owner');assert.equal((await f.beta.profile('owner')).provider,'baileys');
+ await f.pg.query('UPDATE whatsapp_preferences SET beta_blocked=true WHERE user_id=$1',['owner']);assert.equal(await f.beta.allowed('owner'),false);
+ f.setLegacy('connected');await f.beta.prepareDefault('other');assert.equal((await f.beta.profile('other')).provider,'baileys');
+ f.setLegacy('disconnected');await f.pg.exec("CREATE TABLE whatsapp_auth(user_id TEXT,key_id TEXT);INSERT INTO whatsapp_auth VALUES('other','creds')");await f.beta.prepareDefault('other');assert.equal((await f.beta.profile('other')).provider,'baileys');
+ }finally{await f.close();}
 });

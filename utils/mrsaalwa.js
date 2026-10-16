@@ -9,6 +9,8 @@ const gateway=()=>createGateway(config());
 const maxSessions=()=>{const n=Number(process.env.MRSAALWA_MAX_SESSIONS);return Number.isInteger(n)&&n>=1&&n<=50?n:1;};
 function ensureSchema(){return schema||=(async()=>{await run(`
  CREATE TABLE IF NOT EXISTS whatsapp_preferences(user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,provider TEXT NOT NULL DEFAULT 'baileys' CHECK(provider IN ('baileys','mrsaalwa')),beta_allowed BOOLEAN NOT NULL DEFAULT false,session_id TEXT UNIQUE,session_name TEXT UNIQUE,last_status TEXT,last_error TEXT,last_seen TIMESTAMPTZ,pair_requested_at TIMESTAMPTZ);
+ ALTER TABLE whatsapp_preferences ADD COLUMN IF NOT EXISTS beta_blocked BOOLEAN NOT NULL DEFAULT false;
+ ALTER TABLE whatsapp_preferences ADD COLUMN IF NOT EXISTS provider_chosen BOOLEAN NOT NULL DEFAULT false;
  CREATE TABLE IF NOT EXISTS mrsaalwa_events(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,event TEXT NOT NULL,code TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
  CREATE INDEX IF NOT EXISTS mrsaalwa_events_time ON mrsaalwa_events(created_at DESC);
  CREATE TABLE IF NOT EXISTS mrsaalwa_capacity(id INTEGER PRIMARY KEY);
@@ -18,30 +20,42 @@ function ensureSchema(){return schema||=(async()=>{await run(`
  ALTER TABLE email_log ADD COLUMN IF NOT EXISTS whatsapp_session_id TEXT;
  `);})().catch(e=>{schema=null;throw e;});}
 async function profile(id){await ensureSchema();return await get('SELECT * FROM whatsapp_preferences WHERE user_id=$1',[id])||{user_id:id,provider:'baileys',beta_allowed:false,session_id:null};}
-async function allowed(id){const p=await profile(id);return enabled()&&(p.beta_allowed||await require('./helpdesk').isAdmin(id));}
+async function allowed(id){const p=await profile(id);return enabled()&&!p.beta_blocked&&(process.env.MRSAALWA_PUBLIC_BETA!=='false'||p.beta_allowed||await require('./helpdesk').isAdmin(id));}
+// Initialise the UI default only when no saved connection or active work can be displaced.
+async function prepareDefault(id){
+ const p=await profile(id);
+ if(p.provider==='mrsaalwa'||p.provider_chosen||!await allowed(id))return p;
+ await select(id,'mrsaalwa',true);return profile(id);
+}
 async function assertAllowed(id){if(!await allowed(id))throw fail('MRSAALWA_DISABLED',403);await require('./access-control').checkToolAccess(id);}
 async function locked(id,task){await ensureSchema();const c=await pool.connect();try{await c.query('BEGIN');const r=await c.query('SELECT id FROM users WHERE id=$1 FOR NO KEY UPDATE NOWAIT',[id]);if(!r.rows.length)throw fail('MRSAALWA_DISABLED',403);const result=await task(c);await c.query('COMMIT');return result;}catch(e){await c.query('ROLLBACK');if(e.code==='55P03')throw fail('MRSAALWA_BUSY',409);throw e;}finally{c.release();}}
 async function event(id,type,code=null){await run('INSERT INTO mrsaalwa_events(id,user_id,event,code) VALUES($1,$2,$3,$4)',[randomUUID(),id,type,code]);await run("DELETE FROM mrsaalwa_events WHERE created_at<NOW()-INTERVAL '14 days'");}
 async function busy(id){return !!await get(`SELECT id FROM delivery_attempts WHERE user_id=$1 AND status IN ('processing','uncertain')
  UNION SELECT id FROM campaigns WHERE user_id=$1 AND status='running' AND channel='whatsapp'
  UNION SELECT sj.id FROM scheduled_jobs sj JOIN email_log l ON l.id=sj.log_id WHERE sj.user_id=$1 AND sj.status IN ('pending','processing') AND l.channel='whatsapp' LIMIT 1`,[id]);}
-async function select(id,provider){
+async function select(id,provider,initialise=false){
  if(!['baileys','mrsaalwa'].includes(provider))throw fail('MRSAALWA_INPUT',400);
- return locked(id,async c=>{const p=await profile(id);if(p.provider===provider)return {ok:true};
+ return locked(id,async c=>{const p=await profile(id);
+  if(initialise){
+   if(p.provider_chosen||p.provider==='mrsaalwa'||require('./whatsapp').status(id).status!=='disconnected'||await busy(id))return {ok:true};
+   const table=await get("SELECT to_regclass('public.whatsapp_auth') AS name");
+   if(table?.name&&await get("SELECT user_id FROM whatsapp_auth WHERE user_id=$1 AND key_id='creds' LIMIT 1",[id]))return {ok:true};
+  }
+  if(p.provider===provider){await c.query('INSERT INTO whatsapp_preferences(user_id,provider,provider_chosen) VALUES($1,$2,true) ON CONFLICT(user_id) DO UPDATE SET provider_chosen=true',[id,provider]);return {ok:true};}
   if(provider==='mrsaalwa')await assertAllowed(id);
   if(await busy(id))throw fail('MRSAALWA_BUSY',409);
   if(p.provider==='mrsaalwa'&&p.session_id)throw fail('MRSAALWA_DISCONNECT_FIRST',409);
   if(p.provider==='baileys'&&require('./whatsapp').status(id).status!=='disconnected')throw fail('MRSAALWA_DISCONNECT_FIRST',409);
-  await c.query('INSERT INTO whatsapp_preferences(user_id,provider) VALUES($1,$2) ON CONFLICT(user_id) DO UPDATE SET provider=EXCLUDED.provider',[id,provider]);
+  await c.query('INSERT INTO whatsapp_preferences(user_id,provider,provider_chosen) VALUES($1,$2,true) ON CONFLICT(user_id) DO UPDATE SET provider=EXCLUDED.provider,provider_chosen=true',[id,provider]);
   await event(id,'provider_changed',provider);return {ok:true};
  });
 }
 async function status(id,includeQR=true){
- const p=await profile(id);if(!p.session_id)return {provider:'mrsaalwa',status:'disconnected',qr:null,phone:null};
+ const p=await profile(id);if(!p.session_id)return {provider:'mrsaalwa',status:'disconnected',qr:null,phone:null,hasSession:false};
  try{const g=gateway(),s=await g.session(p.session_id);const state={ready:'connected',qr_ready:'qr',created:'disconnected',initializing:'connecting',authenticating:'connecting',action_required:'disconnected',failed:'disconnected',disconnected:'disconnected'}[s.status]||'disconnected';
   if(p.last_status!==state){await event(id,'connection',state);if(p.last_status==='connected'&&state==='disconnected')require('./notifications').whatsappDisconnected(id,{});}
   await run('UPDATE whatsapp_preferences SET last_status=$2,last_error=NULL,last_seen=NOW() WHERE user_id=$1 AND session_id=$3',[id,state,p.session_id]);
-  return {provider:'mrsaalwa',status:state,phone:s.phone||null,qr:includeQR&&s.status==='qr_ready'?await g.qr(p.session_id):null};
+  return {provider:'mrsaalwa',status:state,phone:s.phone||null,hasSession:true,qr:includeQR&&s.status==='qr_ready'?await g.qr(p.session_id):null};
  }catch(e){await run('UPDATE whatsapp_preferences SET last_error=$2,last_seen=NOW() WHERE user_id=$1',[id,e.code||'MRSAALWA_RESPONSE']);throw e;}
 }
 async function connect(id,{method='qr',phone='',acknowledge=false}={}){
@@ -112,4 +126,4 @@ async function sync(){
 }
 function start(){if(timer)return;timer=setInterval(sync,30000);timer.unref?.();if(enabled())(async()=>{for(const p of await all("SELECT user_id FROM whatsapp_preferences WHERE provider='mrsaalwa' AND session_id IS NOT NULL")){try{await connect(p.user_id,{method:'qr'});}catch(e){await run('UPDATE whatsapp_preferences SET last_error=$2 WHERE user_id=$1',[p.user_id,e.code||'MRSAALWA_RESPONSE']);}}})().catch(()=>console.warn('MrsaalWA restore unavailable'));}
 function stop(){clearInterval(timer);timer=null;}
-module.exports={ensureSchema,profile,allowed,enabled,select,status,connect,disconnect,requireConnected,send,locked,busy,event,sync,start,stop,maxSessions};
+module.exports={ensureSchema,profile,prepareDefault,allowed,enabled,select,status,connect,disconnect,requireConnected,send,locked,busy,event,sync,start,stop,maxSessions};

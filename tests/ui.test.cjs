@@ -8,7 +8,7 @@ test('style saved, explicit approval, revision and reference do not send',async(
  if(p.endsWith('/analyze'))return {summary:'مصري مباشر'};
  if(p.endsWith('/generate'))return {subject:'تواصل',body:'رسالة مختصرة',reviewed:true,review:[]};
  sent++;throw new Error('unexpected endpoint');
- },toast(){},refreshWorkspace(){},templateReady:false,prevCompanyId:'1',previewChannel:'email',previewRequest:0,confirm:()=>true,previewOne:async()=>{},console};
+ },toast(){},refreshWorkspace(){},templateReady:false,prevCompanyId:'1',previewChannel:'email',previewRequest:0,window:{MrsaalDialog:{confirm:async()=>true}},previewOne:async()=>{},console};
  vm.createContext(c);vm.runInContext(fs.readFileSync(require.resolve('../public/assets/writing.js'),'utf8'),c);
  await c.writingLoad();el('ws-example-0').value='أهلًا';el('ws-example-1').value='شكرًا';el('ws-summary').value='قديم';
  await c.writingAnalyze();assert.equal(el('ws-summary').value,'قديم');c.writingAccept();assert.equal(el('ws-summary').value,'مصري مباشر');assert.equal(await c.writingSave(),true);await c.writingLoad();assert.equal(el('ws-summary').value,'مصري مباشر');
