@@ -1,7 +1,9 @@
 'use strict';
-// Transport and Gemini/OpenRouter fallbacks are kept in your existing ai-legacy.js.
+// Explicit platform chain enables cloud providers plus local fallback. Legacy settings remain compatible.
+const platformChainEnabled=()=>!!process.env.MRSAAL_AI_MODEL_CHAIN?.trim();
 const {callGemini:legacyCall}=require('./ai-legacy');
 async function platformCall(prompt,maxTokens,apiKey,modelName,validate,deadline,userId){
+ if(platformChainEnabled())return require('./ai-platform').callPlatformAI(prompt,maxTokens,validate,deadline,userId);
  if(process.env.LOCAL_AI_BASE_URL?.trim())return require('./ai-local').callLocalAI(prompt,maxTokens,validate,deadline,userId);
  return legacyCall(prompt,maxTokens,apiKey,modelName,validate,deadline);
 }
@@ -34,7 +36,7 @@ async function callGemini(prompt,maxTokens=1200,apiKey=null,modelName=null,valid
 
 const {decode}=require('./writing-profile');
 function json(text){try{return JSON.parse(text.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,''));}catch{return null;}}
-async function ask(prompt,args,valid){const validator=t=>valid(json(t));validator.schema=valid.schema;const local=process.env.LOCAL_AI_BASE_URL?.trim()&&args._aiOperation?.source!=='personal';const raw=await callGemini(prompt,local?1200:2400,args.apiKey,args.modelName,validator,args.userId,args._aiOperation);const data=json(raw);if(!valid(data))throw new Error('رد غير مكتمل من الذكاء الاصطناعي. حاول مرة تانية.');return data;}
+async function ask(prompt,args,valid){const validator=t=>valid(json(t));validator.schema=valid.schema;const local=!platformChainEnabled()&&process.env.LOCAL_AI_BASE_URL?.trim()&&args._aiOperation?.source!=='personal';const raw=await callGemini(prompt,local?1200:2400,args.apiKey,args.modelName,validator,args.userId,args._aiOperation);const data=json(raw);if(!valid(data))throw new Error('رد غير مكتمل من الذكاء الاصطناعي. حاول مرة تانية.');return data;}
 const validDraft=d=>d&&typeof d.body==='string'&&d.body.trim()&&typeof d.subject==='string'&&d.body.length<=14000&&d.subject.length<=240&&!/[\r\n]/.test(d.subject);
 function context(args,channel){const p=decode(args.instructions);return {channel,style:p,channelStyle:p[channel],facts:{cv:String(args.cv||'').slice(0,35000),company:{name:args.company?.name||'',field:args.company?.field||'',location:args.company?.location||''}},subjectTemplate:channel==='email'?args.subjectTemplate||'':'',revision:args.revision||null};}
 function compactContext(c){
@@ -55,8 +57,10 @@ function fixed(args,c){const t=c.channelStyle.template;if(!t)throw new Error('ا
 async function generate(args,channel){
  const c=context(args,channel);if(c.style.mode==='template'&&!args.revision)return fixed(args,c);
  if(!args._aiOperation)return runOperation(args.userId,'ai',op=>generate({...args,_aiOperation:op},channel));
- const local=process.env.LOCAL_AI_BASE_URL?.trim()&&args._aiOperation.source!=='personal';
- const payload=local?compactContext(c):c;
+ const local=!platformChainEnabled()&&process.env.LOCAL_AI_BASE_URL?.trim()&&args._aiOperation.source!=='personal';
+ const cloud=platformChainEnabled()&&args._aiOperation.source!=='personal';
+ const payload=(local||cloud)?compactContext(c):c;
+ if(cloud&&typeof args.cvSummary==='string'&&args.cvSummary.trim()&&args.cvSummary.length<=1800)payload.facts={...payload.facts,cv:args.cvSummary.trim()};
  if(local){
   const summary=typeof args.cvSummary==='string'?args.cvSummary.trim():'';
   if(summary&&summary.length<=1800)payload.facts={...payload.facts,cv:summary};
@@ -75,7 +79,7 @@ async function generate(args,channel){
   review=await ask(reviewPrompt+'\nتنبيه تنسيق: المحاولة السابقة لم تطابق البنية. أرجع كائن JSON واحدًا بالحقلين المطلوبين subject وbody كنصوص. notes وneedsUserInput حقول اختيارية فقط. لا تضع النص داخل مفتاح آخر. احتفظ باللغة والفقرات المطلوبة.\n'+serializeContext(payload,local),args,validReview);
  }
 
- if(!local&&process.env.AI_SECOND_PASS==='true')review=await ask(reviewPrompt+'\nراجع المسودة وأصلحها مقابل الحقائق فقط.\n'+JSON.stringify({...payload,draft:review}),args,validReview);
+ if(!local&&!cloud&&process.env.AI_SECOND_PASS==='true')review=await ask(reviewPrompt+'\nراجع المسودة وأصلحها مقابل الحقائق فقط.\n'+JSON.stringify({...payload,draft:review}),args,validReview);
  if(review.needsUserInput)throw new Error('محتاجين معلومات أوضح عن هدف الرسالة أو السي في قبل الكتابة.');
  if(/\{(?:your_name|company_name|field|role)\}/.test(review.body+review.subject))throw new Error('المسودة فيها بيانات ناقصة. راجع هدف الرسالة.');
  return {subject:channel==='email'?review.subject.trim():'',body:review.body.trim(),review:(review.notes||[]).slice(0,4).map(n=>n.slice(0,300)),reviewed:false};
