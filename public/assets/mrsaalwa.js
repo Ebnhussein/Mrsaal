@@ -8,8 +8,9 @@
  function statusMessage(text,kind='info'){notice.dataset.kind=kind;notice.replaceChildren(node('span',safeText(text)));}
  function error(e){
   if(['REAUTH_REQUIRED','ADMIN_GOOGLE_REQUIRED'].includes(e.code)){
-   notice.dataset.kind='identity';notice.replaceChildren(node('strong',tr('خطوة أمان قبل تغيير الربط','A security check before changing your connection')),node('p',tr('عشان نحمي حسابك، محتاجين نتأكد إنك صاحب الطلب. كمّل بنفس حساب Google اللي بتستخدمه في مرسال، وبعدها هنرجعك لإعدادات الربط.','To protect your account, confirm this request using the same Google account you use for Mrsaal. We will return you to connection settings afterwards.')));
-   const a=node('a',tr('متابعة تأكيد الهوية','Continue identity verification'),'btn btn-primary');a.href='/'+(document.documentElement.lang==='en'?'en':'ar')+'/login?reauth=1';a.onclick=()=>{try{sessionStorage.setItem('mrsaal-wa-return',method);}catch{}};notice.append(a);
+   statusMessage(tr('محتاجين تأكيد هويتك قبل تغيير الربط.','Please verify your identity before changing this connection.'),'identity');
+   const verify=()=>window.MrsaalDialog.identity({onContinue:()=>{try{sessionStorage.setItem('mrsaal-wa-return',method);}catch{}}});
+   const button=node('button',tr('تأكيد الهوية','Verify identity'),'btn btn-primary');button.type='button';button.onclick=verify;notice.append(button);void verify();
   }else statusMessage(e.message,'error');
  }
  function guidance(state=lastState){

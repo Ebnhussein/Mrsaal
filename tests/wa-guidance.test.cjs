@@ -16,11 +16,11 @@ function fixture(){
  }
  const host=new El('div');for(const id of ['wa-status','wa-qr','wa-connect','wa-disconnect']){const n=new El(id==='wa-qr'?'img':'button');n.id=id;host.append(n);}
  const byId=id=>nodes.find(n=>n.id===id),document={documentElement:{lang:'en'},createElement:t=>new El(t),getElementById:byId,addEventListener(){}};
- let failure=null;const calls=[];const saved=new Map(),window={MrsaalErrors:{from:(d)=>Object.assign(new Error(d.error),{code:d.code})}};
+ let failure=null;const calls=[];const identities=[],saved=new Map(),window={MrsaalDialog:{identity:async options=>{identities.push(options);return false;}},MrsaalErrors:{from:(d)=>Object.assign(new Error(d.error),{code:d.code})}};
  const fetch=async url=>{calls.push(url);return url.endsWith('/options')?{ok:true,json:async()=>({provider:'mrsaalwa',betaAvailable:true})}:failure?{ok:false,status:401,json:async()=>failure}:{ok:true,json:async()=>({pairingCode:'ABCD1234'})};};
  const context={window,document,fetch,Option:function(t,v){const e=new El('option',t);e.value=v;return e;},sessionStorage:{setItem:(k,v)=>saved.set(k,v)},loadWhatsAppStatus:async()=>window.MrsaalWA.render({status:'qr',hasSession:true}),Date,console};
  vm.runInNewContext(fs.readFileSync(require.resolve('../public/assets/mrsaalwa.js'),'utf8'),context);
- return {ui:window.MrsaalWA,byId,nodes,saved,calls,setFailure:v=>failure=v,text:n=>n.textContent+n.children.map(c=>c.textContent+c.children.map(x=>x.textContent).join('')).join('')};
+ return {ui:window.MrsaalWA,byId,nodes,saved,calls,identities,setFailure:v=>failure=v,text:n=>n.textContent+n.children.map(c=>c.textContent+c.children.map(x=>x.textContent).join('')).join('')};
 }
 test('phone pairing explains the code rather than asking users to scan a hidden QR; connected state hides instructions',async()=>{
  const f=fixture();await f.ui.render({status:'disconnected'});assert.equal(f.byId('wa-disconnect').disabled,true);
@@ -31,8 +31,8 @@ test('phone pairing explains the code rather than asking users to scan a hidden 
 });
 test('identity check explains why and keeps the connection method for return; internal UUIDs are redacted',async()=>{
  const f=fixture();await f.ui.render({status:'disconnected'});f.setFailure({code:'REAUTH_REQUIRED',error:'internal error'});await f.ui.connect();
- const notice=f.nodes.find(n=>n.className==='mrsaalwa-notice');assert.equal(notice.dataset.kind,'identity');assert.match(f.text(notice),/protect your account/);
- const link=f.nodes.find(n=>n.tag==='a');assert.match(link.href,/\/en\/login\?reauth=1$/);link.onclick();assert.equal(f.saved.get('mrsaal-wa-return'),'qr');
+ const notice=f.nodes.find(n=>n.className==='mrsaalwa-notice');assert.equal(notice.dataset.kind,'identity');assert.match(f.text(notice),/verify your identity/);assert.equal(f.identities.length,1);assert(!f.text(notice).includes('protect your account'));
+ f.identities[0].onContinue();assert.equal(f.saved.get('mrsaal-wa-return'),'qr');
  assert(!f.ui.safeText('Session 66cb8617-a5d7-4fe6-ae9f-84f73a51c9fc').includes('66cb8617'));
 });
 

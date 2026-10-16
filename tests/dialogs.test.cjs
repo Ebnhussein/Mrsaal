@@ -13,8 +13,8 @@ function fixture(lang='ar'){
   focus(){this.focused=true;}
  }
  const document={documentElement:{lang},activeElement:{focus:()=>returnedFocus++},createElement:tag=>new Element(tag),body:{append(){}}};
- const window={};vm.runInNewContext(fs.readFileSync(require.resolve('../public/assets/dialogs.js'),'utf8'),{window,document});
- return {confirm:window.MrsaalDialog.confirm,created,get focusCount(){return returnedFocus;}};
+ const redirects=[],window={location:{assign:url=>redirects.push(url)}};vm.runInNewContext(fs.readFileSync(require.resolve('../public/assets/dialogs.js'),'utf8'),{window,document});
+ return {confirm:window.MrsaalDialog.confirm,identity:window.MrsaalDialog.identity,redirects,created,get focusCount(){return returnedFocus;}};
 }
 test('designed confirmation defaults to cancel, escapes safely and resolves only once',async()=>{
  const f=fixture(),p=f.confirm('<img src=x onerror=bad()>'),d=f.created.find(n=>n.tag==='dialog');
@@ -27,4 +27,9 @@ test('English confirmation localises legacy text and only explicit approval retu
  assert.equal(f.created.find(n=>n.tag==='p').textContent,'Delete this provider key and its model selections?');
  f.created.find(n=>n.textContent==='Confirm').onclick();assert.equal(await p,true);assert.equal(f.focusCount,1);
  const second=f.confirm('Second');f.created.filter(n=>n.textContent==='×').at(-1).onclick();assert.equal(await second,false);
+});
+
+test('identity verification is a cancellable designed popup, and redirects only after approval',async()=>{
+ const f=fixture('en');let continued=0;const cancelled=f.identity({onContinue:()=>continued++});assert.equal(f.created.find(n=>n.tag==='h2').textContent,'Verify your identity');f.created.find(n=>n.textContent==='Not now').onclick();assert.equal(await cancelled,false);assert.equal(f.redirects.length,0);assert.equal(continued,0);
+ const accepted=f.identity({onContinue:()=>continued++});f.created.filter(n=>n.textContent==='Continue with Google').at(-1).onclick();assert.equal(await accepted,true);assert.equal(continued,1);assert.deepEqual(f.redirects,['/en/login?reauth=1']);
 });

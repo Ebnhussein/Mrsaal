@@ -120,13 +120,14 @@ async function uploadCV(e) {
 
 async function saveCV() {
   const content = document.getElementById('cv-text').value.trim();
+  if(!content&&window.MrsaalValidation){window.MrsaalValidation.check([{field:'cv-text',test:f=>!!f.value.trim(),message:cvLabel('اكتب نص السيرة الذاتية أو ارفع ملفك أولًا.','Enter your CV text or upload your file first.')}]);return;}
   if(!content) { toast('السيرة فارغة','error'); return; }
   try {
     await api('/api/cv/text','POST',{content});
     await loadCV();
     document.getElementById('cv-saved-note').style.display='';
     setTimeout(()=>document.getElementById('cv-saved-note').style.display='none',3000);
-    cvReady=true;refreshWorkspace();toast('تم حفظ السيرة','success');
+    window.MrsaalValidation?.clear('cv-text');cvReady=true;refreshWorkspace();toast('تم حفظ السيرة','success');
   } catch(err) { toast(err.message,'error'); }
 }
 
@@ -225,10 +226,12 @@ async function commitImport() {
   const btn = document.getElementById('btn-import-companies');
   const result = document.getElementById('import-result');
   if(btn.disabled) return;
+  if(!excelFile&&window.MrsaalValidation){window.MrsaalValidation.check([{field:'xl-file',test:()=>!!excelFile,message:cvLabel('اختار ملف الشركات قبل الاستيراد.','Choose your companies file before importing.')}]);return;}
   if(!excelFile) { toast('ارفع ملف الشركات أولاً','error'); return; }
   const nameCol = document.getElementById('mc-name').value;
   const emailCol = document.getElementById('mc-email').value;
   const phoneCol = document.getElementById('mc-phone').value;
+  if(window.MrsaalValidation){const contact=()=>!!document.getElementById('mc-email').value||!!document.getElementById('mc-phone').value;const rules=[{field:'mc-name',test:f=>f.value!=='',message:cvLabel('اختار عمود اسم الشركة.','Choose the company-name column.')},...['mc-email','mc-phone'].map(field=>({field,test:contact,message:cvLabel('اختار عمود الإيميل أو رقم التليفون؛ واحد منهم مطلوب.','Choose an email or phone column; at least one is required.')}))];if(!window.MrsaalValidation.check(rules))return;}
   if(nameCol === '' || (emailCol === '' && phoneCol === '')) {
     result.style.color = 'var(--yellow)';
     result.textContent = 'اختار عمود اسم الشركة وعمود الإيميل أو التليفون قبل الاستيراد.';
@@ -236,7 +239,7 @@ async function commitImport() {
   }
   if((emailCol !== '' && emailCol === nameCol) || (phoneCol !== '' && phoneCol === nameCol) ||
      (emailCol !== '' && phoneCol !== '' && emailCol === phoneCol)) {
-    toast('اسم الشركة والإيميل والتليفون لازم يكونوا أعمدة مختلفة.', 'error'); return;
+    if(window.MrsaalValidation){window.MrsaalValidation.check(['mc-name','mc-email','mc-phone'].map(field=>({field,test:f=>!f.value||['mc-name','mc-email','mc-phone'].filter(id=>document.getElementById(id).value===f.value).length===1,message:cvLabel('اختار عمود مختلف لكل بيان.','Choose a different column for each field.')})));return;}toast('اسم الشركة والإيميل والتليفون لازم يكونوا أعمدة مختلفة.', 'error'); return;
   }
   const fd = new FormData();
   fd.append('file', excelFile);
@@ -475,6 +478,7 @@ async function confirmSend() {
   let didSend=false;
   const btn=document.getElementById('btn-confirm');
   if(btn.disabled)return;
+  if(window.MrsaalValidation&&!window.MrsaalValidation.check([{field:'prev-body',test:f=>!!f.value.trim(),message:cvLabel('اكتب نص الرسالة قبل الإرسال.','Enter the message before sending.')},...(previewChannel==='email'?[{field:'prev-subject',test:f=>!!f.value.trim(),message:cvLabel('اكتب موضوع الإيميل.','Enter an email subject.')}]:[])]))return;
   if(!document.getElementById('prev-body').value.trim()){toast('اكتب نص الرسالة أولاً','error');return;}
   const status=document.getElementById('prev-send-status');
   btn.disabled=true;document.getElementById('preview-channel').disabled=true; btn.innerHTML='<div class="spin"></div> جاري الإرسال...';
@@ -512,6 +516,8 @@ async function skipCo() {
 }
 
 async function startSend() {
+  if(window.MrsaalValidation){if(!window.MrsaalValidation.validate(document.getElementById('page-send')))return;if(document.getElementById('sched-type').value==='scheduled'&&!window.MrsaalValidation.check([{field:'send-dt',test:f=>!!f.value&&Number.isFinite(Date.parse(f.value))&&Date.parse(f.value)>Date.now(),message:cvLabel('اختار تاريخ ووقت في المستقبل للجدولة.','Choose a future date and time for scheduling.')}]))return;}
+
   if(selectedDeliveryChannel()==='email'&&gmailChanging){toast('استنى تغيير حساب الإرسال يخلص','info');return;}
   if(!ensureCV())return;
   const channel=selectedDeliveryChannel();batchChannel=channel;
