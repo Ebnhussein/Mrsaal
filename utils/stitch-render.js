@@ -18,7 +18,7 @@ function renderExact(page,legacy,{posts=[],post=null}={},language='ar'){
  }
  if(page==='plans')html=html.replace(/<main\b[\s\S]*?<\/main>/,()=>require('./public-minimal').plansContent(lang));
  if(page==='product')html=html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/,(_,open,content,close)=>open+require('./public-minimal').mobileProduct(lang)+'<div class="sx-desktop-home">'+lazyDesktop(content)+'</div>'+close);
- if(page==='home')html=html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/,(_,open,content,close)=>open+'<div class="sx-home-responsive">'+lazyDesktop(content)+'</div>'+close);
+ if(page==='home')html=html.replace(/<main\b[\s\S]*?<\/main>/,()=>require('./home-story').homeStory(lang)).replace('</head>','<link rel="stylesheet" href="/assets/home-story.css?v=20261016-1"><script defer src="/assets/home-story.js?v=20261016-1"></script></head>');
  if(page==='blog'){
   const articles=mergeGuides(posts);
   const searchData={language:lang,mode:'guides',categories:Object.entries(categories).map(([id,c])=>({id,title:c[lang],icon:'menu_book'})),issues:articles.map(p=>({id:p.slug,category:categoryKey(p.category),title:p['title_'+lang],keywords:p['excerpt_'+lang],href:'/'+lang+'/blog/'+encodeURIComponent(p.slug)}))};

@@ -1,0 +1,253 @@
+/* Scoped to the public homepage; workspace and other pages retain their design. */
+body.stitch-exact .hs-home{--hs-bg:#f7faf7;--hs-panel:#fff;--hs-ink:#15382d;--hs-muted:#52665d;--hs-line:#dce6df;--hs-green:#1b6b4b;--hs-soft:#e9f2eb;--hs-mint:#b5efcc;--hs-shadow:0 24px 70px #183d2c0d;background:var(--hs-bg);color:var(--hs-ink);padding:108px 0 0!important;font-family:Inter,'IBM Plex Sans Arabic',sans-serif;line-height:1.7;overflow:clip}
+body[data-theme=dark] .hs-home{--hs-bg:#0d1e19;--hs-panel:#142c23;--hs-ink:#edf8f1;--hs-muted:#b1c7bb;--hs-line:#304b3e;--hs-green:#a5e9c0;--hs-soft:#203b2f;--hs-mint:#b5efcc;--hs-shadow:0 24px 70px #0002}
+body.stitch-exact .hs-home *{box-sizing:border-box}
+body.stitch-exact .hs-home :where(h1,h2,h3,p){margin:0}
+body.stitch-exact .hs-home h1,body.stitch-exact .hs-home h2,body.stitch-exact .hs-home h3{letter-spacing:-.035em;font-weight:700;text-wrap:balance}
+body.stitch-exact .hs-home :where(a,button,summary):focus-visible{outline:3px solid var(--hs-green);outline-offset:5px}
+body.stitch-exact .hs-home a{text-decoration:none}
+body.stitch-exact .hs-wrap{width:min(1180px,calc(100% - 64px));margin-inline:auto}
+body.stitch-exact .hs-home .material-symbols-outlined{font-size:22px;flex-shrink:0}
+body.stitch-exact .hs-hero{text-align:center;padding:48px 0 0}
+body.stitch-exact .hs-eyebrow{font-size:12px;letter-spacing:.08em;color:var(--hs-green);font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px}
+body.stitch-exact .hs-eyebrow>span{width:7px;height:7px;background:var(--hs-green);border-radius:50%}
+body.stitch-exact .hs-hero h1{font-size:clamp(38px,4.7vw,65px)!important;line-height:1.2!important;max-width:950px;margin:22px auto}
+body.stitch-exact .hs-hero h1 em{font-style:normal;color:var(--hs-green)}
+html[lang=ar] .hs-hero h1{line-height:1.5!important;letter-spacing:-.04em}
+body.stitch-exact .hs-intro{max-width:670px;margin:0 auto!important;font-size:17px;color:var(--hs-muted);line-height:1.95}
+body.stitch-exact .hs-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;margin-top:28px}
+body.stitch-exact .hs-button{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:50px;padding:12px 23px;font-weight:700;border-radius:10px;font-size:14px;border:1px solid var(--hs-line);transition:background .2s}
+body.stitch-exact .hs-primary{background:var(--hs-green);color:var(--hs-bg);border-color:var(--hs-green)}
+body.stitch-exact .hs-primary:hover{filter:brightness(.92)}
+body.stitch-exact .hs-secondary{background:var(--hs-panel);color:var(--hs-ink)}
+body.stitch-exact .hs-secondary:hover{background:var(--hs-soft)}
+html[dir=rtl] .hs-button .material-symbols-outlined:not(:last-child){transform:none}
+html[dir=rtl] .hs-primary .material-symbols-outlined{transform:scaleX(-1)}
+body.stitch-exact .hs-beta{display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;color:var(--hs-muted);margin-top:16px!important}
+body.stitch-exact .hs-beta .material-symbols-outlined{font-size:16px}
+body.stitch-exact .hs-hero-footer{display:flex;align-items:center;justify-content:space-between;text-align:start;border-block:1px solid var(--hs-line);padding:20px 0;margin-top:48px;font-size:12px;color:var(--hs-muted)}
+body.stitch-exact .hs-hero-footer>span{font-variant-numeric:tabular-nums;direction:ltr}
+body.stitch-exact .hs-journey{padding-top:30px;scroll-margin-top:86px}
+body.stitch-exact .hs-journey-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--hs-muted);font-size:12px;margin-bottom:20px;flex-wrap:wrap}
+body.stitch-exact .hs-journey-toolbar>div{display:flex;gap:18px;align-items:center}
+body.stitch-exact .hs-journey-toolbar a,body.stitch-exact .hs-journey-toolbar button{display:inline-flex;align-items:center;gap:5px;background:none;border:0;color:var(--hs-green);font:inherit;padding:8px 0;min-height:44px;text-decoration:underline;text-underline-offset:4px}
+body.stitch-exact .hs-story-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.8fr);gap:clamp(32px,7vw,100px);align-items:start;position:relative}
+body.stitch-exact .hs-stage{position:sticky;top:106px;min-width:0;background:var(--hs-panel);border:1px solid var(--hs-line);border-radius:20px;box-shadow:var(--hs-shadow);overflow:hidden;margin-block:32px}
+body.stitch-exact .hs-stage-top{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--hs-line);font-size:12px;font-weight:600}
+body.stitch-exact .hs-stage-top>span:first-child{display:flex;align-items:center;gap:8px}
+body.stitch-exact .hs-live-dot{width:7px;height:7px;border-radius:50%;background:var(--hs-green)}
+body.stitch-exact .hs-canvas{height:405px;position:relative;background:radial-gradient(ellipse at 50% 70%,var(--hs-soft),transparent 70%);padding:20px}
+body.stitch-exact .hs-scene{position:absolute;inset:24px;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(24px);pointer-events:none;will-change:transform,opacity}
+body.stitch-exact .hs-scene:first-child{opacity:1;transform:none}
+body.stitch-exact .hs-scene>div{width:100%;max-width:410px}
+body.stitch-exact .hs-stage-bottom{display:flex;justify-content:space-between;gap:10px;padding:14px 22px;font-size:10px;color:var(--hs-muted);border-top:1px solid var(--hs-line)}
+body.stitch-exact .hs-stage-bottom>span:last-child{direction:ltr;font-variant-numeric:tabular-nums;white-space:nowrap}
+body.stitch-exact .hs-progress{height:3px;background:var(--hs-line)}
+body.stitch-exact .hs-progress i{display:block;width:100%;height:100%;background:var(--hs-green);transform:scaleX(var(--story-progress,.03));transform-origin:left}
+html[dir=rtl] .hs-progress i{transform-origin:right}
+body.stitch-exact .hs-step{min-height:66vh;min-height:66svh;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:44px 0;scroll-margin-top:120px}
+body.stitch-exact .hs-step:last-child{min-height:75vh;min-height:75svh}
+body.stitch-exact .hs-step-number{display:flex;align-items:center;gap:12px;color:var(--hs-green);font-size:12px;font-weight:600;direction:ltr;margin-bottom:18px}
+body.stitch-exact .hs-step-number i{width:44px;height:1px;background:var(--hs-line)}
+body.stitch-exact .hs-kicker{color:var(--hs-green);font-size:13px;font-weight:600;margin-bottom:10px!important}
+body.stitch-exact .hs-step h2{font-size:clamp(28px,3vw,42px);line-height:1.4;margin-bottom:16px}
+body.stitch-exact .hs-step>p:not(.hs-kicker){font-size:16px;line-height:1.95;color:var(--hs-muted);max-width:420px}
+body.stitch-exact .hs-pill{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--hs-line);border-radius:7px;padding:7px 10px;font-size:11px;color:var(--hs-green);background:var(--hs-soft);line-height:1.5}
+body.stitch-exact .hs-pill .material-symbols-outlined{font-size:16px}
+body.stitch-exact .hs-step>.hs-pill{margin-top:20px}
+body.stitch-exact .hs-file{display:flex;gap:12px;align-items:center;padding:13px 15px;border:1px solid var(--hs-line);background:var(--hs-panel);border-radius:10px;margin-bottom:10px;text-align:start}
+body.stitch-exact .hs-file>div{flex:1;min-width:0}
+body.stitch-exact .hs-file strong{font-size:12px;display:block;overflow-wrap:anywhere}
+body.stitch-exact .hs-file>div>span{font-size:10px;color:var(--hs-muted);display:block}
+body.stitch-exact .hs-file>.material-symbols-outlined:first-child{color:var(--hs-green);font-size:28px}
+body.stitch-exact .hs-file>.material-symbols-outlined:last-child{color:var(--hs-green);font-size:18px}
+body.stitch-exact .hs-flow-line{height:24px;width:1px;margin:0 auto 10px;background:var(--hs-line)}
+body.stitch-exact .hs-company{display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:5px;border:1px solid var(--hs-line);border-radius:9px;background:var(--hs-panel);text-align:start;transform:translateX(calc((1 - var(--scene-progress,1))*var(--row)*10px))}
+body.stitch-exact .hs-avatar{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;font-size:12px;font-weight:700;background:var(--hs-soft);color:var(--hs-green);flex-shrink:0}
+body.stitch-exact .hs-company>div{flex:1}
+body.stitch-exact .hs-company strong,body.stitch-exact .hs-profile strong{font-size:13px}
+body.stitch-exact .hs-company small,body.stitch-exact .hs-profile small{display:block;color:var(--hs-muted);font-size:10px}
+body.stitch-exact .hs-company>.material-symbols-outlined{font-size:16px;color:var(--hs-green)}
+body.stitch-exact .hs-profile{border:1px solid var(--hs-line);border-radius:14px;background:var(--hs-panel);padding:24px;text-align:start}
+body.stitch-exact .hs-profile-head{display:flex;align-items:center;gap:12px}
+body.stitch-exact .hs-profile-head>div{flex:1}
+body.stitch-exact .hs-avatar-large{width:46px;height:46px;font-size:22px}
+body.stitch-exact .hs-profile-head>.material-symbols-outlined{color:var(--hs-green)}
+body.stitch-exact .hs-tags{display:flex;flex-wrap:wrap;gap:6px;margin:22px 0}
+body.stitch-exact .hs-tags>span{font-size:10px;background:var(--hs-soft);padding:5px 8px;border-radius:5px}
+body.stitch-exact .hs-style{display:flex;gap:12px;padding:16px 0;margin-bottom:15px;border-block:1px solid var(--hs-line)}
+body.stitch-exact .hs-style .material-symbols-outlined{color:var(--hs-green)}
+body.stitch-exact .hs-style p{font-size:12px;color:var(--hs-muted)}
+body.stitch-exact .hs-company-tabs{display:flex;gap:6px;margin-bottom:14px;font-size:10px}
+body.stitch-exact .hs-company-tabs>span{flex:1;text-align:center;padding:8px 4px;border:1px solid var(--hs-line);border-radius:6px;color:var(--hs-muted)}
+body.stitch-exact .hs-company-tabs .is-selected{background:var(--hs-soft);color:var(--hs-green);border-color:var(--hs-green)}
+body.stitch-exact .hs-letter{text-align:start;border:1px solid var(--hs-line);border-radius:12px;padding:20px;background:var(--hs-panel)}
+body.stitch-exact .hs-label{font-size:10px;color:var(--hs-green);display:block;margin-bottom:8px}
+body.stitch-exact .hs-letter>strong{display:block;font-size:13px;line-height:1.6;padding-bottom:14px;border-bottom:1px solid var(--hs-line)}
+body.stitch-exact .hs-letter-body{font-size:12px;color:var(--hs-muted);line-height:1.9;clip-path:inset(0 0 calc((1 - var(--scene-progress,1))*100%) 0)}
+body.stitch-exact .hs-letter-body p{margin-top:12px}
+body.stitch-exact .hs-ai-note{display:flex;align-items:center;justify-content:center;gap:8px;font-size:10px;color:var(--hs-green);margin-top:15px}
+body.stitch-exact .hs-ai-note .material-symbols-outlined{font-size:16px}
+body.stitch-exact .hs-edit .hs-letter{padding:14px}
+body.stitch-exact .hs-edit .hs-letter-body{font-size:11px;line-height:1.7;clip-path:none}
+body.stitch-exact .hs-edit .hs-file{margin:10px 0;padding:8px 12px}
+body.stitch-exact .hs-check{display:flex;align-items:center;gap:6px;color:var(--hs-green);font-size:11px;margin:10px 0}
+body.stitch-exact .hs-check .material-symbols-outlined{font-size:18px}
+body.stitch-exact .hs-channel{display:flex;gap:8px}
+body.stitch-exact .hs-send{text-align:center}
+body.stitch-exact .hs-envelope{display:flex;align-items:center;justify-content:center;margin:0 auto 20px;width:94px;height:94px;background:var(--hs-soft);border:1px solid var(--hs-line);border-radius:24px;transform:translateY(calc((1 - var(--scene-progress,1))*20px))}
+body.stitch-exact .hs-envelope .material-symbols-outlined{font-size:44px;color:var(--hs-green)}
+body.stitch-exact .hs-send h3{font-size:24px}
+body.stitch-exact .hs-route{display:flex;align-items:center;gap:14px;margin:20px auto;font-size:12px;max-width:290px}
+body.stitch-exact .hs-route i{height:1px;background:var(--hs-green);flex:1}
+body.stitch-exact .hs-send-confirm{display:flex;align-items:center;justify-content:center;gap:7px;color:var(--hs-green);font-size:12px;margin-top:22px;opacity:var(--scene-progress,1)}
+body.stitch-exact .hs-report{border:1px solid var(--hs-line);border-radius:12px;background:var(--hs-panel);padding:20px}
+body.stitch-exact .hs-report-title{display:flex;gap:8px;align-items:center;margin-bottom:16px;font-size:13px}
+body.stitch-exact .hs-report-title>.material-symbols-outlined{color:var(--hs-green)}
+body.stitch-exact .hs-report-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 0;border-top:1px solid var(--hs-line);font-size:12px}
+body.stitch-exact .hs-status{display:flex;gap:5px;align-items:center;font-size:10px;color:var(--hs-green)}
+body.stitch-exact .hs-status>.material-symbols-outlined{font-size:16px}
+body.stitch-exact .hs-reply{display:flex;gap:12px;padding:15px;border-radius:8px;background:var(--hs-soft);margin-top:14px;text-align:start}
+body.stitch-exact .hs-reply>.material-symbols-outlined{color:var(--hs-green)}
+body.stitch-exact .hs-reply strong{font-size:12px}
+body.stitch-exact .hs-reply p{font-size:11px;line-height:1.8;color:var(--hs-muted);margin-top:4px}
+body.stitch-exact .hs-next{padding:64px 0;border-top:1px solid var(--hs-line);scroll-margin-top:100px}
+body.stitch-exact .hs-next>h2{text-align:center;max-width:650px;margin:16px auto 40px;font-size:clamp(27px,3vw,38px);line-height:1.5}
+body.stitch-exact .hs-features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:36px}
+body.stitch-exact .hs-features article{padding:10px 0}
+body.stitch-exact .hs-features article>.material-symbols-outlined{color:var(--hs-green);font-size:26px;margin-bottom:16px}
+body.stitch-exact .hs-features h3{font-size:18px;margin-bottom:10px}
+body.stitch-exact .hs-features p{font-size:14px;color:var(--hs-muted);line-height:1.9}
+body.stitch-exact .hs-resources{padding:44px 0 64px}
+body.stitch-exact .hs-resources .hs-eyebrow{justify-content:flex-start}
+body.stitch-exact .hs-resources h2{font-size:28px;margin:8px 0 26px}
+body.stitch-exact .hs-guide-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+body.stitch-exact .hs-guide-grid a{border:1px solid var(--hs-line);border-radius:12px;background:var(--hs-panel);padding:24px;color:var(--hs-ink);display:grid;gap:18px}
+body.stitch-exact .hs-guide-grid a>span:first-child{font-size:11px;color:var(--hs-muted)}
+body.stitch-exact .hs-guide-grid h3{font-size:17px;line-height:1.7}
+body.stitch-exact .hs-guide-grid .material-symbols-outlined{color:var(--hs-green)}
+html[dir=rtl] .hs-guide-grid .material-symbols-outlined{transform:scaleX(-1)}
+body.stitch-exact .hs-faq{display:grid;grid-template-columns:.7fr 1fr;gap:48px;padding:44px 0 64px;border-top:1px solid var(--hs-line)}
+body.stitch-exact .hs-faq h2{font-size:30px}
+body.stitch-exact .hs-faq details{border-bottom:1px solid var(--hs-line);padding:16px 0}
+body.stitch-exact .hs-faq summary{font-weight:600;font-size:15px;cursor:pointer;min-height:44px;align-content:center}
+body.stitch-exact .hs-faq details p{font-size:14px;color:var(--hs-muted);margin-top:12px;line-height:1.9}
+body.stitch-exact .hs-finale{text-align:center;padding:54px 30px;margin-bottom:64px;background:var(--hs-soft);border:1px solid var(--hs-line);border-radius:20px}
+body.stitch-exact .hs-finale img{margin:0 auto 18px}
+body.stitch-exact .hs-finale h2{font-size:clamp(28px,3vw,42px);line-height:1.5}
+body.stitch-exact .hs-finale p{color:var(--hs-muted);font-size:15px;max-width:550px;margin:12px auto}
+body.stitch-exact .hs-finale small{display:block;font-size:11px;color:var(--hs-muted);margin-top:18px}
+/* Static is the baseline: no-JS and reduced-motion readers get every step. */
+body.stitch-exact .hs-home:not(.hs-motion) .hs-stage{position:relative;top:auto}
+body.stitch-exact .hs-home:not(.hs-motion) .hs-step{min-height:0;padding:28px 0;border-bottom:1px solid var(--hs-line)}
+body.stitch-exact .hs-home:not(.hs-motion) .hs-story-grid{align-items:start}
+body.stitch-exact .hs-home:not(.hs-motion) [data-story-motion]{display:none}
+body.stitch-exact .hs-home.hs-motion-available [data-story-motion]{display:inline-flex}
+@media(min-width:761px) and (max-height:700px){
+body.stitch-exact .hs-stage{top:86px}
+body.stitch-exact .hs-canvas{height:340px}
+body.stitch-exact .hs-stage-top{padding:12px 18px}
+body.stitch-exact .hs-step{min-height:85svh}
+body.stitch-exact .hs-scene{inset:16px}
+body.stitch-exact .hs-letter-body{font-size:11px;line-height:1.7}}
+@media(max-width:760px){
+body.stitch-exact .hs-home{padding-top:90px!important}
+body.stitch-exact .hs-wrap{width:calc(100% - 32px)}
+body.stitch-exact .hs-hero{padding-top:24px}
+body.stitch-exact .hs-hero h1{font-size:clamp(32px,8vw,44px)!important;line-height:1.25!important;margin:18px auto}
+body.stitch-exact .hs-eyebrow{font-size:10px}
+body.stitch-exact .hs-intro{font-size:14px;line-height:1.9}
+body.stitch-exact .hs-actions{gap:10px;margin-top:22px}
+body.stitch-exact .hs-button{font-size:13px;padding:11px 16px;min-height:48px}
+body.stitch-exact .hs-beta{font-size:10px}
+body.stitch-exact .hs-hero-footer{margin-top:30px;padding:16px 0;gap:14px;font-size:10px}
+body.stitch-exact .hs-journey{padding-top:18px}
+body.stitch-exact .hs-journey-toolbar{font-size:10px;gap:4px;margin-bottom:4px}
+body.stitch-exact .hs-journey-toolbar>div{gap:14px}
+body.stitch-exact .hs-story-grid{display:block}
+body.stitch-exact .hs-stage{top:76px;margin:0 0 12px;border-radius:14px;z-index:2}
+body.stitch-exact .hs-stage-top{padding:9px 13px;font-size:10px}
+body.stitch-exact .hs-stage-top img{width:18px;height:18px}
+body.stitch-exact .hs-canvas{height:clamp(250px,39svh,350px)}
+body.stitch-exact .hs-scene{inset:12px 16px}
+body.stitch-exact .hs-scene>div{max-width:360px}
+body.stitch-exact .hs-stage-bottom{padding:9px 13px;font-size:9px}
+body.stitch-exact .hs-step{min-height:65svh;padding:26px 4px;justify-content:center;scroll-margin-top:440px}
+body.stitch-exact .hs-step:last-child{min-height:70svh}
+body.stitch-exact .hs-step-number{margin-bottom:10px}
+body.stitch-exact .hs-step h2{font-size:27px;margin-bottom:12px}
+body.stitch-exact .hs-step>p:not(.hs-kicker){font-size:14px;line-height:1.9}
+body.stitch-exact .hs-step>.hs-pill{margin-top:14px}
+body.stitch-exact .hs-kicker{font-size:11px}
+body.stitch-exact .hs-file{padding:8px 10px;margin-bottom:7px;gap:8px}
+body.stitch-exact .hs-file strong{font-size:10px}
+body.stitch-exact .hs-file>div>span{font-size:8px}
+body.stitch-exact .hs-file>.material-symbols-outlined:first-child{font-size:22px}
+body.stitch-exact .hs-flow-line{height:12px;margin-bottom:7px}
+body.stitch-exact .hs-company{padding:5px 8px}
+body.stitch-exact .hs-company strong{font-size:11px}
+body.stitch-exact .hs-company small{font-size:9px}
+body.stitch-exact .hs-avatar{width:25px;height:25px}
+body.stitch-exact .hs-letter{padding:12px}
+body.stitch-exact .hs-letter>strong{font-size:11px;padding-bottom:9px}
+body.stitch-exact .hs-letter-body{font-size:10px;line-height:1.7}
+body.stitch-exact .hs-letter-body p{margin-top:8px}
+body.stitch-exact .hs-company-tabs{margin-bottom:8px;font-size:9px}
+body.stitch-exact .hs-ai-note{margin-top:9px}
+body.stitch-exact .hs-edit .hs-letter-body{font-size:10px;line-height:1.6}
+body.stitch-exact .hs-edit .hs-letter-body p:last-child{display:none}
+body.stitch-exact .hs-edit .hs-file{padding:6px 8px;margin:7px 0}
+body.stitch-exact .hs-profile{padding:18px}
+body.stitch-exact .hs-tags{margin:14px 0}
+body.stitch-exact .hs-style{padding:12px 0;margin-bottom:12px}
+body.stitch-exact .hs-profile .hs-pill{font-size:10px}
+body.stitch-exact .hs-envelope{height:60px;width:60px;border-radius:16px;margin-bottom:12px}
+body.stitch-exact .hs-envelope .material-symbols-outlined{font-size:32px}
+body.stitch-exact .hs-send h3{font-size:20px}
+body.stitch-exact .hs-route{margin:14px auto}
+body.stitch-exact .hs-send-confirm{margin-top:12px}
+body.stitch-exact .hs-report{padding:14px}
+body.stitch-exact .hs-report-title{margin-bottom:8px;font-size:12px}
+body.stitch-exact .hs-report-row{padding:9px 0;font-size:11px}
+body.stitch-exact .hs-reply{padding:10px;margin-top:8px}
+body.stitch-exact .hs-next{padding:36px 0}
+body.stitch-exact .hs-next>h2{font-size:25px;margin:12px auto 24px}
+body.stitch-exact .hs-features{grid-template-columns:1fr;gap:0}
+body.stitch-exact .hs-features article{position:relative;padding:18px 42px 18px 0;border-bottom:1px solid var(--hs-line)}
+html[dir=ltr] .hs-features article{padding:18px 0 18px 42px}
+body.stitch-exact .hs-features article>.material-symbols-outlined{position:absolute;inset-inline-start:0;top:22px;font-size:24px}
+body.stitch-exact .hs-features h3{font-size:16px;margin-bottom:6px}
+body.stitch-exact .hs-features p{font-size:13px}
+body.stitch-exact .hs-resources{padding:24px 0 36px}
+body.stitch-exact .hs-resources h2{font-size:22px}
+body.stitch-exact .hs-guide-grid{grid-template-columns:1fr;gap:10px}
+body.stitch-exact .hs-guide-grid a{grid-template-columns:auto 1fr auto;align-items:center;gap:14px;padding:16px}
+body.stitch-exact .hs-guide-grid h3{font-size:14px}
+body.stitch-exact .hs-faq{display:block;padding:30px 0}
+body.stitch-exact .hs-faq h2{font-size:25px;margin-bottom:12px}
+body.stitch-exact .hs-faq summary{font-size:14px}
+body.stitch-exact .hs-faq details p{font-size:13px}
+body.stitch-exact .hs-finale{padding:30px 18px;margin-bottom:32px;border-radius:14px}
+body.stitch-exact .hs-finale h2{font-size:26px}
+body.stitch-exact .hs-finale p{font-size:13px}
+body.stitch-exact .hs-home:not(.hs-motion) .hs-stage{display:none}
+body.stitch-exact .hs-home:not(.hs-motion) .hs-step{padding:24px 0}
+body.stitch-exact .hs-home.hs-motion .hs-stage{isolation:isolate}}
+@media(max-width:760px) and (max-height:660px){
+body.stitch-exact .hs-home.hs-motion .hs-canvas{height:225px}
+body.stitch-exact .hs-stage{top:68px}
+body.stitch-exact .hs-stage-top{padding:6px 12px}
+body.stitch-exact .hs-stage-bottom{padding:6px 12px}
+body.stitch-exact .hs-step h2{font-size:23px}
+body.stitch-exact .hs-step>p:not(.hs-kicker){font-size:13px}
+body.stitch-exact .hs-profile{padding:12px}
+body.stitch-exact .hs-tags{margin:10px 0}
+body.stitch-exact .hs-style{padding:8px 0;margin-bottom:8px}
+body.stitch-exact .hs-edit .hs-letter-body p:nth-child(2){max-height:34px;overflow:hidden}}
+@media(prefers-reduced-motion:reduce){
+body.stitch-exact .hs-home *,body.stitch-exact .hs-home *::before,body.stitch-exact .hs-home *::after{scroll-behavior:auto!important;transition:none!important}
+body.stitch-exact .hs-home .hs-stage{position:relative!important;top:auto!important}
+body.stitch-exact .hs-home .hs-step{min-height:0!important;padding:26px 0!important}}
+body.stitch-exact .hs-home [data-story-motion][hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){
+html:has(.hs-home){scroll-behavior:auto!important}}
