@@ -52,4 +52,9 @@ body.stitch-exact[data-theme=dark] .auth-panel .account-divider{color:#a1ddba}
 .auth-layout[data-reauth] .auth-story{display:none}
 .account-page .account-return{display:block;text-align:center;margin-top:20px;text-decoration:underline;font-size:14px}
 
-#account-signup:not([hidden]){order:3;flex:1 0 100%;margin-top:8px;min-height:46px;border:1.5px solid #237858;border-radius:12px;background:#2378580c;color:inherit;font-weight:700}#account-signup:hover{background:#2378581c}#account-signup:focus-visible{outline:3px solid #49a98a;outline-offset:3px}
+/* A clear registration action in both website themes. */
+#account-signup:not([hidden]){order:3;flex:1 0 100%;margin-top:8px;min-height:48px;padding:12px 20px;border:2px solid #87e6b5;border-radius:12px;background:#a5efc5;color:#102e23;font-size:16px;line-height:1.4;font-weight:800;box-shadow:0 3px 10px #102e2314;transition:background .15s ease,border-color .15s ease}
+#account-signup:not([hidden]):hover{background:#87e6b5;border-color:#69d99f;color:#102e23}
+#account-signup:not([hidden]):active{background:#72dba5}
+#account-signup:focus-visible{outline:3px solid #237858;outline-offset:3px}
+body.stitch-exact[data-theme=dark] #account-signup:focus-visible,html[data-theme=dark] #account-signup:focus-visible{outline-color:#d2ffe4}
