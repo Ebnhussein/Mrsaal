@@ -17,7 +17,7 @@
  if(publicAuth&&params.get('reauth')==='1'&&mode==='signin'){
    const layout=document.querySelector('.auth-layout');if(layout)layout.dataset.reauth='true';
    $('title').textContent=tr('أكد هويتك','Confirm your identity');
-   $('description').textContent=tr('كمّل بنفس حساب Google اللي دخلت بيه مرسال، وبعدها ارجع للتجربة.','Continue with the same Google account you use for Mrsaal, then return to the trial.');
+   $('description').textContent=tr('بنطلب التأكيد قبل تغيير ربط الحساب لحمايتك. كمّل بنفس حساب Google اللي بتستخدمه في مرسال؛ بعدها هنرجعك لإعدادات الربط.','For your security, confirm your identity before changing a connection. Continue with the same Google account you use for Mrsaal; we will return you to connection settings.');
    $('form').hidden=true;$('navigation').hidden=true;document.querySelector('.account-divider')?.setAttribute('hidden','');
    $('google').hidden=false;$('google-label').textContent=tr('تأكيد الهوية باستخدام Google','Verify with Google');
    if(!document.querySelector('.account-return')){const back=document.createElement('a');back.className='account-return';back.href='/app';back.textContent=tr('الرجوع لمساحة مرسال','Back to Mrsaal');$('google').after(back);}

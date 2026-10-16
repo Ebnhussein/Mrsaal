@@ -25,6 +25,8 @@ async function checkAuth() {
       dataLoaded=true;
       hydrateAccount();
       decideFirstPage();
+      try{const returnMethod=sessionStorage.getItem('mrsaal-wa-return');if(returnMethod){sessionStorage.removeItem('mrsaal-wa-return');openSettings('channels');window.MrsaalWA?.restoreMethod?.(returnMethod);}}catch{}
+
     }
   } catch {
     document.getElementById('app-loading').style.display = 'none';
@@ -660,12 +662,12 @@ async function loadWhatsAppStatus() {
   try {
     const state=await api('/api/whatsapp/status');waState=state.status;refreshWorkspace();
     const labels={connected:'🟢 متصل',connecting:'🟡 جاري الاتصال...',qr:'امسح رمز QR من تطبيق واتساب',disconnected:'⚪ غير متصل'};
-    document.getElementById('wa-status').textContent=(labels[state.status]||state.status)+(state.phone?' — '+state.phone:'')+(state.error?' — '+state.error:'')+(state.status==='disconnected'&&Number.isInteger(state.availableSlots)?' · '+cvLabel('أماكن الربط المتاحة: ','Available connection slots: ')+state.availableSlots:'');
+    document.getElementById('wa-status').textContent=(labels[state.status]||cvLabel('جاري التحقق من الاتصال','Checking connection'))+(state.phone?' — '+state.phone:'')+(state.error?' — '+(window.MrsaalWA?.safeText(state.error)||cvLabel('تعذر إكمال الاتصال','Connection could not be completed')):'')+(state.status==='disconnected'&&Number.isInteger(state.availableSlots)?' · '+cvLabel('أماكن الربط المتاحة: ','Available connection slots: ')+state.availableSlots:'');
     const image=document.getElementById('wa-qr');
     image.style.display=state.qr?'block':'none';
     if(state.qr)image.src=state.qr;else image.removeAttribute('src');
     if(window.MrsaalWA)await window.MrsaalWA.render(state);
-  }catch(err){const image=document.getElementById('wa-qr');image.style.display='none';image.removeAttribute('src');document.getElementById('wa-status').textContent=cvLabel('تعذر قراءة حالة واتساب: ','Could not read WhatsApp status: ')+err.message;if(window.MrsaalWA)await window.MrsaalWA.render({status:'disconnected'}).catch(()=>{});}
+  }catch(err){const image=document.getElementById('wa-qr');image.style.display='none';image.removeAttribute('src');document.getElementById('wa-status').textContent=cvLabel('تعذر قراءة حالة واتساب: ','Could not read WhatsApp status: ')+(window.MrsaalWA?.safeText(err.message)||cvLabel('حاول مرة أخرى','Please retry'));if(window.MrsaalWA)await window.MrsaalWA.render({status:'disconnected'}).catch(()=>{});}
   finally{waChecking=false;}
 }
 async function connectWhatsApp(){
