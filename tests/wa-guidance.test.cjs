@@ -31,7 +31,7 @@ test('phone pairing explains the code rather than asking users to scan a hidden 
 });
 test('identity check explains why and keeps the connection method for return; internal UUIDs are redacted',async()=>{
  const f=fixture();await f.ui.render({status:'disconnected'});f.setFailure({code:'REAUTH_REQUIRED',error:'internal error'});await f.ui.connect();
- const notice=f.nodes.find(n=>n.className==='mrsaalwa-notice');assert.equal(notice.dataset.kind,'identity');assert.match(f.text(notice),/verify your identity/);assert.equal(f.identities.length,1);assert(!f.text(notice).includes('protect your account'));
+ const notice=f.nodes.find(n=>n.className==='mrsaalwa-notice');assert.equal(notice.dataset.kind,'identity');assert.equal(notice.hidden,true);assert.equal(notice.children.length,0);assert.equal(f.identities.length,1);assert(!f.text(notice).includes('protect your account'));
  f.identities[0].onContinue();assert.equal(f.saved.get('mrsaal-wa-return'),'qr');
  assert(!f.ui.safeText('Session 66cb8617-a5d7-4fe6-ae9f-84f73a51c9fc').includes('66cb8617'));
 });
@@ -43,6 +43,6 @@ test('missing phone and consent show separate field errors, focus the first issu
  phone.value='01012345678';phone.oninput();assert.match(f.byId(phone.id+'-error').textContent,/country code/);
  phone.value='+٢٠١٠١٢٣٤٥٦٧٨';phone.oninput();assert.equal(phone['aria-invalid'],'false');assert.equal(ack['aria-invalid'],'true');
  await f.ui.connect();assert(ack.focused);assert.equal(f.calls.filter(x=>x.endsWith('/connect')).length,0);
- await f.ui.render({status:'qr',hasSession:true});assert.equal(f.nodes.find(n=>n.className==='mrsaalwa-notice').dataset.kind,'validation');
+ await f.ui.render({status:'qr',hasSession:true});assert.equal(f.nodes.find(n=>n.className==='mrsaalwa-notice').dataset.kind,'validation');assert.equal(f.nodes.find(n=>n.className==='mrsaalwa-notice').hidden,true);
  ack.checked=true;ack.onchange();assert.equal(ack['aria-invalid'],'false');assert.equal(f.byId(ack.id+'-error').hidden,true);await f.ui.connect();assert.equal(f.calls.filter(x=>x.endsWith('/connect')).length,1);
 });

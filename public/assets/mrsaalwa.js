@@ -5,12 +5,12 @@
  const node=(tag,text,cls)=>{const e=document.createElement(tag);if(text)e.textContent=text;if(cls)e.className=cls;return e;};
  async function request(path,body){const r=await fetch('/api/whatsapp/'+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','X-Mrsaal-WA':'1'},...(body?{body:JSON.stringify(body)}:{})});const data=await r.json();if(!r.ok)throw window.MrsaalErrors?window.MrsaalErrors.from(data,r.status):Object.assign(new Error(data.error),{code:data.code});return data;}
  function safeText(text){return String(text||'').replace(/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/ig,tr('معرّف داخلي مخفي','Internal ID hidden'));}
- function statusMessage(text,kind='info'){notice.dataset.kind=kind;notice.replaceChildren(node('span',safeText(text)));}
+ function statusMessage(text,kind='info'){notice.dataset.kind=kind;notice.hidden=!text;notice.replaceChildren(...(text?[node('span',safeText(text))]:[]));}
  function error(e){
   if(['REAUTH_REQUIRED','ADMIN_GOOGLE_REQUIRED'].includes(e.code)){
-   statusMessage(tr('محتاجين تأكيد هويتك قبل تغيير الربط.','Please verify your identity before changing this connection.'),'identity');
+   statusMessage('','identity');
    const verify=()=>window.MrsaalDialog.identity({onContinue:()=>{try{sessionStorage.setItem('mrsaal-wa-return',method);}catch{}}});
-   const button=node('button',tr('تأكيد الهوية','Verify identity'),'btn btn-primary');button.type='button';button.onclick=verify;notice.append(button);void verify();
+   void verify();
   }else statusMessage(e.message,'error');
  }
  function guidance(state=lastState){
@@ -47,8 +47,8 @@
   const ackError=ack.checked?'':tr('علّم على مربع الموافقة بعد قراءة تنبيه الربط بالكود.','Tick the checkbox after reading the phone-pairing warning.');
   fieldError(field.id,phoneError);fieldError(ack.id,ackError);
   const first=phoneError?field:ackError?ack:null;
-  if(first&&focus){statusMessage(tr('في بيانات محتاجة مراجعة. وضّحنا المطلوب تحت كل خانة.','Please check the highlighted fields. Each field explains what is needed.'),'validation');first.focus();first.scrollIntoView?.({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});}
-  else if(!first&&notice.dataset.kind==='validation')statusMessage(tr('البيانات جاهزة. اضغط «إظهار كود الربط» للمتابعة.','Your details are ready. Press “Show pairing code” to continue.'));
+  if(first&&focus){statusMessage('','validation');first.focus();first.scrollIntoView?.({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});}
+  else if(!first&&notice.dataset.kind==='validation')statusMessage('');
   return !first;
  }
  function init(){if(root)return;const host=document.getElementById('wa-status')?.parentElement;if(!host)return;
