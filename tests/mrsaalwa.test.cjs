@@ -87,3 +87,22 @@ test('public beta is available by default, respects explicit admin blocking, and
  f.setLegacy('disconnected');await f.pg.exec("CREATE TABLE whatsapp_auth(user_id TEXT,key_id TEXT);INSERT INTO whatsapp_auth VALUES('other','creds')");await f.beta.prepareDefault('other');assert.equal((await f.beta.profile('other')).provider,'baileys');
  }finally{await f.close();}
 });
+
+
+test('explicit zero removes both reservation and running-engine caps without sharing sessions',async()=>{
+ const f=await fixture();try{
+  f.env.MRSAALWA_MAX_SESSIONS='0';assert.equal(f.beta.maxSessions(),0);
+  await f.grant('owner');await f.grant('other');await f.beta.select('owner','mrsaalwa');await f.beta.select('other','mrsaalwa');
+  await f.beta.connect('owner');await f.beta.connect('other');
+  assert.equal(f.sessions.filter(s=>s.engineLoaded).length,2);
+  assert.notEqual((await f.beta.profile('owner')).session_id,(await f.beta.profile('other')).session_id);
+  assert.equal((await f.db.get('SELECT count(*)::int AS n FROM whatsapp_preferences WHERE session_id IS NOT NULL')).n,2);
+ }finally{await f.close();}
+});
+test('unset, blank and invalid caps remain one; finite caps still enforce reserved slots',async()=>{
+ const f=await fixture();try{
+  for(const raw of [undefined,'',' ','-1','no','1.5','51']){if(raw===undefined)delete f.env.MRSAALWA_MAX_SESSIONS;else f.env.MRSAALWA_MAX_SESSIONS=raw;assert.equal(f.beta.maxSessions(),1);}
+  f.env.MRSAALWA_MAX_SESSIONS='1';await f.grant('owner');await f.grant('other');await f.beta.select('owner','mrsaalwa');await f.beta.select('other','mrsaalwa');await f.beta.connect('owner');
+  await assert.rejects(f.beta.connect('other'),e=>e.code==='MRSAALWA_CAPACITY');assert.equal((await f.beta.profile('other')).session_id,null);
+ }finally{await f.close();}
+});

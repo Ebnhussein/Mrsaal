@@ -6,7 +6,8 @@ const {buildWhatsAppContent}=require('./whatsapp-content');
 let schema,timer,syncing=false;
 const enabled=()=>process.env.MRSAALWA_ENABLED==='true';
 const gateway=()=>createGateway(config());
-const maxSessions=()=>{const n=Number(process.env.MRSAALWA_MAX_SESSIONS);return Number.isInteger(n)&&n>=1&&n<=50?n:1;};
+// Explicit 0 disables the global session cap; missing/invalid values keep the safe default.
+const maxSessions=()=>{const raw=process.env.MRSAALWA_MAX_SESSIONS;if(!raw?.trim())return 1;const n=Number(raw);return Number.isInteger(n)&&n>=0&&n<=50?n:1;};
 function ensureSchema(){return schema||=(async()=>{await run(`
  CREATE TABLE IF NOT EXISTS whatsapp_preferences(user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,provider TEXT NOT NULL DEFAULT 'baileys' CHECK(provider IN ('baileys','mrsaalwa')),beta_allowed BOOLEAN NOT NULL DEFAULT false,session_id TEXT UNIQUE,session_name TEXT UNIQUE,last_status TEXT,last_error TEXT,last_seen TIMESTAMPTZ,pair_requested_at TIMESTAMPTZ);
  ALTER TABLE whatsapp_preferences ADD COLUMN IF NOT EXISTS beta_blocked BOOLEAN NOT NULL DEFAULT false;
@@ -67,7 +68,7 @@ async function connect(id,{method='qr',phone='',acknowledge=false}={}){
   const g=gateway();
   if(!p.session_id){
    const reserved=await c.query('SELECT count(*)::int AS n FROM whatsapp_preferences WHERE session_id IS NOT NULL');
-   if(reserved.rows[0].n>=maxSessions())throw fail('MRSAALWA_CAPACITY',409);
+   if(maxSessions()>0&&reserved.rows[0].n>=maxSessions())throw fail('MRSAALWA_CAPACITY',409);
    const name='mrsaal-'+createHash('sha256').update(id).digest('hex').slice(0,24);
    // Recover a creation whose response was lost, without creating a second session.
    const sessions=await g.list();if(!Array.isArray(sessions))throw fail('MRSAALWA_RESPONSE');
@@ -83,7 +84,7 @@ async function connect(id,{method='qr',phone='',acknowledge=false}={}){
   await c.query('SELECT id FROM mrsaalwa_capacity WHERE id=1 FOR UPDATE NOWAIT');const p=await profile(id);if(p.session_id!==data.session||p.provider!=='mrsaalwa')throw fail('MRSAALWA_SESSION');await assertAllowed(id);
   const g=gateway();let s=await g.session(p.session_id);
   if(s.status==='ready')return {ok:true,status:'connected'};
-  if(!s.engineLoaded){const sessions=await g.list();if(sessions.filter(x=>x.engineLoaded&&x.id!==p.session_id).length>=maxSessions())throw fail('MRSAALWA_CAPACITY',409);await g.start(p.session_id);s=await g.session(p.session_id);}
+  if(!s.engineLoaded){const sessions=await g.list();if(maxSessions()>0&&sessions.filter(x=>x.engineLoaded&&x.id!==p.session_id).length>=maxSessions())throw fail('MRSAALWA_CAPACITY',409);await g.start(p.session_id);s=await g.session(p.session_id);}
   if(method==='phone'){
    // Never request a pairing code for an already authenticated session.
    if(s.phone||!['qr_ready','initializing'].includes(s.status))throw fail('MRSAALWA_PAIR_WAIT',409);
