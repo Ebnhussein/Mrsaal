@@ -112,6 +112,7 @@ async function lazyInit() {
     app.use('/api/accounts', require('./routes/accounts'));
     app.use('/api/providers', require('./routes/providers'));
     app.use('/api/whatsapp', require('./routes/whatsapp'));
+    app.use('/api/whatsapp-trial', require('./routes/openwa-trial'));
     app.use('/track', require('./routes/tracking'));
 
     app.use('/api', (req, res) => {

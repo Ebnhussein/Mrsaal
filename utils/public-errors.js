@@ -2,6 +2,27 @@
 const translations=require('./error-translations.json');
 const reverse=new Map(Object.entries(translations).map(([ar,en])=>[en,ar]));
 const messages={
+ OPENWA_CONFIG:["إعدادات تجربة OpenWA ناقصة. راجع عنوان الخدمة والمفتاح والجلسة ورقم الاختبار في Coolify.", "OpenWA trial settings are incomplete. Check the service URL, API key, session ID and test recipient in Coolify."],
+ OPENWA_TIMEOUT:["خدمة OpenWA لم ترد في المهلة. حدّث الحالة؛ لو ده طلب إرسال راجع المحادثة قبل تكراره.", "OpenWA did not respond in time. Refresh status; for a send request, check the chat before repeating it."],
+ OPENWA_RESPONSE:["رد خدمة OpenWA غير متوقع. راجع إصدار الخدمة وحالتها.", "OpenWA returned an unexpected response. Check its version and health."],
+ OPENWA_AUTH:["مفتاح OpenWA مرفوض أو لا يملك صلاحية الجلسة التجريبية.", "The OpenWA key is invalid or cannot access the trial session."],
+ OPENWA_SESSION:["جلسة OpenWA التجريبية غير موجودة. راجع رقم الجلسة.", "The OpenWA trial session was not found. Check its session ID."],
+ OPENWA_CONFLICT:["حالة جلسة OpenWA اتغيّرت. حدّث الحالة وانتظر اكتمال الاتصال.", "The OpenWA session state changed. Refresh status and wait for connection."],
+ OPENWA_REJECTED:["خدمة OpenWA رفضت الطلب. راجع الجلسة من لوحة OpenWA.", "OpenWA rejected the request. Check the session in its dashboard."],
+ OPENWA_INPUT:["راجع رسالة الاختبار والموافقة. الحد الأقصى 1000 حرف.", "Check the test message and consent. Maximum length is 1,000 characters."],
+ OPENWA_CV:["ارفع نسخة PDF واخترها كسيرة نشطة قبل اختبار المرفق.", "Upload a PDF and select it as your active CV before testing attachments."],
+ OPENWA_PDF_LIMIT:["تجربة OpenWA تدعم مرفق PDF حتى 10 MB.", "The OpenWA trial supports PDF attachments up to 10 MB."],
+ OPENWA_KEY_REUSED:["مفتاح الاختبار مستخدم برسالة مختلفة. راجع المحادثة وجهّز اختبارًا جديدًا لو محتاج.", "This test key was used with different content. Check the chat and prepare another test if needed."],
+ OPENWA_TRIAL_LIMIT:["وصلت لحد التجربة: 5 محاولات خلال 24 ساعة.", "Trial limit reached: five attempts per 24 hours."],
+ OPENWA_SEND_UNCERTAIN:["نتيجة اختبار OpenWA غير مؤكدة. قد تكون الرسالة وصلت؛ راجع رقم الاستقبال قبل تجهيز اختبار جديد.", "The OpenWA test outcome is uncertain. The message may have arrived. Check the recipient before preparing another test."],
+
+ WA_NOT_CONNECTED:["واتساب غير متصل. انتظر الاتصال أو أعد الربط من الإعدادات.", "WhatsApp is disconnected. Wait for connection or reconnect in Settings."],
+ WA_CONNECTION_CHANGED:["اتصال واتساب اتغيّر قبل الإرسال. لم تُرسل الرسالة؛ انتظر الاتصال وحاول تاني.", "The WhatsApp connection changed before sending. Nothing was sent. Wait for connection and try again."],
+ WA_LOOKUP_FAILED:["تعذر التحقق من رقم واتساب قبل الإرسال. لم تُرسل الرسالة؛ حاول لاحقًا.", "Could not check the WhatsApp number before sending. Nothing was sent. Try later."],
+ WA_NUMBER_INVALID:["الرقم غير مسجل على واتساب.", "The number is not registered on WhatsApp."],
+ WA_PREPARE_FAILED:["تعذر تجهيز رسالة واتساب قبل الإرسال. لم تُرسل الرسالة؛ حاول لاحقًا.", "Could not prepare the WhatsApp message. Nothing was sent. Try later."],
+ WA_SEND_UNCERTAIN:["قد تكون رسالة واتساب وصلت. راجع المحادثة والتقارير قبل إرسالها تاني.", "The WhatsApp message may have arrived. Check the chat and Reports before sending again."],
+
  AUTH:['مفتاح منصة الذكاء الاصطناعي مرفوض. راجعه من الإعدادات.','The AI provider rejected the API key. Check it in Settings.'],
  CREDITS:['رصيد منصة الذكاء الاصطناعي غير كافٍ. راجع الرصيد أو اختار منصة أخرى.','The AI provider has insufficient credits. Check your balance or choose another provider.'],
  QUOTA:['حد استخدام منصة الذكاء الاصطناعي مستهلك. انتظر إعادة التعيين أو اختار بديلًا.','The AI provider quota is exhausted. Wait for reset or choose another provider.'],

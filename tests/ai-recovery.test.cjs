@@ -22,13 +22,13 @@ test('WhatsApp retry returns the original caption/document, survives a fresh loo
 });
 test('device cache can be refreshed for newly linked devices; prepared message saved before relay',()=>{
  const {api}=outbox(),cache=api.deviceCache();cache.set('jid',['old-device']);assert.deepEqual(cache.get('jid'),['old-device']);cache.flushAll();assert.equal(cache.get('jid'),undefined);
- const source=fs.readFileSync(path.join(__dirname,'../utils/whatsapp.js'),'utf8');assert(source.indexOf('await retryStore.saveMessage(userId,result')<source.indexOf('await entry.sock.relayMessage'));assert(source.includes('useUserDevicesCache:false'));assert(!source.includes('getMessage:async()=>undefined'));
+ const source=fs.readFileSync(path.join(__dirname,'../utils/whatsapp.js'),'utf8');assert(source.indexOf('await retryStore.saveMessage(userId,result')<source.indexOf('await sock.relayMessage'));assert(source.includes('useUserDevicesCache:false'));assert(!source.includes('getMessage:async()=>undefined'));
 });
 test('WhatsApp transport persists before relay and reuses the generated ID for delivery reporting',async()=>{
  const trace=[],message={key:{id:'original-id',remoteJid:'recipient@s.whatsapp.net'},message:{documentMessage:{caption:'Hello',fileName:'cv.pdf'}}};
  const lib={proto:{},generateWAMessage:async(jid,content,options)=>{assert.equal(jid,'recipient@s.whatsapp.net');assert.equal(options.userJid,'sender@s.whatsapp.net');assert.equal(content.caption,'Hello');trace.push('prepare');return message;}};
  const sock={user:{id:'sender@s.whatsapp.net'},onWhatsApp:async()=>[{exists:true,jid:'recipient@s.whatsapp.net'}],relayMessage:async(jid,payload,options)=>{assert.equal(payload,message.message);assert.equal(options.messageId,'original-id');assert.equal(options.useUserDevicesCache,false);trace.push('relay');}};
- const dependencies={crypto:require('crypto'),'./whatsapp-content':require('../utils/whatsapp-content'),'./whatsapp-retry-store':{saveMessage:async(user,value)=>{assert.equal(user,'owner');assert.equal(value,message);trace.push('store');}},'./db':{},qrcode:{},pino:()=>({}),'./whatsappTracking':{}};
+ const dependencies={'./whatsapp-policy':require('../utils/whatsapp-policy'),crypto:require('crypto'),'./whatsapp-content':require('../utils/whatsapp-content'),'./whatsapp-retry-store':{saveMessage:async(user,value)=>{assert.equal(user,'owner');assert.equal(value,message);trace.push('store');}},'./db':{},qrcode:{},pino:()=>({}),'./whatsappTracking':{}};
  const context={module:{exports:{}},require:id=>dependencies[id],Buffer,Map,Number,Promise,Date,process:{env:{}},console};
  let code=fs.readFileSync(path.join(__dirname,'../utils/whatsapp.js'),'utf8');code+='\nmodule.exports.testSession=(id,entry)=>sessions.set(id,entry);module.exports.testLibrary=lib=>libraryPromise=Promise.resolve(lib);';vm.runInNewContext(code,context);
  const api=context.module.exports;api.testLibrary(lib);api.testSession('owner',{status:'connected',cancelled:false,sock,sendQueue:Promise.resolve(),deviceCache:{flushAll:()=>trace.push('refresh')}});

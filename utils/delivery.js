@@ -29,7 +29,7 @@ async function deliver(userId,{companyId,channel,subject='',body,senderAccountId
  }catch(e){
  if(channel==='email')e=require('./gmail-errors').gmailError(e);
  // A timeout or lost provider acknowledgement may already represent a delivered message.
- const uncertain=delivered||enteredProvider&&!Number.isInteger(Number(e.response?.status||e.statusCode||e.status))||enteredProvider&&Number(e.response?.status||e.statusCode||e.status)>=500;
+ const uncertain=delivered||e.deliveryUncertain===true||enteredProvider&&e.beforeSend!==true&&!Number.isInteger(Number(e.response?.status||e.statusCode||e.status))||enteredProvider&&e.beforeSend!==true&&Number(e.response?.status||e.statusCode||e.status)>=500;
  if(credit){try{if(uncertain)await require('./usage-limits').commit(userId,credit);else await require('./usage-limits').release(userId,credit);}catch{console.warn('Usage reservation retained for reconciliation',attempt.id);}}
  const status=uncertain?'uncertain':'failed',message=uncertain?'قد تكون الرسالة وصلت. راجع Gmail أو واتساب قبل إعادة الإرسال.':e.message;
  const result={ok:false,status,channel,logId,error:message,code:uncertain?'DELIVERY_UNCERTAIN':e.code};

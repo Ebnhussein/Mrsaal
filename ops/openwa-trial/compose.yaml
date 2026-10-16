@@ -1,0 +1,56 @@
+name: mrsaal-openwa-trial
+services:
+  openwa-trial:
+    # Immutable upstream source, verified against its OpenAPI contract on 2026-10-16.
+    build:
+      context: https://github.com/rmyndharis/OpenWA.git#078b8aa458584762b9dee6d6e83fc42680fa14e5
+    image: mrsaal-openwa-trial:078b8aa
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 75s
+    ports:
+      - '127.0.0.1:2785:2785'
+    networks:
+      - coolify
+    environment:
+      NODE_ENV: production
+      PORT: '2785'
+      ENGINE_TYPE: whatsapp-web.js
+      API_MASTER_KEY: ${OPENWA_MASTER_KEY:?Run setup.sh to generate the local secret first}
+      MAX_CONCURRENT_SESSIONS: '1'
+      AUTO_START_SESSIONS: 'false'
+      DATABASE_TYPE: sqlite
+      DATABASE_NAME: ./data/openwa.sqlite
+      DATABASE_SYNCHRONIZE: 'false'
+      MAIN_DATABASE_SYNCHRONIZE: 'false'
+      REDIS_ENABLED: 'false'
+      QUEUE_ENABLED: 'false'
+      CACHE_ENABLED: 'false'
+      SERVE_DASHBOARD: 'true'
+      PUPPETEER_HEADLESS: 'true'
+      WWEBJS_WEB_VERSION: 'off'
+      BODY_SIZE_LIMIT: '20mb'
+      LOG_LEVEL: warn
+    volumes:
+      - trial-data:/app/data
+    shm_size: 256mb
+    mem_limit: 1536m
+    cpus: 1.5
+    pids_limit: 768
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '2'
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', 'http://localhost:2785/api/health/ready']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+networks:
+  coolify:
+    external: true
+    name: ${OPENWA_DOCKER_NETWORK:-coolify}
+volumes:
+  trial-data:

@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const retryStore=require('./whatsapp-retry-store');
+const policy=require('./whatsapp-policy');
 const {buildWhatsAppContent}=require('./whatsapp-content');
 const { all, get, run } = require('./db');
 const QRCode = require('qrcode');
@@ -57,7 +58,7 @@ async function authState(userId, lib, entry) {
     return row ? unseal(row.encrypted_value,lib.BufferJSON) : null;
   };
   const write = async (key,value) => {
-    if(entry.cancelled) return;
+    if(entry.cancelled&&entry.forget) return;
     if(value == null) await run('DELETE FROM whatsapp_auth WHERE user_id=$1 AND key_id=$2',[userId,key]);
     else await run(`INSERT INTO whatsapp_auth(user_id,key_id,encrypted_value) VALUES($1,$2,$3)
       ON CONFLICT(user_id,key_id) DO UPDATE SET encrypted_value=EXCLUDED.encrypted_value`,[userId,key,seal(value,lib.BufferJSON)]);
@@ -91,22 +92,26 @@ async function authState(userId, lib, entry) {
 }
 function status(userId) {
   const entry=sessions.get(userId);
-  return {status:entry?.status||'disconnected',qr:entry?.qr||null,phone:entry?.phone||null,error:entry?.error||null};
+  return {status:entry?.status||'disconnected',qr:entry?.qr||null,phone:entry?.phone||null,error:entry?.error||null,provider:'baileys',retryAttempt:entry?.retries||0,nextRetryAt:entry?.nextRetryAt||null,lastDisconnectCode:entry?.lastDisconnectCode||null};
 }
 async function openSocket(userId,entry) {
   const lib=await library();
   if(entry.cancelled || stopping) return;
+  const generation=(entry.generation||0)+1;entry.generation=generation;
+  const previous=entry.sock;entry.sock=null;previous?.end(new Error('Reconnecting'));
+  await entry.writes;
+  if(entry.cancelled||stopping||entry.generation!==generation)return;
   const auth=await authState(userId,lib,entry);
   if(entry.cancelled || stopping) return;
   entry.deviceCache=retryStore.deviceCache();
   const sock=lib.default({auth:auth.state,logger:pino({level:'silent'}),userDevicesCache:entry.deviceCache,
     printQRInTerminal:false,markOnlineOnConnect:false,syncFullHistory:false,
-    shouldSyncHistoryMessage:()=>false,connectTimeoutMs:30000,
+    shouldSyncHistoryMessage:()=>false,connectTimeoutMs:30000,defaultQueryTimeoutMs:20000,keepAliveIntervalMs:25000,
     maxMsgRetryCount:5,
     getMessage:async key=>{try{return await retryStore.getMessage(userId,key,lib.proto);}catch(error){console.warn('WhatsApp retry lookup failed:',error.code||'STORE_ERROR');return undefined;}}});
-  entry.sock=sock;
+  entry.sock=sock;let closed=false;
   attachTracking(sock,userId,entry);
-  sock.ev.on('creds.update',()=>{auth.saveCreds().catch(()=>{
+  sock.ev.on('creds.update',()=>{if(entry.cancelled||entry.sock!==sock)return;auth.saveCreds().catch(()=>{
     entry.error='تعذر حفظ جلسة واتساب';console.error('WhatsApp credential save failed');
   });});
   sock.ev.on('connection.update',update=>{
@@ -119,22 +124,26 @@ async function openSocket(userId,entry) {
       }).catch(()=>{entry.error='تعذر عرض رمز QR';});
     }
     if(update.connection==='open') {
-      entry.notifiedDisconnect=false;entry.status='connected';entry.qr=null;entry.rawQr=null;entry.error=null;entry.retries=0;
+      entry.notifiedDisconnect=false;entry.status='connected';entry.qr=null;entry.rawQr=null;entry.error=null;entry.connectedAt=Date.now();entry.nextRetryAt=null;clearTimeout(entry.timer);clearTimeout(entry.cleanup);
       entry.phone=String(sock.user?.id||'').split(':')[0].split('@')[0];
     }
     if(update.connection==='close') {
-      entry.qr=null;entry.phone=null;
-      const code=update.lastDisconnect?.error?.output?.statusCode;
-      const terminal=[lib.DisconnectReason.loggedOut,lib.DisconnectReason.badSession,lib.DisconnectReason.connectionReplaced,lib.DisconnectReason.multideviceMismatch].includes(code);
+      if(closed)return;closed=true;clearTimeout(entry.timer);entry.nextRetryAt=null;
+      if(entry.connectedAt&&Date.now()-entry.connectedAt>=60000)entry.retries=0;entry.connectedAt=null;
+      entry.qr=null;entry.rawQr=null;entry.phone=null;
+      const code=Number(update.lastDisconnect?.error?.output?.statusCode);entry.lastDisconnectCode=Number.isInteger(code)?code:null;
+      console.info('WhatsApp connection closed:',JSON.stringify({code:entry.lastDisconnectCode,attempt:entry.retries}));
+      const terminal=Number.isInteger(code)&&[lib.DisconnectReason.loggedOut,lib.DisconnectReason.badSession,lib.DisconnectReason.connectionReplaced,lib.DisconnectReason.multideviceMismatch].filter(Number.isInteger).includes(code);
       if(terminal || entry.retries>=5) {
         require('./notifications').whatsappDisconnected(userId,entry);
         entry.status='disconnected';cleanDisconnected(userId,entry);entry.error=terminal?'انتهى الاتصال. افصل الربط ثم اربط واتساب من جديد.':'تعذر الاتصال. جرّب الربط من جديد.';
         return;
       }
       entry.status='connecting';entry.retries++;
+      const delay=policy.reconnectDelay(entry.retries);entry.nextRetryAt=Date.now()+delay;
       entry.timer=setTimeout(()=>{
-        entry.pending=openSocket(userId,entry).catch(()=>{entry.status='disconnected';cleanDisconnected(userId,entry);entry.error='تعذر إعادة الاتصال بواتساب';require('./notifications').whatsappDisconnected(userId,entry);});
-      },Math.min(1000*2**entry.retries,30000));
+        entry.pending=openSocket(userId,entry).catch(()=>{if(entry.cancelled||stopping)return;entry.status='disconnected';cleanDisconnected(userId,entry);entry.error='تعذر إعادة الاتصال بواتساب';require('./notifications').whatsappDisconnected(userId,entry);});
+      },delay);entry.timer.unref?.();
     }
   });
 }
@@ -158,7 +167,7 @@ async function connect(userId) {
 async function disconnect(userId,forget=true) {
   const entry=sessions.get(userId);
   if(entry) {
-    entry.cancelled=true;clearTimeout(entry.timer);clearTimeout(entry.cleanup);
+    entry.forget=forget;entry.cancelled=true;clearTimeout(entry.timer);clearTimeout(entry.cleanup);
     await entry.pending?.catch(()=>{});
     if(forget && entry.sock) await entry.sock.logout().catch(()=>{});
     entry.sock?.end(new Error('Session closed'));
@@ -176,28 +185,32 @@ async function requireConnected(userId) {
   if(!entry) {await connect(userId);entry=sessions.get(userId);}
   const deadline=Date.now()+20000;
   while(entry?.status==='connecting' && Date.now()<deadline) await new Promise(resolve=>setTimeout(resolve,250));
-  if(entry?.status!=='connected') throw new Error('اربط واتساب من صفحة الإعدادات وانتظر ظهور متصل');
+  if(entry?.status!=='connected') throw policy.error('WA_NOT_CONNECTED');
   return entry;
 }
 async function sendWhatsAppMessage(userId,phone,body,attachment) {
-  if(typeof body!=='string' || !body.trim()) throw new Error('نص رسالة واتساب مطلوب');
+  if(typeof body!=='string' || !body.trim()) throw Object.assign(new Error('نص رسالة واتساب مطلوب'),{status:400,beforeSend:true});
   const number=String(phone||'').replace(/^00/,'').replace(/\D/g,'');
-  if(!/^[1-9]\d{7,14}$/.test(number)) throw new Error('رقم واتساب لازم يحتوي على كود الدولة');
-  const content=buildWhatsAppContent(body,attachment);
-  const entry=await requireConnected(userId);
+  if(!/^[1-9]\d{7,14}$/.test(number)) throw Object.assign(new Error('رقم واتساب لازم يحتوي على كود الدولة'),{status:400,beforeSend:true});
+  let content;try{content=buildWhatsAppContent(body,attachment);}catch(e){e.status=400;e.beforeSend=true;throw e;}
+  let entry;try{entry=await requireConnected(userId);}catch(e){e.beforeSend=true;throw e;}
   const work=entry.sendQueue.then(async()=>{
-    if(entry.cancelled || entry.status!=='connected') throw new Error('واتساب غير متصل');
-    const results=await entry.sock.onWhatsApp(number);
-    const target=results?.find(x=>x.exists);
-    if(!target) throw new Error('الرقم غير مسجل على واتساب');
-    // إرسال الـCV والنص في رسالة واحدة لتجنب نجاح النص وفشل المرفق.
-    const lib=await library();
-    // Build and persist the complete encrypted-message payload before relaying it.
-    // A recipient device can then request the same message ID for re-encryption.
-    const result=await lib.generateWAMessage(target.jid,content,{userJid:entry.sock.user.id,upload:entry.sock.waUploadToServer,logger:pino({level:'silent'})});
-    await retryStore.saveMessage(userId,result,lib.proto);
+    const sock=entry.sock;policy.active(entry,sock);
+    const results=await policy.lookup(sock,number);policy.active(entry,sock);
+    if(!Array.isArray(results)||!results.length)throw policy.error('WA_LOOKUP_FAILED',503);
+    const target=results.find(x=>x.exists);
+    if(!target)throw policy.error('WA_NUMBER_INVALID',400);
+    // Persist the exact payload before one relay; never replay a send after a lost acknowledgement.
+    const lib=await library();policy.active(entry,sock);let result;
+    try{
+      result=await lib.generateWAMessage(target.jid,content,{userJid:sock.user.id,upload:sock.waUploadToServer,logger:pino({level:'silent'})});
+      policy.active(entry,sock);
+      await retryStore.saveMessage(userId,result,lib.proto);
+      policy.active(entry,sock);
+    }catch(error){if(error.beforeSend)throw error;throw policy.error('WA_PREPARE_FAILED',503);}
     entry.deviceCache?.flushAll();
-    await entry.sock.relayMessage(target.jid,result.message,{messageId:result.key.id,useUserDevicesCache:false});
+    try{await sock.relayMessage(target.jid,result.message,{messageId:result.key.id,useUserDevicesCache:false});}
+    catch(error){throw policy.error('WA_SEND_UNCERTAIN',502);}
     return {messageId:result?.key?.id||null,threadId:result?.key?.remoteJid||target.jid};
   });
   entry.sendQueue=work.catch(()=>{});

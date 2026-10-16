@@ -1,0 +1,14 @@
+'use strict';
+const router=require('express').Router(),wrap=require('../middleware/async-handler'),{requireAuth}=require('../middleware/auth'),recent=require('../middleware/recent-auth'),{get}=require('../utils/db'),{adminEmail,quota}=require('../utils/helpdesk'),trial=require('../utils/openwa-trial');
+const eligible=async req=>{const user=await get('SELECT email FROM users WHERE id=$1',[req.session.userId]);return !!user&&adminEmail(user.email)&&trial.enabledFor(user.email);};
+router.use(requireAuth);router.use((req,res,next)=>{res.set('Cache-Control','no-store');next();});
+router.get('/config',wrap(async(req,res)=>res.json({enabled:await eligible(req)})));
+router.use(wrap(async(req,res,next)=>{if(!await eligible(req))return res.status(404).json({error:'غير متاح',code:'NOT_FOUND'});if(req.method!=='GET'&&(req.get('X-Mrsaal-Trial')!=='1'||!req.is('application/json')))return res.status(403).json({error:'طلب غير مسموح',code:'FORBIDDEN'});next();}));
+router.get('/status',wrap(async(req,res)=>res.json({...await trial.client().status(),recipient:require('../utils/openwa-client').config().recipient,provider:'openwa-trial'})));
+router.get('/history',wrap(async(req,res)=>res.json({messages:await trial.client().history()})));
+router.use(recent);
+router.use((req,res,next)=>{if(!quota('openwa-trial:'+req.session.userId,30))return res.status(429).json({error:'انتظر قبل المحاولة',code:'RATE_LIMIT'});next();});
+router.post('/connect',wrap(async(req,res)=>res.json(await trial.client().start())));
+router.post('/disconnect',wrap(async(req,res)=>res.json(await trial.client().stop())));
+router.post('/send',wrap(async(req,res)=>res.json(await trial.send(req.session.userId,req.body))));
+module.exports=router;
