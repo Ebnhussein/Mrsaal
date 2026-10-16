@@ -2,6 +2,10 @@
 const translations=require('./error-translations.json');
 const reverse=new Map(Object.entries(translations).map(([ar,en])=>[en,ar]));
 const messages={
+ EDIT_SEND_IN_PROGRESS:['الإرسال بدأ بالفعل أو نتيجته لسه غير مؤكدة؛ راجع التقارير قبل التعديل أو الإرسال من جديد.','Sending has already started or its outcome is uncertain. Check Reports before editing or resending.'],
+ EDIT_INPUT:['راجع الشركة وقناة الإرسال.','Check the company and sending channel.'],
+ EDIT_NOT_FOUND:['الشركة المطلوبة مش موجودة في حسابك.','This company was not found in your account.'],
+ SCHEDULE_CANCELLED_EDIT:['اتلغت الجدولة بسبب تعديل الرسالة؛ تقدر تجدول من جديد أو تبعت يدويًا.','Schedule cancelled because the message is being edited. Schedule again or send manually.'],
  MRSAALWA_CONFIG:["إعدادات MrsaalWA ناقصة على السيرفر. تواصل مع الدعم.", "MrsaalWA server configuration is incomplete. Contact support."],
  MRSAALWA_TIMEOUT:["MrsaalWA لم يرد في المهلة. حدّث الحالة؛ لو كنت بتبعت راجع التقارير قبل المحاولة.", "MrsaalWA timed out. Refresh status; if sending, check Reports before retrying."],
  MRSAALWA_AUTH:["تعذر اعتماد اتصال MrsaalWA. الإدارة تحتاج مراجعة مفتاح الخدمة وصلاحياته.", "MrsaalWA could not authenticate. The administrator must check its service key and permissions."],

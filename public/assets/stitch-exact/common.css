@@ -79,3 +79,5 @@ html:has(body[data-theme=dark])::-webkit-scrollbar-thumb,body.stitch-exact[data-
  body[data-page=home] .sx-home-responsive .faq-toggle{min-height:48px;font-size:16px!important;line-height:1.7}
  body[data-page=home] .sx-home-responsive .font-code-md{overflow-wrap:anywhere}
 }
+
+.article-resource-links{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:24px}.article-resource-links a{display:inline-flex;align-items:center;min-height:44px;padding:8px 14px;border:1px solid currentColor;border-radius:10px;text-decoration:none;line-height:1.5}

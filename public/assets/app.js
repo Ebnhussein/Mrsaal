@@ -397,6 +397,7 @@ async function refreshPreviewAttachment(channel,id){
 async function previewChangeChannel(channel){await previewOne(prevCompanyId,channel);}
 async function previewOne(id,channel=selectedDeliveryChannel()) {
   if(!ensureCV())return;
+  window.MrsaalEdit?.prepare(id,channel);
   prevCompanyId=id;previewChannel=channel;previewSendKey=crypto.randomUUID();
   const co=companies.find(c=>c.id===id); if(!co) return;
   document.getElementById('preview-channel').value=channel;
@@ -439,6 +440,7 @@ let previewBatchActive=false, previewFocus=null, previewOverflow='';
 
 let previewRequest = 0;
 async function genPreview(id) {
+  if(window.MrsaalEdit&&!await window.MrsaalEdit.begin())return;
   const requestId = ++previewRequest;
   document.getElementById('preview-channel').disabled=true;
   document.getElementById('btn-confirm').disabled=true;
@@ -469,6 +471,7 @@ async function genPreview(id) {
 function closePrev(cancel=true){previewRequest++;if(cancel){sendQueue=[];previewBatchActive=false;}document.getElementById('preview-overlay').classList.remove('open');document.body.style.overflow=previewOverflow;if(previewFocus?.isConnected)previewFocus.focus({preventScroll:true});}
 
 async function regenerate() {
+  if(window.MrsaalEdit&&!await window.MrsaalEdit.begin())return;
   document.getElementById('prev-loading').style.display='block';
   document.getElementById('prev-form').style.opacity='.4';
   await genPreview(prevCompanyId);
@@ -485,6 +488,7 @@ async function confirmSend() {
   const schedType=document.getElementById('sched-type').value;
   const scheduledAt=schedType==='scheduled'?document.getElementById('send-dt').value:null;
   try {
+    await flushPreviewDraft();
     const result=await api('/api/email/send','POST',{
       companyId:prevCompanyId,channel:previewChannel,
       subject:document.getElementById('prev-subject').value,
@@ -597,7 +601,7 @@ function fillLogDetail(l){
   text('rd-body',l.body);
   el('rd-reply-section').hidden=!replied;
   text('rd-reply',l.reply_text||'تم رصد رد بدون نص محفوظ.');
-  el('rd-error').hidden=!l.reason;text('rd-error',l.reason);
+  el('rd-error').hidden=!l.reason;text('rd-error',l.reason==='SCHEDULE_CANCELLED_EDIT'?cvLabel('اتلغت الجدولة لأنك بدأت تعديل الرسالة. تقدر تحدد موعد جديد أو تبعت يدويًا.','Schedule cancelled because editing started. Choose a new time or send manually.'):l.reason);
   el('rd-note').hidden=wa&&!!l.message_id;
   text('rd-note',wa?'هذه رسالة قديمة بدون معرّف؛ لا يمكن تتبع قراءتها.':'فتح البريد مؤشر تقريبي؛ بعض تطبيقات البريد تحجب التتبع أو تسجّل الفتح تلقائيًا. عدم رصد الفتح لا يعني أن الرسالة لم تُقرأ. الردود تُراجع كل دقيقة، وأثناء فتح التقارير كل ٣٠ ثانية؛ آخر ٣٠ يومًا.');
 }
@@ -640,7 +644,7 @@ async function clearLog(){
 
 function exportCSV(){
   const rows=[['الشركة','البريد','الحالة','الموضوع','مرات الفتح','السبب','الوقت'],
-    ...log.map(l=>[l.company_name,l.company_email,stLabel(l.status),l.subject||'',l.open_count||0,l.reason||'',new Date(l.sent_at*1000).toLocaleString(window.MrsaalLocale?.lang==='en'?'en-GB':'ar-EG')])];
+    ...log.map(l=>[l.company_name,l.company_email,stLabel(l.status),l.subject||'',l.open_count||0,l.reason==='SCHEDULE_CANCELLED_EDIT'?cvLabel('اتلغت الجدولة بسبب تعديل الرسالة','Schedule cancelled because editing started'):l.reason||'',new Date(l.sent_at*1000).toLocaleString(window.MrsaalLocale?.lang==='en'?'en-GB':'ar-EG')])];
   const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
@@ -712,13 +716,14 @@ composeOverlay.addEventListener('keydown',event=>{
  else if(!event.shiftKey&&(document.activeElement===last||document.activeElement===composeOverlay.querySelector('.modal'))){event.preventDefault();first.focus();}
 });
 
-let previewDraftTimer,previewSendKey=crypto.randomUUID();
+let previewDraftTimer,previewDraftPending=null,previewDraftSave=Promise.resolve(),previewSendKey=crypto.randomUUID();
+async function flushPreviewDraft(){clearTimeout(previewDraftTimer);const values=previewDraftPending;previewDraftPending=null;if(values)previewDraftSave=previewDraftSave.catch(()=>{}).then(()=>api('/api/writing/draft','POST',values));try{await previewDraftSave;}catch(e){if(values&&!previewDraftPending)previewDraftPending=values;throw e;}}
 function previewEdited(save=true){
  const subject=document.getElementById('prev-subject'),body=document.getElementById('prev-body');
  if(!body)return;document.getElementById('btn-confirm').disabled=!body.value.trim();
  const write=document.getElementById('btn-write');if(write)write.textContent=body.value.trim()?'إعادة الكتابة':'اكتب بالذكاء الاصطناعي';
  if(!save)return;previewSendKey=crypto.randomUUID();clearTimeout(previewDraftTimer);
  const companyId=prevCompanyId,channel=previewChannel,values={companyId,channel,subject:subject.value,body:body.value};
- previewDraftTimer=setTimeout(()=>api('/api/writing/draft','POST',values).catch(e=>{if(prevCompanyId===companyId)document.getElementById('prev-send-status').textContent='لم يتم حفظ التعديل: '+e.message;}),500);
+ previewDraftPending=values;previewDraftTimer=setTimeout(()=>flushPreviewDraft().catch(e=>{if(prevCompanyId===companyId)document.getElementById('prev-send-status').textContent='لم يتم حفظ التعديل: '+e.message;}),500);
 }
 for(const id of ['prev-body','prev-subject'])document.getElementById(id)?.addEventListener('input',()=>previewEdited());

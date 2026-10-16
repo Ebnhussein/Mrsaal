@@ -10,7 +10,7 @@ function accountContent(lang,page){
  const values={
  'account-title':en?(signup?'Create your account':'Sign in'):(signup?'اعمل حسابك في مرسال':'تسجيل الدخول'),
  'account-description':desc,'name-label':en?'Name':'الاسم','email-label':en?'Email':'الإيميل','phone-label':en?'Phone with country code':'الموبايل بكود الدولة','password-label':en?'Password':'كلمة المرور','confirm-password-label':en?'Confirm password':'تأكيد كلمة المرور','account-submit':en?(signup?'Create account':'Sign in'):(signup?'إنشاء حساب':'دخول'),
- 'account-signin':en?'Already have an account? Sign in':'عندك حساب؟ ادخل','account-signup':en?'New here? Create an account':'أول مرة؟ اعمل حساب','account-forgot':en?'Forgot password?':'نسيت كلمة المرور؟','account-google-label':en?'Continue with Google':'كمّل باستخدام Google','account-privacy':en?'Privacy':'الخصوصية','account-legal':en?'Terms':'الشروط'};
+ 'account-signin':en?'Already have an account? Sign in':'عندك حساب؟ ادخل','account-signup':en?'Sign up':'اعمل حسابك','account-forgot':en?'Forgot password?':'نسيت كلمة المرور؟','account-google-label':en?'Continue with Google':'كمّل باستخدام Google','account-privacy':en?'Privacy':'الخصوصية','account-legal':en?'Terms':'الشروط'};
  for(const [id,value]of Object.entries(values))html=html.replace(new RegExp('(<[^>]+id="'+id+'"[^>]*>)[^<]*(</[^>]+>)'),(_,a,b)=>a+value+b);
  html=html.replace('href="/ar/"','href="/'+lang+'/"').replace('href="/ar/privacy"','href="/'+lang+'/privacy"').replace('href="/ar/terms"','href="/'+lang+'/terms"');
  if(en)html=html.replace('مرسال · Mrsaal','Mrsaal');

@@ -51,3 +51,5 @@ body.stitch-exact[data-theme=dark] .auth-panel .account-divider{color:#a1ddba}
 .auth-layout[data-reauth]{grid-template-columns:minmax(0,460px);justify-content:center;gap:0}
 .auth-layout[data-reauth] .auth-story{display:none}
 .account-page .account-return{display:block;text-align:center;margin-top:20px;text-decoration:underline;font-size:14px}
+
+#account-signup:not([hidden]){order:3;flex:1 0 100%;margin-top:8px;min-height:46px;border:1.5px solid #237858;border-radius:12px;background:#2378580c;color:inherit;font-weight:700}#account-signup:hover{background:#2378581c}#account-signup:focus-visible{outline:3px solid #49a98a;outline-offset:3px}

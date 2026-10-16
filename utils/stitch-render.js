@@ -37,6 +37,6 @@ function renderExact(page,legacy,{posts=[],post=null}={},language='ar'){
  html=html.replace('</head>',`<link rel="alternate" hreflang="ar" href="https://mrsaal.ebnhussein.co/ar/${suffix}"><link rel="alternate" hreflang="en" href="https://mrsaal.ebnhussein.co/en/${suffix}"></head>`);
  html=html.replace(/(\/assets\/stitch-exact\/interactions\.js)\?v=[^"\s<>]+/g,'$1?v=locale-20261015');
  html=html.replace('</head>','<script src="/assets/theme-init.js?v=locale-20261015"></script></head>');
- return applyShell(html,lang,page,suffix).replaceAll('v=responsive-2','v=home-full-mobile-20261010-1');
+ return applyShell(html,lang,page,suffix).replaceAll('v=responsive-2','v=home-full-mobile-20261010-1').replace(/(\/assets\/(?:account\.(?:js|css)|help-search\.js|stitch-exact\/common\.css)\?[^"\s<>]+)/g,'$1&clarity=20261016');
 }
 module.exports={renderExact};

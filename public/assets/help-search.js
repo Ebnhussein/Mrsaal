@@ -15,7 +15,7 @@
  function mount(){
   const input=(document.getElementById('helpSearchInput')||document.getElementById('guide-search-input')),script=document.getElementById('help-search-data'),panel=document.getElementById('help-search-results');if(!input||!script||!panel)return;
   let data;try{data=JSON.parse(script.textContent);}catch{return;}const en=data.language==='en',clear=(document.getElementById('clearSearchBtn')||document.getElementById('clear-search-btn')),searchRow=input.parentElement;document.body.append(panel);searchRow.classList.add('help-search-input-row');input.autocomplete='off';input.maxLength=200;input.setAttribute('aria-label',en?'Search Mrsaal help':'ابحث في مساعدة مرسال');input.setAttribute('aria-controls',panel.id);input.setAttribute('aria-expanded','false');if(data.mode!=='guides')input.placeholder=en?'Describe the issue: PDF, Gmail, WhatsApp, AI…':'اكتب المشكلة: PDF، إيميل، واتساب، AI…';
-  if(data.mode==='guides'){panel.querySelector('h2').textContent=en?'Find a useful guide':'وصل للدليل المناسب';panel.setAttribute('aria-label',en?'Suggested guides':'الأدلة المقترحة');input.setAttribute('aria-label',en?'Search Mrsaal guides':'ابحث في دليل مرسال');}
+  if(data.mode==='guides'){panel.querySelector('h2').textContent=en?'Find a useful guide':'اوصل للدليل المناسب';panel.setAttribute('aria-label',en?'Suggested guides':'الأدلة المقترحة');input.setAttribute('aria-label',en?'Search Mrsaal guides':'ابحث في دليل مرسال');}
   let active='all',visible=[],returnFocus=null,dialog=null;
   const categories=panel.querySelector('[data-help-categories]'),results=panel.querySelector('[data-help-results]'),status=panel.querySelector('[data-help-search-status]');
   function positionPanel(){

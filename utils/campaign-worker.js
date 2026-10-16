@@ -7,7 +7,7 @@ async function tick(){if(busy||stopping)return;busy=true;let client,locked=false
 
  const c=await get("SELECT * FROM campaigns WHERE status='running' AND next_at<=NOW() ORDER BY next_at LIMIT 1");if(!c)return;
  try{await require('./access-control').checkToolAccess(c.user_id);}catch{await run("UPDATE campaigns SET status='paused' WHERE id=$1",[c.id]);return;}
- const item=await get("UPDATE campaign_items SET status='processing',updated_at=NOW() WHERE id=(SELECT id FROM campaign_items WHERE campaign_id=$1 AND status='ready' ORDER BY company_name,id LIMIT 1) AND status='ready' RETURNING *",[c.id]);
+ const claim=await require('./edit-safety').claimCampaign(c);if(!claim.active)return;const item=claim.item;
  if(!item){await run("UPDATE campaigns SET status='completed' WHERE id=$1 AND status='running'",[c.id]);await require('./notifications').emit(c.user_id,'campaign-done:'+c.id,'schedule_done','messages',{page:'campaigns',campaignId:c.id});return;}
  // Status may have changed while the worker acquired the item.
  const active=await get('SELECT status FROM campaigns WHERE id=$1',[c.id]);if(active?.status!=='running'){await run("UPDATE campaign_items SET status=$1 WHERE id=$2",[active?.status==='cancelled'?'cancelled':'ready',item.id]);return;}
