@@ -1295,5 +1295,10 @@
   "تجربة OpenWA تدعم مرفق PDF حتى 10 MB.": "The OpenWA trial supports PDF attachments up to 10 MB.",
   "مفتاح الاختبار مستخدم برسالة مختلفة. راجع المحادثة وجهّز اختبارًا جديدًا لو محتاج.": "This test key was used with different content. Check the chat and prepare another test if needed.",
   "وصلت لحد التجربة: 5 محاولات خلال 24 ساعة.": "Trial limit reached: five attempts per 24 hours.",
-  "نتيجة اختبار OpenWA غير مؤكدة. قد تكون الرسالة وصلت؛ راجع رقم الاستقبال قبل تجهيز اختبار جديد.": "The OpenWA test outcome is uncertain. The message may have arrived. Check the recipient before preparing another test."
+  "نتيجة اختبار OpenWA غير مؤكدة. قد تكون الرسالة وصلت؛ راجع رقم الاستقبال قبل تجهيز اختبار جديد.": "The OpenWA test outcome is uncertain. The message may have arrived. Check the recipient before preparing another test.",
+  "إيه الجديد في مرسال؟": "What is new in Mrsaal?",
+  "موعد الجدولة عدى": "The scheduled time passed",
+  "ربط MrsaalWA": "Connect MrsaalWA",
+  "عدّل موعد الجدولة": "Update the scheduled time",
+  "موعد الجدولة عدى. اختار تاريخ ووقت جديدين في المستقبل، وبعدها جرّب تاني.": "The scheduled time has passed. Choose a new date and time in the future, then try again."
 }

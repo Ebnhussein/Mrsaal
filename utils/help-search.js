@@ -1,5 +1,5 @@
  'use strict';
-const {topics}=require('../public/assets/product-guide');
+const {topics,version}=require('../public/assets/product-guide');
 const {guides}=require('./website-guides');const fs=require('fs'),path=require('path');
 const categories=[['account','الحساب والدخول','Account and sign-in','person'],['files','السي في والشركات','CV and company files','description'],['gmail','Gmail والإيميل','Gmail and email','mail'],['whatsapp','واتساب','WhatsApp','chat'],['ai','الذكاء الاصطناعي','AI providers and writing','auto_awesome'],['sending','الإرسال والحملات','Sending and campaigns','send'],['reports','التقارير والإشعارات','Reports and notifications','notifications'],['support','المساعدة والدعم','Help and support','support_agent']];
 // Issue titles are navigation labels; answers always come from the published product guide.
@@ -25,6 +25,11 @@ const issues=[
  ['template','ai','template','استخدام قالب ثابت بدل AI','Use a fixed template instead of AI','قالب ثابت متغير رسالة ai','fixed template variables message ai'],
  ['preview','sending','preview','مراجعة الرسالة والمرفق قبل الإرسال','Review a message and attachment before sending','معاينة مراجعة رسالة مسودة مرفق ارسال','preview review message draft attachment send'],
  ['skip','sending','send','شركة اتعمل لها تخطي في الإرسال','A company was skipped during sending','تخطي اسكيب رقم ايميل ناقص ارسال واتساب','skip skipped sending missing phone email whatsapp'],
+ ['schedule-expired','sending','schedule-expired','موعد الجدولة عدى وأنا بكتب','The scheduled time passed while writing','جدولة موعد عدى تاريخ ماضي خطأ','schedule expired past date writing error'],
+ ['schedule-editing','sending','schedule-editing','الجدولة اتلغت بعد تعديل الرسالة','Schedule cancelled after editing','تعديل مسودة جدولة الغاء اشعار','edit draft schedule cancelled notification'],
+ ['mrsaalwa','whatsapp','mrsaalwa','ربط MrsaalWA بالرقم أو QR','Pair MrsaalWA with phone or QR','مرسال واتساب تجريبي رقم كود موصى','MrsaalWA experimental beta recommended phone QR code'],
+ ['identity','account','identity','تأكيد الهوية قبل تغيير الربط','Identity verification before connection changes','هوية أمان حساب جوجل تأكيد ربط','identity security Google verify reauth pairing'],
+ ['whats-new','support','whats-new','إيه الجديد في مرسال؟','What is new in Mrsaal?','جديد تحديث تحديثات ابديت','new updates latest changes'],
  ['schedule','sending','send','جدولة الرسائل أو فشل الإرسال','Schedule messages or investigate failed sends','جدولة موعد فشل ارسال رسالة campaign','schedule scheduled failed sending message campaign'],
  ['campaign','sending','campaigns','إدارة حملة الإرسال ومسوداتها','Manage a campaign and its drafts','حملة ارسال إيقاف مسودات مراجعة','campaign sending pause drafts review'],
  ['opens','reports','reports','مؤشر فتح الإيميل معناه إيه؟','What does the email open indicator mean?','فتح ايميل قراءة تراك تتبع seen tracking','open email read tracking seen indicator'],
@@ -37,7 +42,7 @@ function catalogue(lang){const en=lang==='en',used=new Set(issues.map(x=>x[2])),
  for(const [id,slug]of [['channel-guide','email-or-whatsapp'],['email-guide','application-email']]){const g=guides.find(x=>x.slug===slug);documents[id]={title:g['title_'+(en?'en':'ar')],answer:g['body_'+(en?'en':'ar')],href:'/'+(en?'en':'ar')+'/blog/'+slug};}
  const html=fs.readFileSync(path.join(__dirname,'stitch-pages',...(en?['en']:[]),'help.html'),'utf8'),content=html.match(/class="faq-content[^"]*"[^>]*>([\s\S]*?)<\/div>/)?.[1]||'';
  documents['csv-encoding']={title:en?'CSV UTF-8 encoding':'ترميز CSV UTF-8',answer:content.replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' ').trim()};
- return {language:en?'en':'ar',categories:categories.map(([id,ar,eng,icon])=>({id,title:en?eng:ar,icon})),issues:issues.map(([id,category,topic,ar,eng,kwAr,kwEn])=>({id,category,topic,title:en?eng:ar,keywords:en?kwEn:kwAr})),documents};}
+ return {version,language:en?'en':'ar',categories:categories.map(([id,ar,eng,icon])=>({id,title:en?eng:ar,icon})),issues:issues.map(([id,category,topic,ar,eng,kwAr,kwEn])=>({id,category,topic,title:en?eng:ar,keywords:en?kwEn:kwAr})),documents};}
 
 function markup(lang){const en=lang==='en',data=JSON.stringify(catalogue(lang)).replace(/</g,'\\u003c');return `<section id="help-search-results" class="help-search-results" aria-label="${en?'Suggested help topics':'المشاكل والتصنيفات المقترحة'}" hidden><div class="help-search-heading"><h2>${en?'Find the right solution':'اوصل للحل المناسب'}</h2><button type="button" data-help-search-close aria-label="${en?'Close suggestions':'إغلاق الاقتراحات'}">×</button></div><div data-help-categories class="help-search-categories"></div><p data-help-search-status role="status" aria-live="polite"></p><div data-help-results></div></section><script id="help-search-data" type="application/json">${data}</script>`;}
 module.exports={catalogue,markup};

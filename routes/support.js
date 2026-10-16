@@ -6,7 +6,7 @@ const {respond,answer,docs}=require('../utils/support');
 router.use(requireAuth);
 const windows=new Map(),busy=new Set(),conversations=new Map();const HOUR=3600000;
 function reserve(id){const now=Date.now();for(const [key,row] of windows)if(now-row.start>=HOUR)windows.delete(key);if(windows.size>=10000&&!windows.has(id))return false;let row=windows.get(id)||{start:now,count:0};if(row.count>=30)return false;row.count++;windows.set(id,row);return true;}
-router.get('/topics',(req,res)=>res.json({topics:docs.map(d=>({id:d.id,title:req.query.lang==='en'?(d.title_en||d.title):d.title}))}));
+router.get('/topics',(req,res)=>res.json({version:require('../public/assets/product-guide').version,topics:docs.map(d=>({id:d.id,title:req.query.lang==='en'?(d.title_en||d.title):d.title}))}));
 router.get('/topics/:id',(req,res)=>{if(!docs.some(d=>d.id===req.params.id))return res.status(404).json({error:'الموضوع غير موجود'});res.json(answer({scope:'help',topics:[req.params.id]},req.query.lang==='en'?'en':'ar'));});
 router.post('/chat',async(req,res)=>{
  const id=req.session.userId,q=req.body?.question;
