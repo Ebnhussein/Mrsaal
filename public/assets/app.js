@@ -664,10 +664,12 @@ async function loadWhatsAppStatus() {
     const image=document.getElementById('wa-qr');
     image.style.display=state.qr?'block':'none';
     if(state.qr)image.src=state.qr;else image.removeAttribute('src');
-  }catch(err){document.getElementById('wa-status').textContent='تعذر قراءة حالة واتساب: '+err.message;}
+    if(window.MrsaalWA)await window.MrsaalWA.render(state);
+  }catch(err){const image=document.getElementById('wa-qr');image.style.display='none';image.removeAttribute('src');document.getElementById('wa-status').textContent=cvLabel('تعذر قراءة حالة واتساب: ','Could not read WhatsApp status: ')+err.message;if(window.MrsaalWA)await window.MrsaalWA.render({status:'disconnected'}).catch(()=>{});}
   finally{waChecking=false;}
 }
 async function connectWhatsApp(){
+  if(window.MrsaalWA)return window.MrsaalWA.connect();
   const button=document.getElementById('wa-connect');if(button.disabled)return;
   button.disabled=true;
   try{await api('/api/whatsapp/connect','POST',{});await loadWhatsAppStatus();}
@@ -675,6 +677,7 @@ async function connectWhatsApp(){
   finally{button.disabled=false;}
 }
 async function disconnectWhatsApp(){
+  if(window.MrsaalWA)return window.MrsaalWA.disconnect();
   if(!confirm('فصل واتساب؟ هتحتاج تمسح QR من جديد عشان تربطه.'))return;
   try{await api('/api/whatsapp/disconnect','POST',{});await loadWhatsAppStatus();}
   catch(err){toast(err.message,'error');}

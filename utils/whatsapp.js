@@ -220,7 +220,7 @@ async function restoreSessions() {
   await ensureSchema();
   if(!process.env.WHATSAPP_AUTH_SECRET) return;
   secretKey();
-  const rows=await all("SELECT user_id FROM whatsapp_auth WHERE key_id='creds' LIMIT $1",[MAX_SESSIONS]);
+  const rows=await all("SELECT a.user_id FROM whatsapp_auth a WHERE a.key_id='creds' AND NOT EXISTS(SELECT 1 FROM whatsapp_preferences p WHERE p.user_id=a.user_id AND p.provider='mrsaalwa') LIMIT $1",[MAX_SESSIONS]);
   for(const row of rows) await connect(row.user_id).catch(()=>{});
 }
 async function shutdown() {

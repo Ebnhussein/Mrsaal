@@ -127,7 +127,9 @@ async function lazyInit() {
 
     app.use(require('./middleware/api-errors').handler);
 
+    await require('./utils/mrsaalwa').ensureSchema();
     await require('./utils/whatsapp').restoreSessions();
+    require('./utils/mrsaalwa').start();
 
     startScheduler();
     require('./utils/notifications').startNotifications();
@@ -155,6 +157,7 @@ async function close() {
   const timer = setTimeout(() => process.exit(0), 10000);
   timer.unref();
 
+  require('./utils/mrsaalwa').stop();
   await require('./utils/whatsapp').shutdown();
   await require('./utils/db').pool.end();
 

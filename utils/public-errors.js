@@ -2,6 +2,21 @@
 const translations=require('./error-translations.json');
 const reverse=new Map(Object.entries(translations).map(([ar,en])=>[en,ar]));
 const messages={
+ MRSAALWA_CONFIG:["إعدادات MrsaalWA ناقصة على السيرفر. تواصل مع الدعم.", "MrsaalWA server configuration is incomplete. Contact support."],
+ MRSAALWA_TIMEOUT:["MrsaalWA لم يرد في المهلة. حدّث الحالة؛ لو كنت بتبعت راجع التقارير قبل المحاولة.", "MrsaalWA timed out. Refresh status; if sending, check Reports before retrying."],
+ MRSAALWA_AUTH:["تعذر اعتماد اتصال MrsaalWA. الإدارة تحتاج مراجعة مفتاح الخدمة وصلاحياته.", "MrsaalWA could not authenticate. The administrator must check its service key and permissions."],
+ MRSAALWA_RESPONSE:["رد MrsaalWA غير متوقع. حدّث الحالة أو تواصل مع الدعم.", "MrsaalWA returned an unexpected response. Refresh status or contact support."],
+ MRSAALWA_SESSION:["جلسة MrsaalWA غير متاحة. تواصل مع الدعم قبل إعادة الربط.", "Your MrsaalWA session is unavailable. Contact support before relinking."],
+ MRSAALWA_REJECTED:["MrsaalWA رفض العملية. راجع حالة الربط أو تواصل مع الدعم.", "MrsaalWA rejected the operation. Check connection status or contact support."],
+ MRSAALWA_DISABLED:["MrsaalWA تحت التجربة ومش متاح لحسابك حاليًا. استخدم الربط الحالي أو تواصل مع الإدارة.", "MrsaalWA is in beta and is not currently available for your account. Use the current connection or contact the administrator."],
+ MRSAALWA_INPUT:["راجع طريقة الربط المختارة.", "Check the selected connection method."],
+ MRSAALWA_PHONE:["اكتب رقم واتساب بكود الدولة ووافق على تنبيه الربط بالكود.", "Enter your WhatsApp number with country code and acknowledge the pairing warning."],
+ MRSAALWA_PAIR_WAIT:["استنى تجهيز الجلسة أو مرور دقيقة قبل طلب كود جديد. لو الحساب متصل استخدمه بدون ربط جديد.", "Wait for the session to initialise or a minute before requesting another code. Already connected accounts do not need relinking."],
+ MRSAALWA_CAPACITY:["أماكن تجربة MrsaalWA ممتلئة حاليًا. حاول لاحقًا أو استخدم الربط الحالي.", "MrsaalWA beta slots are currently full. Try later or use the current connection."],
+ MRSAALWA_BUSY:["في إرسال أو جدولة واتساب نشطة، أو إرسال نتيجته غير مؤكدة. راجع التقارير وأوقف الحملة قبل تغيير الربط.", "There is an active WhatsApp send or schedule, or an uncertain send. Review Reports and stop the campaign before changing the connection."],
+ MRSAALWA_DISCONNECT_FIRST:["افصل الربط الحالي الأول، وبعدها اختار الطريقة الجديدة.", "Disconnect the current session before choosing a different method."],
+ MRSAALWA_PDF:["راجع مرفق PDF: حتى 10 MB، ورسالة المرفق حتى 1024 حرفًا. اختصر الرسالة قبل الإرسال.", "Check the PDF attachment: up to 10 MB, with a caption up to 1,024 characters. Shorten the message before sending."],
+
  OPENWA_CONFIG:["إعدادات تجربة OpenWA ناقصة. راجع عنوان الخدمة والمفتاح والجلسة ورقم الاختبار في Coolify.", "OpenWA trial settings are incomplete. Check the service URL, API key, session ID and test recipient in Coolify."],
  OPENWA_TIMEOUT:["خدمة OpenWA لم ترد في المهلة. حدّث الحالة؛ لو ده طلب إرسال راجع المحادثة قبل تكراره.", "OpenWA did not respond in time. Refresh status; for a send request, check the chat before repeating it."],
  OPENWA_RESPONSE:["رد خدمة OpenWA غير متوقع. راجع إصدار الخدمة وحالتها.", "OpenWA returned an unexpected response. Check its version and health."],

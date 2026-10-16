@@ -17,7 +17,7 @@ services:
       PORT: '2785'
       ENGINE_TYPE: whatsapp-web.js
       API_MASTER_KEY: ${OPENWA_MASTER_KEY:?Run setup.sh to generate the local secret first}
-      MAX_CONCURRENT_SESSIONS: '1'
+      MAX_CONCURRENT_SESSIONS: '${MRSAALWA_MAX_SESSIONS:-1}'
       AUTO_START_SESSIONS: 'false'
       DATABASE_TYPE: sqlite
       DATABASE_NAME: ./data/openwa.sqlite
@@ -34,7 +34,7 @@ services:
     volumes:
       - trial-data:/app/data
     shm_size: 256mb
-    mem_limit: 1536m
+    mem_limit: 2g
     cpus: 1.5
     pids_limit: 768
     logging:

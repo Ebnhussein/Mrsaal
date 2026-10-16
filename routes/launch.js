@@ -13,7 +13,7 @@ router.post('/delete',require('../middleware/recent-auth'),wrap(async(req,res)=>
  const user=await get('SELECT supabase_id FROM users WHERE id=$1',[id]);if(user.supabase_id&&!process.env.SUPABASE_SERVICE_ROLE_KEY)return res.status(503).json({error:'الحذف الكامل يحتاج تفعيل مفتاح إدارة Supabase على الخادم. تواصل مع الدعم.'});
  // Revoke channels first. A revocation failure keeps the local account available to retry.
  for(const account of await all('SELECT * FROM gmail_accounts WHERE user_id=$1 AND connected=true',[id]))await require('../utils/revoke-google').revoke(account);
- await require('../utils/whatsapp').disconnect(id,true);
+ await require('../utils/whatsapp-service').forgetAll(id);
  if(user.supabase_id){const response=await fetch(new URL(process.env.SUPABASE_URL).origin+'/auth/v1/admin/users/'+encodeURIComponent(user.supabase_id),{method:'DELETE',headers:{apikey:process.env.SUPABASE_SERVICE_ROLE_KEY,Authorization:'Bearer '+process.env.SUPABASE_SERVICE_ROLE_KEY},signal:AbortSignal.timeout(15000)});if(!response.ok&&response.status!==404)throw new Error('تعذر حذف هوية Supabase. حاول لاحقًا');}
  const client=await pool.connect();try{await client.query('BEGIN');const tables=(await client.query("SELECT table_name FROM information_schema.columns WHERE table_schema='public' AND column_name='user_id' ORDER BY table_name")).rows;
  // Tables are discovered from PostgreSQL's own catalog; quote identifiers explicitly.

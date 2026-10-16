@@ -1,15 +1,16 @@
+'use strict';
 const router=require('express').Router();
-const { requireAuth }=require('../middleware/auth');
-const wa=require('../utils/whatsapp');
+const {requireAuth}=require('../middleware/auth');
+const wrap=require('../middleware/async-handler');
+const wa=require('../utils/whatsapp-service'),beta=require('../utils/mrsaalwa');
 router.use(requireAuth);
 router.use((req,res,next)=>{res.set('Cache-Control','no-store');next();});
-router.get('/status',(req,res)=>res.json({...wa.status(req.session.userId),...wa.capacity()}));
-router.post('/connect',async(req,res)=>{
-  try {res.json(await wa.connect(req.session.userId));}
-  catch(err){res.status(503).json({error:err.message});}
-});
-router.post('/disconnect',async(req,res)=>{
-  try {await wa.disconnect(req.session.userId);res.json({ok:true});}
-  catch{res.status(500).json({error:'تعذر فصل واتساب'});}
-});
+router.get('/status',wrap(async(req,res)=>res.json(await wa.status(req.session.userId))));
+router.get('/options',wrap(async(req,res)=>{const id=req.session.userId,p=await beta.profile(id);res.json({provider:p.provider,betaAvailable:await beta.allowed(id),betaEnabled:beta.enabled()});}));
+router.use((req,res,next)=>{if(!req.is('application/json')||req.get('X-Mrsaal-WA')!=='1')return res.status(403).json({error:'طلب غير مسموح',code:'REQUEST_ORIGIN'});next();});
+router.use(require('../middleware/recent-auth'));
+router.use((req,res,next)=>{if(!require('../utils/helpdesk').quota('wa-connect:'+req.session.userId,30))return res.status(429).json({error:'انتظر قبل المحاولة',code:'MRSAALWA_PAIR_WAIT'});next();});
+router.post('/provider',wrap(async(req,res)=>res.json(await beta.select(req.session.userId,req.body.provider))));
+router.post('/connect',wrap(async(req,res)=>{res.json(await wa.connect(req.session.userId,{method:req.body.method,phone:req.body.phone,acknowledge:req.body.acknowledge===true}));}));
+router.post('/disconnect',wrap(async(req,res)=>{await wa.disconnect(req.session.userId);res.json({ok:true});}));
 module.exports=router;
