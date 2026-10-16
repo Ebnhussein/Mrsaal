@@ -41,3 +41,13 @@ html.mrsaal-auth-document>body{width:100%;max-width:100%;min-width:0;min-height:
 @media(max-width:380px){.mrsaal-auth-document .sx-header-inner{padding-inline:8px!important;gap:4px!important}.mrsaal-auth-document .sx-site-brand img{width:24px;height:24px}.mrsaal-auth-document .sx-header-brand{gap:0}}
 
 .account-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.account-language{min-height:44px;min-width:44px;padding:8px 12px;flex-shrink:0}
+
+/* Public auth follows the website theme, not the workspace theme on html. */
+body.stitch-exact .auth-panel{background:#fff;color:#10291c;color-scheme:light;font-size:16px;line-height:1.7}
+body.stitch-exact[data-theme=dark] .auth-panel{background:#132a25;color:#edf7f1;color-scheme:dark}
+body.stitch-exact .auth-panel h1{font-size:26px;line-height:1.5}
+body.stitch-exact .auth-panel .account-divider{color:#496550}
+body.stitch-exact[data-theme=dark] .auth-panel .account-divider{color:#a1ddba}
+.auth-layout[data-reauth]{grid-template-columns:minmax(0,460px);justify-content:center;gap:0}
+.auth-layout[data-reauth] .auth-story{display:none}
+.account-page .account-return{display:block;text-align:center;margin-top:20px;text-decoration:underline;font-size:14px}
