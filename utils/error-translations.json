@@ -232,5 +232,7 @@
   "في إرسال أو جدولة واتساب نشطة، أو إرسال نتيجته غير مؤكدة. راجع التقارير وأوقف الحملة قبل تغيير الربط.": "There is an active WhatsApp send or schedule, or an uncertain send. Review Reports and stop the campaign before changing the connection.",
   "افصل الربط الحالي الأول، وبعدها اختار الطريقة الجديدة.": "Disconnect the current session before choosing a different method.",
   "راجع مرفق PDF: حتى 10 MB، ورسالة المرفق حتى 1024 حرفًا. اختصر الرسالة قبل الإرسال.": "Check the PDF attachment: up to 10 MB, with a caption up to 1,024 characters. Shorten the message before sending.",
-  "MrsaalWA أبلغ عن فشل التسليم. راجع المحادثة قبل إعادة الإرسال.": "MrsaalWA reported a delivery failure. Check the chat before sending again."
+  "MrsaalWA أبلغ عن فشل التسليم. راجع المحادثة قبل إعادة الإرسال.": "MrsaalWA reported a delivery failure. Check the chat before sending again.",
+  "اختار تاريخ ووقت صحيحين للجدولة.": "Choose a valid date and time for scheduling.",
+  "موعد الجدولة عدى. اختار تاريخ ووقت جديدين في المستقبل، وبعدها جرّب تاني.": "The scheduled time has passed. Choose a new date and time in the future, then try again."
 }

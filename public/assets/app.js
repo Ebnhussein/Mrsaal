@@ -468,7 +468,7 @@ async function genPreview(id) {
   }
 }
 
-function closePrev(cancel=true){previewRequest++;if(cancel){sendQueue=[];previewBatchActive=false;}document.getElementById('preview-overlay').classList.remove('open');document.body.style.overflow=previewOverflow;if(previewFocus?.isConnected)previewFocus.focus({preventScroll:true});}
+function closePrev(cancel=true){const scheduleField=document.getElementById('preview-schedule-field');if(scheduleField)scheduleField.hidden=true;previewRequest++;if(cancel){sendQueue=[];previewBatchActive=false;}document.getElementById('preview-overlay').classList.remove('open');document.body.style.overflow=previewOverflow;if(previewFocus?.isConnected)previewFocus.focus({preventScroll:true});}
 
 async function regenerate() {
   if(window.MrsaalEdit&&!await window.MrsaalEdit.begin())return;
@@ -477,18 +477,31 @@ async function regenerate() {
   await genPreview(prevCompanyId);
 }
 
+function previewScheduleField() {
+  let input=document.getElementById('preview-schedule-correction');
+  if(!input){const label=document.createElement('label');label.id='preview-schedule-field';label.className='field';label.append(document.createTextNode(cvLabel('عدّل موعد الجدولة','Update the scheduled time')));input=document.createElement('input');input.id='preview-schedule-correction';input.className='input';input.type='datetime-local';input.addEventListener('input',()=>{document.getElementById('send-dt').value=input.value;});label.append(input);document.getElementById('prev-form').append(label);}
+  input.value=document.getElementById('send-dt').value;input.parentElement.hidden=false;return input;
+}
+function readPreviewSchedule() {
+  if(document.getElementById('sched-type').value!=='scheduled')return {valid:true,scheduledAt:null};
+  const result=window.MrsaalSchedule.read('send-dt',{required:true,report:false});
+  if(!result.valid)window.MrsaalSchedule.read(previewScheduleField(),{required:true});
+  return result;
+}
+
 async function confirmSend() {
   let didSend=false;
+  if(!readPreviewSchedule().valid)return;
   const btn=document.getElementById('btn-confirm');
   if(btn.disabled)return;
   if(window.MrsaalValidation&&!window.MrsaalValidation.check([{field:'prev-body',test:f=>!!f.value.trim(),message:cvLabel('اكتب نص الرسالة قبل الإرسال.','Enter the message before sending.')},...(previewChannel==='email'?[{field:'prev-subject',test:f=>!!f.value.trim(),message:cvLabel('اكتب موضوع الإيميل.','Enter an email subject.')}]:[])]))return;
   if(!document.getElementById('prev-body').value.trim()){toast('اكتب نص الرسالة أولاً','error');return;}
   const status=document.getElementById('prev-send-status');
   btn.disabled=true;document.getElementById('preview-channel').disabled=true; btn.innerHTML='<div class="spin"></div> جاري الإرسال...';
-  const schedType=document.getElementById('sched-type').value;
-  const scheduledAt=schedType==='scheduled'?document.getElementById('send-dt').value:null;
   try {
     await flushPreviewDraft();
+    const schedule=readPreviewSchedule();if(!schedule.valid)return;
+    const scheduledAt=schedule.scheduledAt;
     const result=await api('/api/email/send','POST',{
       companyId:prevCompanyId,channel:previewChannel,
       subject:document.getElementById('prev-subject').value,
@@ -500,6 +513,7 @@ async function confirmSend() {
     renderCompanies(); updateSendStats(); closePrev(false);
     didSend=true; await loadLog(); toast(result.skipped?result.reason:(scheduledAt?'تم الجدولة':'تم الإرسال'),result.skipped?'info':'success');
   } catch(err) {
+    if(['SCHEDULE_TIME_PAST','SCHEDULE_TIME_INVALID'].includes(err.code)){window.MrsaalSchedule.reject(err,previewScheduleField());return;}
     const co=companies.find(c=>c.id===prevCompanyId);
     const uncertain=['uncertain','processing'].includes(err.deliveryStatus)||!err.httpStatus;
     if(co) co.status=uncertain?(err.deliveryStatus||'uncertain'):'failed';

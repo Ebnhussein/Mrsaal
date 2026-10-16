@@ -59,7 +59,8 @@ router.post('/generate', requireAuth, wrap(async (req, res) => {
 }));
 
 router.post('/send', requireAuth, wrap(async (req, res) => {
-  const { companyId, subject, body, scheduledAt } = req.body;
+  const { companyId, subject, body } = req.body;
+  const scheduledAt = require('../utils/schedule-time').parse(req.body.scheduledAt);
   const company = await get('SELECT * FROM companies WHERE id=$1 AND user_id=$2', [companyId, req.session.userId]);
   if (!company) return res.status(404).json({ error: 'الشركة غير موجودة' });
   const channel=chooseChannel(company,req.body.channel);
@@ -72,7 +73,6 @@ router.post('/send', requireAuth, wrap(async (req, res) => {
 
   if (!hasEmail(company) && !hasPhone(company)) return res.status(400).json({ error: 'لا توجد وسيلة تواصل صالحة' });
   if (typeof body !== 'string' || !body.trim()) return res.status(400).json({ error: 'نص الرسالة مطلوب' });
-  if (scheduledAt && (!Number.isFinite(new Date(scheduledAt).getTime()) || new Date(scheduledAt).getTime() <= Date.now())) return res.status(400).json({ error: 'اختار موعدًا صحيحًا في المستقبل' });
   if (channel==='whatsapp') {
     try { await requireConnected(req.session.userId); }
     catch (err) { return res.status(409).json({ error: err.message }); }

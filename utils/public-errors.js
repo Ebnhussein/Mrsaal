@@ -2,6 +2,8 @@
 const translations=require('./error-translations.json');
 const reverse=new Map(Object.entries(translations).map(([ar,en])=>[en,ar]));
 const messages={
+ SCHEDULE_TIME_PAST:['موعد الجدولة عدى. اختار تاريخ ووقت جديدين في المستقبل، وبعدها جرّب تاني.','The scheduled time has passed. Choose a new date and time in the future, then try again.'],
+ SCHEDULE_TIME_INVALID:['اختار تاريخ ووقت صحيحين للجدولة.','Choose a valid date and time for scheduling.'],
  EDIT_SEND_IN_PROGRESS:['الإرسال بدأ بالفعل أو نتيجته لسه غير مؤكدة؛ راجع التقارير قبل التعديل أو الإرسال من جديد.','Sending has already started or its outcome is uncertain. Check Reports before editing or resending.'],
  EDIT_INPUT:['راجع الشركة وقناة الإرسال.','Check the company and sending channel.'],
  EDIT_NOT_FOUND:['الشركة المطلوبة مش موجودة في حسابك.','This company was not found in your account.'],
