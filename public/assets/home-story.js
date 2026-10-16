@@ -30,7 +30,7 @@
    const opacity=clamp((.72-Math.abs(distance))/.3,0,1);
    scene.style.opacity=String(opacity);
    scene.style.transform=`translateY(${clamp(-distance*28,-35,35)}px) scale(${1-Math.min(Math.abs(distance),1)*.025})`;
-   scene.style.setProperty('--scene-progress',String(clamp((distance+.4)/.65,0,1)));
+   scene.style.setProperty('--scene-progress',String(clamp((distance+.55)/.5,0,1)));
   });
   stage.style.setProperty('--story-progress',String((playhead+1)/6));
   if(index!==active){

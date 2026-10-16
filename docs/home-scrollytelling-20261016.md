@@ -42,3 +42,32 @@ not available in the editing environment. After deploying, verify:
 5. OS reduced motion and manual static toggle: every chapter remains readable.
 6. Skip journey, guides, FAQ and both signup buttons work with keyboard/touch.
 7. Sign in, plans, product, help and the tool keep their prior layouts.
+
+## Character story extension
+
+The approved scroll-only homepage is separately preserved on
+`backup/home-scroll-story-20261016`, commit
+`3629ce8f87ae642117cb9d7f1d0c64fb4e429512`.
+
+The new protagonist is Ahmed, an explicitly illustrative applicant (not a real
+customer testimonial). Six first-person captions follow the same steps. The
+first scene visibly enters a company name and example.com email, then shows the
+user's files. Later scenes show preferences, drafting, review, channel choice,
+and follow-up. The three consistent character poses change with the scenes;
+UI cursor/typing effects use the existing reversible scroll playhead.
+Static-mode chapters retain the first-person story as blockquotes.
+
+Character asset: `public/assets/characters/ahmed-poses.webp`, 1152×768 RGBA WebP,
+about 61KB. Generated using the built-in Imagegen tool, then encoded for the web.
+The sprite is decorative and contains no text; all text is localised HTML.
+
+Generation prompt: illustration-story; transparent three-column pose sheet of
+the same friendly Egyptian young man, short dark curly hair, warm olive skin,
+forest green overshirt and ivory tee, polished editorial 2D SaaS infographic;
+left typing behind a mint laptop, centre reviewing thoughtfully with hand at
+chin, right giving a small thumbs-up. Equal columns, same scale, no labels,
+letters, logos, UI or watermark. Forest-green, mint and cream palette.
+
+Manual browser checks: portrait should stay separate from message text at
+320/360/390/768px, poses switch in forward and reverse scroll, English captions
+fit, static mode retains the story, light/dark backgrounds preserve cutout alpha.

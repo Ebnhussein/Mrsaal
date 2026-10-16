@@ -21,7 +21,7 @@ test('homepage retains bilingual navigation, six readable steps and conversion d
   const html=render(lang,'home');
   assert.equal((html.match(/data-step="/g)||[]).length,6);
   assert.equal((html.match(/data-scene="/g)||[]).length,6);
-  assert.match(html,/home-story\.js/);assert.match(html,/home-story\.css/);
+  assert.equal((html.match(/class="hs-actor"/g)||[]).length,6);assert.equal((html.match(/class="hs-narration"/g)||[]).length,6);assert.match(html,/careers@example\.com/);assert.match(html,/data-pose="2"/);assert.match(html,/home-story\.js/);assert.match(html,/home-story\.css/);
   for(const dest of ['signup','plans','blog','help'])assert(html.includes(`href="/${lang}/${dest}"`));
   assert(html.includes(lang==='ar'?'أنت بتضيف قائمة الشركات':'You add the companies'));
   assert(html.includes(lang==='ar'?'مش تأكيد إن الشخص قرأ':'not proof that a person read'));
