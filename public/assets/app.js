@@ -375,15 +375,27 @@ function companyChannelReason(c,channel){
  const digits=String(c.phone||'').replace(/\D/g,'');return digits.length>=7&&digits.length<=15?null:'لا يوجد رقم صالح';
 }
 function selectedDeliveryChannel(){return document.getElementById('send-channel')?.value||'email';}
+function deliveryOptions(channel=selectedDeliveryChannel()){
+ return {channel,bothChannels:!!document.getElementById('opt-send-both')?.checked,preferredChannel:document.getElementById('send-priority')?.value||'email',skipSent:document.getElementById('opt-skip-sent').checked};
+}
+function companyDeliveryChannels(company,channel){
+ if(channel!=='available')return deliveryOptions(channel).skipSent&&log.some(l=>l.company_id===company.id&&l.channel===channel&&l.status==='sent')?[]:[channel];
+ return window.MrsaalDeliveryPlan.channels(company,deliveryOptions(channel),log);
+}
 function deliveryQueue(channel){
- const filter=document.getElementById('send-filter').value,skip=document.getElementById('opt-skip-sent').checked;
- return companies.filter(c=>!(filter==='selected'&&!c.selected)&&!(filter==='pending'&&c.status!=='pending')&&
-  !(skip&&log.some(l=>l.company_id===c.id&&l.channel===channel&&l.status==='sent')));
+ const filter=document.getElementById('send-filter').value;
+ return companies.filter(c=>!(filter==='selected'&&!c.selected)&&!(filter==='pending'&&c.status!=='pending')&&companyDeliveryChannels(c,channel).length>0);
 }
 function updateChannelSummary(){
- const channel=selectedDeliveryChannel(),queue=deliveryQueue(channel),missing=queue.filter(c=>companyChannelReason(c,channel)).length;
- document.getElementById('channel-summary').textContent=`${queue.length-missing} شركة جاهزة ${channel==='email'?'للإيميل':'للواتساب'} · ${missing} شركة هتتخطى لنقص بيانات القناة. مفيش تحويل تلقائي.`;
+ const channel=selectedDeliveryChannel(),mixed=channel==='available',queue=deliveryQueue(channel);
+ let emails=0,whatsapp=0,missing=0;
+ for(const co of queue)for(const selected of companyDeliveryChannels(co,channel)){if(companyChannelReason(co,selected))missing++;else if(selected==='email')emails++;else whatsapp++;}
+ document.getElementById('channel-summary').textContent=cvLabel(`${emails} رسالة إيميل · ${whatsapp} رسالة واتساب · ${missing} شركة هتتخطى لنقص بيانات التواصل.`,`${emails} email messages · ${whatsapp} WhatsApp messages · ${missing} companies skipped for missing contact details.`);
  const sender=document.getElementById('send-sender')?.closest('.sender-box');if(sender)sender.hidden=channel==='whatsapp';
+ const both=document.getElementById('opt-send-both');if(both)both.disabled=!mixed;
+ const priority=document.getElementById('send-priority-field');if(priority)priority.hidden=!mixed||!!both?.checked;
+ const label=document.getElementById('send-both-label');if(label)label.style.opacity=mixed?'1':'.55';
+ const hint=document.getElementById('send-both-hint');if(hint)hint.textContent=mixed?cvLabel('وسيلة واحدة لو المتاح واحد. تفعيل الاختيار يجهّز رسالتين منفصلتين لو الاتنين موجودين.','One available channel is used. Checking this prepares two separate messages when both are available.'):cvLabel('فعّل «حسب المتاح» لاستخدام الاختيار ده.','Choose “Available channel” to enable this option.');
 }
 async function refreshPreviewAttachment(channel,id){
   const el=document.getElementById('prev-attachment');el.hidden=false;
@@ -396,6 +408,7 @@ async function refreshPreviewAttachment(channel,id){
 }
 async function previewChangeChannel(channel){await previewOne(prevCompanyId,channel);}
 async function previewOne(id,channel=selectedDeliveryChannel()) {
+  if(channel==='available'){const co=companies.find(c=>c.id===id);channel=co?(companyDeliveryChannels(co,channel)[0]||'email'):'email';}
   if(!ensureCV())return;
   window.MrsaalEdit?.prepare(id,channel);
   prevCompanyId=id;previewChannel=channel;previewSendKey=crypto.randomUUID();
@@ -541,13 +554,13 @@ async function skipCo() {
 async function startSend() {
   if(window.MrsaalValidation){if(!window.MrsaalValidation.validate(document.getElementById('page-send')))return;if(document.getElementById('sched-type').value==='scheduled'&&!window.MrsaalValidation.check([{field:'send-dt',test:f=>!!f.value&&Number.isFinite(Date.parse(f.value))&&Date.parse(f.value)>Date.now(),message:cvLabel('اختار تاريخ ووقت في المستقبل للجدولة.','Choose a future date and time for scheduling.')}]))return;}
 
-  if(selectedDeliveryChannel()==='email'&&gmailChanging){toast('استنى تغيير حساب الإرسال يخلص','info');return;}
+  if(selectedDeliveryChannel()!=='whatsapp'&&gmailChanging){toast('استنى تغيير حساب الإرسال يخلص','info');return;}
   if(!ensureCV())return;
   const channel=selectedDeliveryChannel();batchChannel=channel;
   const previewMode=document.getElementById('opt-preview').checked;
   const queue=deliveryQueue(channel);
   if(!queue.length){toast('مفيش شركات مناسبة للاختيارات الحالية','info');return;}
-  if(channel==='whatsapp'&&queue.some(c=>!companyChannelReason(c,channel))&&waState!=='connected'){toast('اربط واتساب قبل إرسال هذه الدفعة.','error');openSettings('channels');return;}
+  if(queue.some(c=>companyDeliveryChannels(c,channel).includes('whatsapp')&&!companyChannelReason(c,'whatsapp'))&&waState!=='connected'){toast('اربط واتساب قبل إرسال هذه الدفعة.','error');openSettings('channels');return;}
   try{await MrsaalLaunch.create(queue.map(c=>c.id),channel);}catch(e){toast(e.message,'error');}
 }
 

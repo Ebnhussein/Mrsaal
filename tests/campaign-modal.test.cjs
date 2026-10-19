@@ -31,7 +31,7 @@ test('campaign modal renders a useful empty state and refreshes the list in plac
 
 test('campaign review keeps editable cards inside the scroll region and sending actions outside it',async()=>{
  const source=fs.readFileSync('public/assets/launch.js','utf8');const start=source.indexOf(' async function review('),end=source.indexOf('\n async function create(',start);let dialog,attached,reads=0;
- const globals={window:{MrsaalSmartScroll:{attach:options=>{attached=options;return {refresh(){},destroy(){}};}}},popup:()=>{dialog=new Node('dialog');const status=new Node('p');status.className='launch-status';dialog.append(status);return dialog;},tr:(a,b)=>b,el:(tag,text)=>new Node(tag,text),button:(text,fn)=>{const b=new Node('button',text);b.onclick=fn;return b;},stateLabel:s=>s,field:(container,label,value='',type='text')=>{const wrap=new Node('label',label),input=new Node(type==='textarea'?'textarea':'input');input.value=value;wrap.append(input);container.append(wrap);return input;},request:async()=>{reads++;return {campaign:{status:'draft',channel:'email'},items:[{id:'one',company_id:'a',company_name:'Afaq',recipient:'a@example.com',status:'draft',subject:'Hello',body:'Saved message'},{id:'two',company_id:'b',company_name:'Madar',status:'sent'}]};}};
+ const globals={window:{MrsaalSmartScroll:{attach:options=>{attached=options;return {refresh(){},destroy(){}};}}},popup:()=>{dialog=new Node('dialog');const status=new Node('p');status.className='launch-status';dialog.append(new Node('h2'),status);return dialog;},tr:(a,b)=>b,el:(tag,text)=>new Node(tag,text),button:(text,fn)=>{const b=new Node('button',text);b.onclick=fn;return b;},stateLabel:s=>s,field:(container,label,value='',type='text')=>{const wrap=new Node('label',label),input=new Node(type==='textarea'?'textarea':'input');input.value=value;wrap.append(input);container.append(wrap);return input;},request:async()=>{reads++;return {campaign:{status:'draft',channel:'email'},items:[{id:'one',company_id:'a',company_name:'Afaq',recipient:'a@example.com',status:'draft',subject:'Hello',body:'Saved message'},{id:'two',company_id:'b',company_name:'Madar',status:'sent'}]};}};
  vm.runInNewContext(source.slice(start,end)+'\nglobalThis.run=review;',globals);await globals.run('campaign');
  assert.equal(reads,1);assert.equal(dialog.querySelectorAll('.review-card').length,2);
  const content=dialog.querySelector('.review-content'),footer=dialog.querySelector('.review-footer');
@@ -39,4 +39,11 @@ test('campaign review keeps editable cards inside the scroll region and sending 
  assert.equal(footer.querySelectorAll('button').length,2);assert.equal(footer.querySelectorAll('textarea').length,0);
  assert.equal(content.querySelector('textarea').value,'Saved message');assert.equal(content.querySelector('textarea').readOnly,true);
  assert.equal(attached.scroller,content);assert.equal(attached.host,footer);assert.equal(attached.items().length,3);
+});
+test('mixed-channel chooser opens the chosen review with sibling navigation and never starts either campaign',async()=>{
+ const source=fs.readFileSync('public/assets/launch.js','utf8'),start=source.indexOf(' async function channelBatches('),end=source.indexOf(' async function create(',start);let dialog;const opened=[];
+ const box={popup:()=>dialog=new Node('dialog'),tr:(_a,b)=>b,el:(tag,text)=>new Node(tag,text),button:(text,fn)=>{const b=new Node('button',text);b.onclick=fn;return b;},review:async(...args)=>opened.push(args)};
+ vm.runInNewContext(source.slice(start,end),box);const batches=[{id:'mail',channel:'email',count:2},{id:'wa',channel:'whatsapp',count:2}];await box.channelBatches(batches,'2026-10-21T09:00');
+ assert.deepEqual(dialog.querySelectorAll('h3').map(n=>n.textContent),['Email','WhatsApp']);assert.equal(opened.length,0);
+ await dialog.querySelectorAll('button')[1].onclick();assert.equal(dialog.closed,true);assert.equal(opened[0][0],'wa');assert.equal(opened[0][1],'2026-10-21T09:00');assert.strictEqual(opened[0][2],batches);
 });

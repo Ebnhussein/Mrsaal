@@ -2,6 +2,8 @@
 const translations=require('./error-translations.json');
 const reverse=new Map(Object.entries(translations).map(([ar,en])=>[en,ar]));
 const messages={
+ CAMPAIGN_INPUT:['اختار وسيلة إرسال صحيحة ومن 1 إلى 500 شركة، وراجع خيارات الإرسال.','Choose a valid sending channel and 1–500 companies, and check the sending options.'],
+ NO_ELIGIBLE_COMPANIES:['مفيش شركات مناسبة للاختيارات الحالية. راجع التحديد وخيار تخطي الرسائل المُرسلة.','No companies match these sending options. Check your selection and the option to skip previously sent messages.'],
  SCHEDULE_TIME_PAST:['موعد الجدولة عدى. اختار تاريخ ووقت جديدين في المستقبل، وبعدها جرّب تاني.','The scheduled time has passed. Choose a new date and time in the future, then try again.'],
  SCHEDULE_TIME_INVALID:['اختار تاريخ ووقت صحيحين للجدولة.','Choose a valid date and time for scheduling.'],
  EDIT_SEND_IN_PROGRESS:['الإرسال بدأ بالفعل أو نتيجته لسه غير مؤكدة؛ راجع التقارير قبل التعديل أو الإرسال من جديد.','Sending has already started or its outcome is uncertain. Check Reports before editing or resending.'],

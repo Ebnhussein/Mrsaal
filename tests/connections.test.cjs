@@ -42,7 +42,7 @@ test('truncated and timed-out generation have different reasons',async()=>{
  await assert.rejects(timed.generate('openrouter','k','m','p'),e=>e.code==='TIMEOUT');
 });
 test('generation gets 20s by default while model discovery retains 20s',async()=>{
- const deadlines=[];const api=load('utils/ai-providers.js',{'./db':{},'./connection-secrets':{}},{AbortSignal:{timeout:ms=>{deadlines.push(ms);return {aborted:false}}},fetch:async url=>({ok:true,json:async()=>url.endsWith('/chat/completions')?{choices:[{message:{content:'OK'},finish_reason:'stop'}]}:url.endsWith('/key')?{data:{}}:{data:[]}})});
+ const deadlines=[];const api=load('utils/ai-providers.js',{'./db':{},'./connection-secrets':{}},{Date:class extends Date{static now(){return 1000;}},AbortSignal:{timeout:ms=>{deadlines.push(ms);return {aborted:false}}},fetch:async url=>({ok:true,json:async()=>url.endsWith('/chat/completions')?{choices:[{message:{content:'OK'},finish_reason:'stop'}]}:url.endsWith('/key')?{data:{}}:{data:[]}})});
  await api.generate('openrouter','key','openrouter/free','p');await api.listModels('openrouter','key');
  assert.equal(deadlines.join(','),'20000,20000,20000');
 });

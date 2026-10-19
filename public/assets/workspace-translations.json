@@ -1303,5 +1303,11 @@
   "موعد الجدولة عدى. اختار تاريخ ووقت جديدين في المستقبل، وبعدها جرّب تاني.": "The scheduled time has passed. Choose a new date and time in the future, then try again.",
   "تعديل الشركات": "Edit companies",
   "حذف المحدد": "Delete selected",
-  "المزيد من خيارات المساعد": "More assistant options"
+  "المزيد من خيارات المساعد": "More assistant options",
+  "الإيميل أو واتساب حسب المتاح": "Email or WhatsApp, whichever is available",
+  "لو الاتنين موجودين، ابدأ بـ": "When both are available, prefer",
+  "الإيميل أولًا": "Email first",
+  "واتساب أولًا": "WhatsApp first",
+  "ابعت على الإيميل وواتساب لو الاتنين متاحين": "Send by both email and WhatsApp when both are available",
+  "فعّل «حسب المتاح» لاستخدام الاختيار ده. كل رسالة لها مراجعتها ونتيجتها المستقلة.": "Choose “Available channel” to enable this option. Each message is reviewed and tracked separately."
 }
