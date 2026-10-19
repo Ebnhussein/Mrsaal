@@ -37,6 +37,7 @@ const messages={
  OPENWA_TRIAL_LIMIT:["وصلت لحد التجربة: 5 محاولات خلال 24 ساعة.", "Trial limit reached: five attempts per 24 hours."],
  OPENWA_SEND_UNCERTAIN:["نتيجة اختبار OpenWA غير مؤكدة. قد تكون الرسالة وصلت؛ راجع رقم الاستقبال قبل تجهيز اختبار جديد.", "The OpenWA test outcome is uncertain. The message may have arrived. Check the recipient before preparing another test."],
 
+ WA_RECIPIENT_FORMAT:['رقم المستلم لازم يكون بكود الدولة، مثل +201012345678 بدل 01012345678. عدّل رقم الشركة قبل الإرسال.','The recipient number must include the country code, for example +201012345678 instead of 01012345678. Update the company phone number before sending.'],
  WA_NOT_CONNECTED:["واتساب غير متصل. انتظر الاتصال أو أعد الربط من الإعدادات.", "WhatsApp is disconnected. Wait for connection or reconnect in Settings."],
  WA_CONNECTION_CHANGED:["اتصال واتساب اتغيّر قبل الإرسال. لم تُرسل الرسالة؛ انتظر الاتصال وحاول تاني.", "The WhatsApp connection changed before sending. Nothing was sent. Wait for connection and try again."],
  WA_LOOKUP_FAILED:["تعذر التحقق من رقم واتساب قبل الإرسال. لم تُرسل الرسالة؛ حاول لاحقًا.", "Could not check the WhatsApp number before sending. Nothing was sent. Try later."],

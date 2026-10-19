@@ -1,11 +1,11 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
 const channels=require('../utils/delivery-channel');
-function harness(companies){
+function harness(companies,connectionError=null){
  const routes=[],writes=[],events=[],sent=[],generated=[];let connected=0,accounts=0;
  const router={post:(name,...handlers)=>routes.push({name,handlers}),get(){},delete(){}};
  const db={get:async(sql,args)=>sql.includes('FROM companies')?companies.find(c=>c.id===args[0]):sql.includes('FROM users')?{id:'u'}:sql.includes('cv_profiles')?{content:'CV'}:null,all:async()=>[],run:async(sql,args)=>{writes.push({sql,args});return {rowCount:1}}};
- const deps={'../utils/schedule-time':require('../utils/schedule-time'),express:{Router:()=>router},uuid:{v4:()=>`id-${writes.length}`},'../middleware/auth':{requireAuth(){}},'../middleware/async-handler':f=>f,'../utils/db':db,'../utils/ai':{generateEmail:async()=>{generated.push('email');return {subject:'Title',body:'Email'}},generateWhatsAppMessage:async()=>{generated.push('whatsapp');return 'WA'}},'../utils/gmail':{sendEmail:async()=>{sent.push('email');return {messageId:'m'}}},'../utils/gmail-accounts':{resolveAccount:async()=>{accounts++;return {gmail_account_id:'account',email:'sender@example.com'}}},'../utils/replyTracker':{},'../utils/whatsapp-service':{requireConnected:async()=>{connected++},sendWhatsAppMessage:async()=>{sent.push('whatsapp');return {messageId:'w'}}},'../utils/schedule-send':{schedule:async(u,p)=>{writes.push({sql:'INSERT INTO email_log',args:['log',u,p.company.id,p.company.name,p.channel==='email'?p.company.email:p.company.phone,p.subject,p.body,'scheduled',p.channel]});return {ok:true,status:'scheduled'};}},'../utils/delivery':{deliver:async(u,data)=>{sent.push(data.channel);return {ok:true,status:'sent',channel:data.channel};}},'../utils/delivery-channel':channels};
+ const deps={'../utils/schedule-time':require('../utils/schedule-time'),express:{Router:()=>router},uuid:{v4:()=>`id-${writes.length}`},'../middleware/auth':{requireAuth(){}},'../middleware/async-handler':f=>f,'../utils/db':db,'../utils/ai':{generateEmail:async()=>{generated.push('email');return {subject:'Title',body:'Email'}},generateWhatsAppMessage:async()=>{generated.push('whatsapp');return 'WA'}},'../utils/gmail':{sendEmail:async()=>{sent.push('email');return {messageId:'m'}}},'../utils/gmail-accounts':{resolveAccount:async()=>{accounts++;return {gmail_account_id:'account',email:'sender@example.com'}}},'../utils/replyTracker':{},'../utils/whatsapp-service':{requireConnected:async()=>{connected++;if(connectionError)throw connectionError;},sendWhatsAppMessage:async()=>{sent.push('whatsapp');return {messageId:'w'}}},'../utils/schedule-send':{schedule:async(u,p)=>{writes.push({sql:'INSERT INTO email_log',args:['log',u,p.company.id,p.company.name,p.channel==='email'?p.company.email:p.company.phone,p.subject,p.body,'scheduled',p.channel]});return {ok:true,status:'scheduled'};}},'../utils/delivery':{deliver:async(u,data)=>{sent.push(data.channel);return {ok:true,status:'sent',channel:data.channel};}},'../utils/delivery-channel':channels};
  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../routes/email.js'),'utf8'),{require:id=>id.endsWith('access-control')?{checkToolAccess:async()=>{}}:deps[id],module:{exports:{}},process:{env:{}},console,Date,Set,Promise,setTimeout:f=>{f()}});
  return {writes,sent,generated,events,get connected(){return connected},get accounts(){return accounts},async post(name,body){let result,status=200;const res={status:s=>{status=s;return res},json:r=>{result=r},setHeader(){},flushHeaders(){},on(){},write:s=>{events.push(JSON.parse(s.slice(6)))},end(){}};await routes.find(r=>r.name===name).handlers.at(-1)({session:{userId:'u'},body},res);return {result,status}}};
 }
@@ -25,4 +25,14 @@ test('skip already sent is channel-specific even if company global status is sen
  const elements={'send-channel':{value:'whatsapp'},'send-filter':{value:'all'},'opt-skip-sent':{checked:true},'channel-summary':{}};
  const context={document:{getElementById:id=>elements[id]},companies:[{...both,status:'sent'}],log:[{company_id:'both',channel:'email',status:'sent'}]};vm.runInNewContext(source.slice(start,end),context);
  assert.equal(context.deliveryQueue('whatsapp').length,1);assert.equal(context.deliveryQueue('email').length,0);
+});
+
+
+test('WhatsApp readiness errors preserve their typed code before delivery instead of becoming generic conflicts',async()=>{
+ for(const code of ['WA_NOT_CONNECTED','MRSAALWA_SESSION','MRSAALWA_TIMEOUT','MRSAALWA_AUTH']){
+  const error=Object.assign(new Error(code),{code,status:code==='WA_NOT_CONNECTED'?409:503});
+  const h=harness([both],error);await assert.rejects(h.post('/send',{companyId:'both',channel:'whatsapp',body:'Saved draft'}),e=>e===error&&e.code===code);
+  assert.equal(h.sent.length,0);assert.equal(h.writes.length,0);assert.equal(h.accounts,0);
+  const catalog=require('../utils/public-errors');for(const language of ['ar','en']){const result=catalog.describe(error,language);assert.equal(result.code,code);assert.notEqual(result.error,catalog.describe({status:409},language).error);}
+ }
 });

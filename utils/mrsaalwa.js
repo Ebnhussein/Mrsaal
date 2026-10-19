@@ -102,9 +102,9 @@ async function disconnect(id,forget=true){return locked(id,async()=>{const p=awa
  }else if((await g.session(p.session_id)).engineLoaded)await g.stop(p.session_id);
  await event(id,'disconnected');
  });}
-async function requireConnected(id){await assertAllowed(id);const p=await profile(id);if(!p.session_id)throw fail('WA_NOT_CONNECTED');const s=await gateway().session(p.session_id);if(s.status!=='ready')throw fail('WA_NOT_CONNECTED');return p;}
+async function requireConnected(id){await assertAllowed(id);const p=await profile(id);if(!p.session_id)throw fail('WA_NOT_CONNECTED',409);const s=await gateway().session(p.session_id);if(s.status!=='ready')throw fail('WA_NOT_CONNECTED',409);return p;}
 async function send(id,phone,body,attachment){
- const number=String(phone||'').replace(/^00/,'').replace(/\D/g,'');if(!/^[1-9]\d{7,14}$/.test(number))throw fail('MRSAALWA_PHONE',400);
+ const number=String(phone||'').replace(/^00/,'').replace(/\D/g,'');if(!/^[1-9]\d{7,14}$/.test(number))throw fail('WA_RECIPIENT_FORMAT',400);
  let content;try{content=buildWhatsAppContent(body,attachment);}catch{throw fail('MRSAALWA_PDF',400);}
  if(content.document&&(content.document.length>10*1024*1024||content.caption.length>1024))throw fail('MRSAALWA_PDF',400);
  const p=await requireConnected(id);

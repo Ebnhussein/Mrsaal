@@ -191,7 +191,7 @@ async function requireConnected(userId) {
 async function sendWhatsAppMessage(userId,phone,body,attachment) {
   if(typeof body!=='string' || !body.trim()) throw Object.assign(new Error('نص رسالة واتساب مطلوب'),{status:400,beforeSend:true});
   const number=String(phone||'').replace(/^00/,'').replace(/\D/g,'');
-  if(!/^[1-9]\d{7,14}$/.test(number)) throw Object.assign(new Error('رقم واتساب لازم يحتوي على كود الدولة'),{status:400,beforeSend:true});
+  if(!/^[1-9]\d{7,14}$/.test(number)) throw policy.error('WA_RECIPIENT_FORMAT',400);
   let content;try{content=buildWhatsAppContent(body,attachment);}catch(e){e.status=400;e.beforeSend=true;throw e;}
   let entry;try{entry=await requireConnected(userId);}catch(e){e.beforeSend=true;throw e;}
   const work=entry.sendQueue.then(async()=>{

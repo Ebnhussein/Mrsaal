@@ -106,3 +106,17 @@ test('unset, blank and invalid caps remain one; finite caps still enforce reserv
   await assert.rejects(f.beta.connect('other'),e=>e.code==='MRSAALWA_CAPACITY');assert.equal((await f.beta.profile('other')).session_id,null);
  }finally{await f.close();}
 });
+
+
+test('MrsaalWA preflight reports disconnected state distinctly; recipient format fails before gateway send',async()=>{
+ const f=await fixture();try{
+  await f.grant('owner');await f.beta.select('owner','mrsaalwa');
+  await assert.rejects(f.beta.requireConnected('owner'),e=>e.code==='WA_NOT_CONNECTED'&&e.status===409);
+  await f.beta.connect('owner');await assert.rejects(f.beta.requireConnected('owner'),e=>e.code==='WA_NOT_CONNECTED'&&e.status===409);
+  Object.assign(f.sessions[0],{status:'ready',phone:'201099999999'});
+  assert.equal((await f.beta.requireConnected('owner')).session_id,sid);
+  await assert.rejects(f.beta.send('owner','01012345678','Draft'),e=>e.code==='WA_RECIPIENT_FORMAT'&&e.beforeSend&&e.status===400);
+  assert.equal(f.calls.filter(c=>c[0]==='send').length,0);
+  await f.beta.send('owner','+201012345678','Draft');assert.equal(f.calls.find(c=>c[0]==='send')[2],'201012345678');
+ }finally{await f.close();}
+});
