@@ -2,10 +2,10 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 class Node{
  constructor(tag,text=''){this.tag=tag;this.textContent=text;this.children=[];this.className='';this.attrs={};this.dataset={};this.style={};this.disabled=false;this.isConnected=true;this.scrollTop=0;this.classList={add:(...c)=>{this.className+=' '+c.join(' ');}};}
- append(...items){this.children.push(...items);}setAttribute(k,v){this.attrs[k]=v;}addEventListener(){}
+ append(...items){for(const item of items)item.parentElement=this;this.children.push(...items);}setAttribute(k,v){this.attrs[k]=v;}addEventListener(){}
  replaceChildren(...items){this.children=items;}close(){this.closed=true;}
  querySelector(s){return this.querySelectorAll(s)[0];}
- querySelectorAll(s){const found=[];function visit(n){for(const c of n.children){if(s[0]==='.'?c.className.split(' ').includes(s.slice(1)):c.tag===s)found.push(c);visit(c);}}visit(this);return found;}
+ querySelectorAll(s){const found=[];function visit(n){for(const c of n.children){if(s.split(',').some(selector=>selector[0]==='.'?c.className.split(' ').includes(selector.slice(1)):c.tag===selector))found.push(c);visit(c);}}visit(this);return found;}
 }
 function harness(rows,english=true){
  const source=fs.readFileSync('public/assets/launch.js','utf8');const start=source.indexOf(' async function campaigns()'),end=source.indexOf('\n async function writeDraft',start);let dialog,reads=0,mutations=0,reviews=[];
@@ -27,4 +27,16 @@ test('campaign modal offers status-appropriate actions and only resumes reviewed
 test('campaign modal renders a useful empty state and refreshes the list in place',async()=>{
  const h=harness([],false);await h.run();const d=h.dialog();assert(d.querySelector('.campaigns-empty'));
  const refresh=d.querySelector('.campaign-refresh');await refresh.onclick();assert.equal(h.dialog(),d);assert.equal(h.counts().reads,2);assert.equal(h.counts().mutations,0);assert.equal(d.querySelector('.launch-status').textContent,'');
+});
+
+test('campaign review keeps editable cards inside the scroll region and sending actions outside it',async()=>{
+ const source=fs.readFileSync('public/assets/launch.js','utf8');const start=source.indexOf(' async function review('),end=source.indexOf('\n async function create(',start);let dialog,attached,reads=0;
+ const globals={window:{MrsaalSmartScroll:{attach:options=>{attached=options;return {refresh(){},destroy(){}};}}},popup:()=>{dialog=new Node('dialog');const status=new Node('p');status.className='launch-status';dialog.append(status);return dialog;},tr:(a,b)=>b,el:(tag,text)=>new Node(tag,text),button:(text,fn)=>{const b=new Node('button',text);b.onclick=fn;return b;},stateLabel:s=>s,field:(container,label,value='',type='text')=>{const wrap=new Node('label',label),input=new Node(type==='textarea'?'textarea':'input');input.value=value;wrap.append(input);container.append(wrap);return input;},request:async()=>{reads++;return {campaign:{status:'draft',channel:'email'},items:[{id:'one',company_id:'a',company_name:'Afaq',recipient:'a@example.com',status:'draft',subject:'Hello',body:'Saved message'},{id:'two',company_id:'b',company_name:'Madar',status:'sent'}]};}};
+ vm.runInNewContext(source.slice(start,end)+'\nglobalThis.run=review;',globals);await globals.run('campaign');
+ assert.equal(reads,1);assert.equal(dialog.querySelectorAll('.review-card').length,2);
+ const content=dialog.querySelector('.review-content'),footer=dialog.querySelector('.review-footer');
+ assert.equal(content.querySelectorAll('.review-card').length,2);assert(content.querySelector('.review-schedule'));
+ assert.equal(footer.querySelectorAll('button').length,2);assert.equal(footer.querySelectorAll('textarea').length,0);
+ assert.equal(content.querySelector('textarea').value,'Saved message');assert.equal(content.querySelector('textarea').readOnly,true);
+ assert.equal(attached.scroller,content);assert.equal(attached.host,footer);assert.equal(attached.items().length,3);
 });

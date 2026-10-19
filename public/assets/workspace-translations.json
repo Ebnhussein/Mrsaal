@@ -1302,5 +1302,6 @@
   "عدّل موعد الجدولة": "Update the scheduled time",
   "موعد الجدولة عدى. اختار تاريخ ووقت جديدين في المستقبل، وبعدها جرّب تاني.": "The scheduled time has passed. Choose a new date and time in the future, then try again.",
   "تعديل الشركات": "Edit companies",
-  "حذف المحدد": "Delete selected"
+  "حذف المحدد": "Delete selected",
+  "المزيد من خيارات المساعد": "More assistant options"
 }

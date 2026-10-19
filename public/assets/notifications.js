@@ -11,9 +11,9 @@
  function init(){
   if(bell)return;const host=document.querySelector('.workspace-actions,.work-admin-toolbar');if(!host)return;
   bell=document.getElementById('nt-bell');if(bell){bell.hidden=false;bell.addEventListener('click',()=>open().catch(e=>notice(e.message)));}else bell=button('',()=>open(),'nt-bell');bell.id='nt-bell';bell.dataset.userContent='';bell.append(icon('notifications'));badge=el('span','0','nt-badge');badge.hidden=true;bell.append(badge);host.prepend(bell);bell.title=tr('الإشعارات','Notifications');bell.setAttribute('aria-label',bell.title);
-  dialog=el('dialog',undefined,'nt-dialog');dialog.dataset.userContent='';dialog.setAttribute('aria-labelledby','nt-heading');
+  dialog=el('dialog',undefined,'nt-dialog smart-scroll-dialog');dialog.dataset.userContent='';dialog.setAttribute('aria-labelledby','nt-heading');
   const header=el('header',undefined,'nt-header'),head=el('div');const title=el('h2',tr('الإشعارات','Notifications'));title.id='nt-heading';countLabel=el('p','');head.append(title,countLabel);const close=button('',()=>dialog.close(),'nt-close');close.append(icon('close'));close.setAttribute('aria-label',tr('إغلاق','Close'));header.append(head,close);
-  filters=el('div',undefined,'nt-filters');body=el('div',undefined,'nt-body');dialog.append(header,filters,body);document.body.append(dialog);
+  filters=el('div',undefined,'nt-filters');body=el('div',undefined,'nt-body smart-scroll-body');dialog.append(header,filters,body);document.body.append(dialog);
   dialog.addEventListener('click',e=>{const r=dialog.getBoundingClientRect();if(e.target===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom))dialog.close();});dialog.addEventListener('close',()=>previousFocus?.focus());
   const panel=document.getElementById('settings-account');if(panel){const card=el('section',undefined,'card nt-settings-entry');card.dataset.userContent='';card.id='nt-account-entry';card.append(el('h3',tr('إشعاراتك، على طريقتك','Notifications, your way')),el('p',tr('اختار الأحداث اللي توصلك، والصوت وإشعارات المتصفح.','Choose your events, sound and browser alerts.')),button(tr('إعدادات الإشعارات','Notification settings'),()=>open(true)));(document.getElementById('account-notifications')||panel).append(card);}
  }
