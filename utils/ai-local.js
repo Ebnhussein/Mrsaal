@@ -6,9 +6,9 @@ function error(code,message,status=503){return Object.assign(new Error(message),
 function integer(name,fallback,min,max){const n=Number(process.env[name]);return Number.isInteger(n)&&n>=min&&n<=max?n:fallback;}
 function settings(){
  let base;
- try{base=new URL(process.env.LOCAL_AI_BASE_URL);}catch{throw error('AI_UNAVAILABLE','إعداد خدمة ذكاء مرسال المحلي غير صحيح.');}
- if(!['http:','https:'].includes(base.protocol)||base.username||base.password||base.search||base.hash)throw error('AI_UNAVAILABLE','راجع عنوان خدمة ذكاء مرسال المحلي.');
- if(!process.env.LOCAL_AI_API_KEY?.trim())throw error('AI_UNAVAILABLE','مفتاح خدمة ذكاء مرسال المحلي لم يُضبط بعد.');
+ try{base=new URL(process.env.LOCAL_AI_BASE_URL);}catch{throw error('AI_UNAVAILABLE','إعداد خدمة مرسال AI المحلي غير صحيح.');}
+ if(!['http:','https:'].includes(base.protocol)||base.username||base.password||base.search||base.hash)throw error('AI_UNAVAILABLE','راجع عنوان خدمة مرسال AI المحلي.');
+ if(!process.env.LOCAL_AI_API_KEY?.trim())throw error('AI_UNAVAILABLE','مفتاح خدمة مرسال AI المحلي لم يُضبط بعد.');
  return {url:base.href.replace(/\/$/,'')+'/chat/completions',scope:createHash('sha256').update(base.href.replace(/\/$/,'')).digest('hex'),model:process.env.LOCAL_AI_MODEL?.trim()||'local-ai',key:process.env.LOCAL_AI_API_KEY.trim(),concurrent:integer('LOCAL_AI_MAX_CONCURRENT',1,1,8),rate:integer('LOCAL_AI_REQUESTS_PER_MINUTE',3,1,30),tokens:integer('LOCAL_AI_MAX_OUTPUT_TOKENS',1600,128,8000),chars:integer('LOCAL_AI_MAX_PROMPT_CHARS',50000,1000,100000),jsonMode:process.env.LOCAL_AI_JSON_MODE!=='off'};
 }
 async function acquire(config,ttl,userId,deadline){
@@ -48,10 +48,10 @@ async function callLocalAI(prompt,maxTokens=1200,validate=null,deadline=Date.now
   const response=await fetch(config.url,{method:'POST',redirect:'error',signal:controller.signal,headers:{Authorization:'Bearer '+config.key,'Content-Type':'application/json'},body:JSON.stringify({model:config.model,messages:[{role:'system',content:'استخدم الحقائق المقدمة فقط والتزم بالتنسيق المطلوب. أرجع الإجابة النهائية فقط دون شرح التفكير.'+(validate?' الرد يجب أن يكون كائن JSON واحدًا صالحًا فقط، بكل الحقول المطلوبة في الطلب، بدون مقدمات أو Markdown أو تعليقات.':'')},{role:'user',content:prompt}],max_tokens:requestedTokens,temperature:0,...(validate&&config.jsonMode?{response_format:validate.schema&&process.env.LOCAL_AI_JSON_MODE!=='object'?{type:'json_schema',json_schema:{name:'mrsaal_response',strict:true,schema:validate.schema}}:{type:'json_object'}}:{}),stream:false})});
   const data=await response.json().catch(()=>null);if(controller.signal.aborted)throw error('TIMEOUT','انتهت مهلة كتابة المسودة.');
   knownFinished=true;usage=data?.usage;finishReason=data?.choices?.[0]?.finish_reason;await record(userId,usage);metered=true;
-  if(!response.ok||data?.error){console.warn('Local AI request rejected; status='+response.status);throw error('AI_UNAVAILABLE',response.status===401||response.status===403?'ربط ذكاء مرسال المحلي محتاج مراجعة من الإدارة.':response.status===429?'خدمة ذكاء مرسال مشغولة حاليًا. حاول بعد قليل.':'خدمة ذكاء مرسال المحلي غير متاحة حاليًا.',response.status===429?429:503);}
+  if(!response.ok||data?.error){console.warn('Local AI request rejected; status='+response.status);throw error('AI_UNAVAILABLE',response.status===401||response.status===403?'ربط مرسال AI المحلي محتاج مراجعة من الإدارة.':response.status===429?'خدمة مرسال AI مشغولة حاليًا. حاول بعد قليل.':'خدمة مرسال AI المحلي غير متاحة حاليًا.',response.status===429?429:503);}
   const choice=data?.choices?.[0],text=choice?.message?.content;
-  if(choice?.finish_reason==='length')throw error('AI_TRUNCATED','رد ذكاء مرسال المحلي اتقطع. اختصر الطلب أو راجع سقف التوكنز من الإدارة.');
-  if(typeof text!=='string'||!text.trim())throw error('AI_EMPTY','ذكاء مرسال المحلي لم يرجع نصًا صالحًا.');
+  if(choice?.finish_reason==='length')throw error('AI_TRUNCATED','رد مرسال AI المحلي اتقطع. اختصر الطلب أو راجع سقف التوكنز من الإدارة.');
+  if(typeof text!=='string'||!text.trim())throw error('AI_EMPTY','مرسال AI المحلي لم يرجع نصًا صالحًا.');
   const cleaned=validate?cleanEnvelope(text):text.trim();
   if(validate&&!validate(cleaned)){
    let parsed;try{parsed=JSON.parse(cleaned);}catch{}
@@ -64,7 +64,7 @@ async function callLocalAI(prompt,maxTokens=1200,validate=null,deadline=Date.now
   if(userCancelled)throw Object.assign(error('AI_CANCELLED','اتلغى طلب الذكاء الاصطناعي.',409),{reason:'CANCELLED'});
   if(['AI_UNAVAILABLE','AI_TRUNCATED','AI_EMPTY','TIMEOUT'].includes(e.code))throw e;
   console.warn('Local AI connection failed; code='+ (controller.signal.aborted?'TIMEOUT':'NETWORK'));
-  throw error(controller.signal.aborted?'TIMEOUT':'AI_UNAVAILABLE',controller.signal.aborted?'ذكاء مرسال المحلي استغرق وقتًا أطول من المهلة المتاحة.':'تعذر الاتصال بذكاء مرسال المحلي. تأكد أن جهاز تشغيل الموديل متصل.');
+  throw error(controller.signal.aborted?'TIMEOUT':'AI_UNAVAILABLE',controller.signal.aborted?'مرسال AI المحلي استغرق وقتًا أطول من المهلة المتاحة.':'تعذر الاتصال بمرسال AI المحلي. تأكد أن جهاز تشغيل الموديل متصل.');
  }finally{
   clearTimeout(timer);if(cancelPoll)clearInterval(cancelPoll);
   console.log('Local AI timing:',JSON.stringify({elapsedMs:Date.now()-began,queueWaitMs:began-requestStarted,totalElapsedMs:Date.now()-requestStarted,promptCharacters:prompt.length,requestedTokens,finishReason:['stop','length','content_filter'].includes(finishReason)?finishReason:null,promptTokens:number(usage?.prompt_tokens),completionTokens:number(usage?.completion_tokens),aborted:controller.signal.aborted}));

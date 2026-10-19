@@ -13,7 +13,7 @@ async function enqueue(scope,userId,deadline){
 }
 async function wait(config,userId,deadline,claim){
  const ms=bounded('LOCAL_AI_QUEUE_WAIT_MS',45000,0,45000),until=Math.min(deadline-5000,Date.now()+ms);
- if(!userId||until<=Date.now())throw fail('ذكاء مرسال مشغول حاليًا. حاول بعد قليل.');
+ if(!userId||until<=Date.now())throw fail('مرسال AI مشغول حاليًا. حاول بعد قليل.');
  const id=await enqueue(config.scope,userId,until);
  try{while(Date.now()<until){
   const row=await get('SELECT status FROM local_ai_queue WHERE id=$1 AND user_id=$2',[id,userId]);if(!row||row.status==='cancelled')throw fail('اتلغى طلب الذكاء الاصطناعي.','AI_CANCELLED',409);
@@ -29,9 +29,9 @@ async function status(userId,scope){
 }
 async function cancel(userId,scope,id=null){const waiting=await run("UPDATE local_ai_queue SET status='cancelled' WHERE user_id=$1 AND scope=$2 AND ($3::text IS NULL OR id=$3)",[userId,scope,id]);const running=await run('UPDATE local_ai_slots SET cancel_requested=true WHERE user_id=$1 AND scope=$2 AND expires_at>NOW() AND ($3::text IS NULL OR token=$3)',[userId,scope,id]);return {ok:true,cancelled:(waiting.rowCount||0)+(running.rowCount||0)>0};}
 async function globalAllowance(scope,userId=null){
- if(userId){const user=await get('SELECT ai_limit FROM users WHERE id=$1',[userId]);const used=await get('SELECT requests FROM local_ai_usage WHERE user_id=$1 AND day=CURRENT_DATE',[userId]);if(!user||Number(used?.requests||0)>=user.ai_limit)throw fail('وصلت لحد تشغيل ذكاء مرسال المحلي اليومي لحسابك. جرّب الكتابة اليدوية أو منصة شخصية.');}
+ if(userId){const user=await get('SELECT ai_limit FROM users WHERE id=$1',[userId]);const used=await get('SELECT requests FROM local_ai_usage WHERE user_id=$1 AND day=CURRENT_DATE',[userId]);if(!user||Number(used?.requests||0)>=user.ai_limit)throw fail('وصلت لحد تشغيل مرسال AI المحلي اليومي لحسابك. جرّب الكتابة اليدوية أو منصة شخصية.');}
 
- const minute=await get(`INSERT INTO local_ai_global_windows(scope,minute,amount) VALUES($1,date_trunc('minute',NOW()),1) ON CONFLICT(scope) DO UPDATE SET minute=EXCLUDED.minute,amount=CASE WHEN local_ai_global_windows.minute<>EXCLUDED.minute THEN 1 ELSE local_ai_global_windows.amount+1 END WHERE local_ai_global_windows.minute<>EXCLUDED.minute OR local_ai_global_windows.amount<$2 RETURNING amount`,[scope,bounded('LOCAL_AI_GLOBAL_REQUESTS_PER_MINUTE',6,1,60)]);if(!minute)throw fail('ذكاء مرسال وصل لحد الطلبات الحالي. حاول بعد دقيقة.');
- const day=await get(`INSERT INTO local_ai_global_usage(scope,day,amount) VALUES($1,CURRENT_DATE,1) ON CONFLICT(scope,day) DO UPDATE SET amount=local_ai_global_usage.amount+1 WHERE local_ai_global_usage.amount<$2 RETURNING amount`,[scope,bounded('LOCAL_AI_GLOBAL_DAILY_REQUESTS',300,1,10000)]);if(!day)throw fail('وصل ذكاء مرسال لحد التشغيل اليومي. الكتابة اليدوية والمنصات الشخصية متاحة.');
+ const minute=await get(`INSERT INTO local_ai_global_windows(scope,minute,amount) VALUES($1,date_trunc('minute',NOW()),1) ON CONFLICT(scope) DO UPDATE SET minute=EXCLUDED.minute,amount=CASE WHEN local_ai_global_windows.minute<>EXCLUDED.minute THEN 1 ELSE local_ai_global_windows.amount+1 END WHERE local_ai_global_windows.minute<>EXCLUDED.minute OR local_ai_global_windows.amount<$2 RETURNING amount`,[scope,bounded('LOCAL_AI_GLOBAL_REQUESTS_PER_MINUTE',6,1,60)]);if(!minute)throw fail('مرسال AI وصل لحد الطلبات الحالي. حاول بعد دقيقة.');
+ const day=await get(`INSERT INTO local_ai_global_usage(scope,day,amount) VALUES($1,CURRENT_DATE,1) ON CONFLICT(scope,day) DO UPDATE SET amount=local_ai_global_usage.amount+1 WHERE local_ai_global_usage.amount<$2 RETURNING amount`,[scope,bounded('LOCAL_AI_GLOBAL_DAILY_REQUESTS',300,1,10000)]);if(!day)throw fail('وصل مرسال AI لحد التشغيل اليومي. الكتابة اليدوية والمنصات الشخصية متاحة.');
 }
 module.exports={first,wait,status,cancel,globalAllowance,bounded};

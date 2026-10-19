@@ -28,7 +28,7 @@ async function callGemini(prompt,maxTokens=1200,apiKey=null,modelName=null,valid
  if(!userId)return platformCall(prompt,maxTokens,apiKey,modelName,validate,operation?.deadline,null);
  if(!operation)return runOperation(userId,kind,op=>callGemini(prompt,maxTokens,null,null,validate,userId,op,kind));
  if(Date.now()>=operation.deadline){const e=new Error('انتهت مهلة الكتابة. جرّب موديلًا أسرع.');e.code='TIMEOUT';throw e;}
- const personal=async()=>{if(Date.now()>=operation.deadline)throw Object.assign(new Error('انتهت مهلة الكتابة.'),{code:'TIMEOUT'});await operation.usePersonal?.();const text=await require('./ai-providers').callUserAI(userId,prompt,maxTokens,validate,operation.deadline);if(text===null)throw new Error('اختار منصة شخصية وموديل مفعّل من الإعدادات، أو استخدم ذكاء مرسال.');return text;};
+ const personal=async()=>{if(Date.now()>=operation.deadline)throw Object.assign(new Error('انتهت مهلة الكتابة.'),{code:'TIMEOUT'});await operation.usePersonal?.();const text=await require('./ai-providers').callUserAI(userId,prompt,maxTokens,validate,operation.deadline);if(text===null)throw new Error('اختار منصة شخصية وموديل مفعّل من الإعدادات، أو استخدم مرسال AI.');return text;};
  if(operation.source==='personal')return personal();
  try{return await platformCall(prompt,maxTokens,null,null,validate,operation.deadline,userId);}
  catch(e){if(!operation.fallback||e.code==='AI_CANCELLED')throw e;return personal();}
@@ -64,7 +64,7 @@ async function generate(args,channel){
  if(local){
   const summary=typeof args.cvSummary==='string'?args.cvSummary.trim():'';
   if(summary&&summary.length<=1800)payload.facts={...payload.facts,cv:summary};
-  else if(c.facts.cv.length>1800)throw Object.assign(new Error('السيرة طويلة على ذكاء مرسال المحلي. راجع واعتمد ملخص السيرة من الإعدادات أولًا.'),{code:'AI_CV_SUMMARY_REQUIRED',status:422});
+  else if(c.facts.cv.length>1800)throw Object.assign(new Error('السيرة طويلة على مرسال AI المحلي. راجع واعتمد ملخص السيرة من الإعدادات أولًا.'),{code:'AI_CV_SUMMARY_REQUIRED',status:422});
  }
  const reviewPrompt=local?localRules():rules()+`\nقبل الرد راجع الحقائق واللغة والطول والعبارات الممنوعة وصحح الرسالة. أرجع JSON بالحقول المطلوبة فقط {"subject":"...","body":"..."}. notes مصفوفة ملاحظات اختيارية، وneedsUserInput قيمة boolean اختيارية؛ أضف needsUserInput=true عند تعذر كتابة رسالة صادقة. لا تدّع ضمان الجودة.`;
  const validReview=d=>validDraft(d)&&(d.notes===undefined||(Array.isArray(d.notes)&&d.notes.every(n=>typeof n==='string')))&&(d.needsUserInput===undefined||typeof d.needsUserInput==='boolean');

@@ -24,7 +24,8 @@ test('homepage retains bilingual navigation, six readable steps and conversion d
   assert.equal((html.match(/class="hs-actor"/g)||[]).length,6);assert.equal((html.match(/class="hs-narration"/g)||[]).length,6);assert.match(html,/careers@example\.com/);assert.match(html,/data-pose="2"/);assert.match(html,/home-story\.js/);assert.match(html,/home-story\.css/);
   for(const dest of ['signup','plans','blog','help'])assert(html.includes(`href="/${lang}/${dest}"`));
   assert(html.includes(lang==='ar'?'أنت بتضيف قائمة الشركات':'You add the companies'));
-  assert(html.includes(lang==='ar'?'مش تأكيد إن الشخص قرأ':'not proof that a person read'));
+  assert(html.includes(lang==='ar'?'تابع حالة كل رسالة، واعرف مين رد ومين فتح الإيميل، كل ده من مكان واحد.':'Track each message, see who replied and who opened your email, all in one place.'));
+  assert(!html.includes(lang==='ar'?'مؤشر فتح الإيميل تقديري':'Email-open indicators are estimates'));
   assert(!html.includes('<video'));assert(!html.includes('sx-home-responsive'));
  }
  assert(!render('en','product').includes('home-story.js'));

@@ -69,6 +69,6 @@ async function callPlatformAI(prompt,maxTokens,validate,operationDeadline,userId
    console.warn('Mrsaal AI failed:',JSON.stringify({provider,model:safe(model),code,elapsedMs:Date.now()-start}));
   }
  }
- throw Object.assign(new Error('تعذر تشغيل موديلات ذكاء مرسال المتاحة. راجع حالة المنصات أو حاول لاحقًا.'),{code:'AI_UNAVAILABLE',status:503,failures});
+ throw Object.assign(new Error('تعذر تشغيل موديلات مرسال AI المتاحة. راجع حالة المنصات أو حاول لاحقًا.'),{code:'AI_UNAVAILABLE',status:503,failures});
 }
 module.exports={enabled,chain,chooseModel,callPlatformAI};
