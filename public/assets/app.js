@@ -41,7 +41,7 @@ async function loadAll() {
 }
 
 async function api(path, method='GET', body=null) {
-  if(body&&method==='POST'&&['/api/email/send','/api/email/send-bulk'].includes(path)){if(body.channel!=='whatsapp'&&gmailChanging)throw new Error('استنى تغيير حساب الإرسال يخلص');body={...body,senderAccountId:gmailActiveId};}
+  if(body&&method==='POST'&&['/api/email/send','/api/email/send-bulk'].includes(path)){if(body.channel!=='whatsapp'&&gmailChanging)throw Object.assign(new Error(cvLabel('استنى تغيير حساب الإرسال يخلص','Wait for the sending account to finish switching.')),{beforeSend:true});body={...body,senderAccountId:gmailActiveId};}
   const opts = { method, headers: {'Content-Type':'application/json'} };
   if (body) opts.body = JSON.stringify(body);
   let r;
@@ -490,18 +490,19 @@ function readPreviewSchedule() {
 }
 
 async function confirmSend() {
-  let didSend=false;
+  let didSend=false,sendRequested=false;
   if(!readPreviewSchedule().valid)return;
   const btn=document.getElementById('btn-confirm');
   if(btn.disabled)return;
   if(window.MrsaalValidation&&!window.MrsaalValidation.check([{field:'prev-body',test:f=>!!f.value.trim(),message:cvLabel('اكتب نص الرسالة قبل الإرسال.','Enter the message before sending.')},...(previewChannel==='email'?[{field:'prev-subject',test:f=>!!f.value.trim(),message:cvLabel('اكتب موضوع الإيميل.','Enter an email subject.')}]:[])]))return;
   if(!document.getElementById('prev-body').value.trim()){toast('اكتب نص الرسالة أولاً','error');return;}
   const status=document.getElementById('prev-send-status');
-  btn.disabled=true;document.getElementById('preview-channel').disabled=true; btn.innerHTML='<div class="spin"></div> جاري الإرسال...';
+  btn.disabled=true;document.getElementById('preview-channel').disabled=true; btn.innerHTML='<div class="spin"></div> '+cvLabel('جاري الإرسال...','Sending…');
   try {
     await flushPreviewDraft();
     const schedule=readPreviewSchedule();if(!schedule.valid)return;
     const scheduledAt=schedule.scheduledAt;
+    sendRequested=true;
     const result=await api('/api/email/send','POST',{
       companyId:prevCompanyId,channel:previewChannel,
       subject:document.getElementById('prev-subject').value,
@@ -515,15 +516,19 @@ async function confirmSend() {
   } catch(err) {
     if(['SCHEDULE_TIME_PAST','SCHEDULE_TIME_INVALID'].includes(err.code)){window.MrsaalSchedule.reject(err,previewScheduleField());return;}
     const co=companies.find(c=>c.id===prevCompanyId);
-    const uncertain=['uncertain','processing'].includes(err.deliveryStatus)||!err.httpStatus;
-    if(co) co.status=uncertain?(err.deliveryStatus||'uncertain'):'failed';
-    if(uncertain){didSend='uncertain';err.message='حالة الإرسال غير مؤكدة. راجع التقارير والقناة قبل محاولة إرسال جديدة. '+err.message;}
-    await loadLog();
+    const uncertain=sendRequested&&err.beforeSend!==true&&(['uncertain','processing'].includes(err.deliveryStatus)||!err.httpStatus);
+    if(co&&sendRequested&&err.beforeSend!==true)co.status=uncertain?(err.deliveryStatus||'uncertain'):'failed';
+    // Only an explicitly confirmed failure can start a fresh delivery attempt.
+    // Keep the original key for processing/uncertain results to prevent duplicates.
+    if(!uncertain&&err.deliveryStatus==='failed')previewSendKey=crypto.randomUUID();
+    if(uncertain){didSend='uncertain';err.message=cvLabel('حالة الإرسال غير مؤكدة. راجع التقارير والقناة قبل محاولة إرسال جديدة. ','Delivery is unconfirmed. Check Reports and the sending channel before trying again. ')+err.message;}
+    else if(!sendRequested)err.message=cvLabel('المسودة لم تُحفظ؛ لم يتم طلب الإرسال. حاول حفظها مرة أخرى. ','The draft could not be saved; sending was not requested. Try saving it again. ')+err.message;
+    if(sendRequested)await loadLog();
     renderCompanies(); updateSendStats();
     status.textContent='❌ '+err.message; status.style.color='var(--red)';
-    toast('فشل: '+err.message,'error');
+    toast(cvLabel('فشل: ','Failed: ')+err.message,'error');
   } finally {
-    btn.disabled=didSend==='uncertain';document.getElementById('preview-channel').disabled=didSend==='uncertain'; btn.innerHTML=didSend==='uncertain'?'راجع حالة الإرسال':'إرسال'; if(didSend===true&&previewBatchActive)processNextInQueue();
+    btn.disabled=didSend==='uncertain';document.getElementById('preview-channel').disabled=didSend==='uncertain'; btn.innerHTML=didSend==='uncertain'?cvLabel('راجع حالة الإرسال','Check delivery status'):cvLabel('إرسال','Send'); if(didSend===true&&previewBatchActive)processNextInQueue();
   }
 }
 
@@ -554,7 +559,25 @@ function processNextInQueue(){
 }
 
 async function loadLog(){
-  try{log=await api('/api/email/log');renderLog();updateChannelSummary();refreshWorkspace();if(activeLogId){const item=log.find(x=>x.id===activeLogId);if(item)fillLogDetail(item);else closeLogDetail();}}catch{}
+  try{
+    const rows=await api('/api/email/log');
+    if(!Array.isArray(rows))throw new Error(cvLabel('استجابة التقارير غير صالحة','Invalid reports response'));
+    log=rows;document.getElementById('log-load-error')?.remove();
+    renderLog();updateChannelSummary();refreshWorkspace();
+    if(activeLogId){const item=log.find(x=>x.id===activeLogId);if(item)fillLogDetail(item);else closeLogDetail();}
+    return true;
+  }catch(e){
+    const host=document.getElementById('log-container');
+    if(host){
+      let banner=document.getElementById('log-load-error');
+      if(!banner){banner=document.createElement('div');banner.id='log-load-error';banner.className='alert';banner.setAttribute('role','status');host.before(banner);}
+      const message=document.createElement('p');message.textContent=cvLabel('تعذر تحديث التقارير. البيانات الظاهرة قديمة؛ راجع حالة الرسالة قبل إعادة الإرسال. ','Could not refresh Reports. Displayed data may be outdated; check delivery before sending again. ')+(e.message||'');
+      const retry=document.createElement('button');retry.type='button';retry.className='btn btn-secondary';retry.textContent=cvLabel('إعادة المحاولة','Retry');
+      retry.onclick=async()=>{retry.disabled=true;retry.textContent=cvLabel('جاري التحديث…','Refreshing…');await loadLog();};
+      banner.replaceChildren(message,retry);
+    }
+    return false;
+  }
 }
 
 function renderLog(){
