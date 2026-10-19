@@ -8,7 +8,7 @@ router.use((req,res,next)=>{res.set('Cache-Control','no-store');next();});
 router.get('/status',wrap(async(req,res)=>{await beta.prepareDefault(req.session.userId);res.json(await wa.status(req.session.userId));}));
 router.get('/options',wrap(async(req,res)=>{const id=req.session.userId,p=await beta.prepareDefault(id);res.json({provider:p.provider,betaAvailable:await beta.allowed(id),betaEnabled:beta.enabled()});}));
 router.use((req,res,next)=>{if(!req.is('application/json')||req.get('X-Mrsaal-WA')!=='1')return res.status(403).json({error:'طلب غير مسموح',code:'REQUEST_ORIGIN'});next();});
-router.use(require('../middleware/recent-auth'));
+router.use(require('../middleware/recent-auth').whatsapp);
 router.use((req,res,next)=>{if(!require('../utils/helpdesk').quota('wa-connect:'+req.session.userId,30))return res.status(429).json({error:'انتظر قبل المحاولة',code:'MRSAALWA_PAIR_WAIT'});next();});
 router.post('/provider',wrap(async(req,res)=>res.json(await beta.select(req.session.userId,req.body.provider))));
 router.post('/connect',wrap(async(req,res)=>{res.json(await wa.connect(req.session.userId,{method:req.body.method,phone:req.body.phone,acknowledge:req.body.acknowledge===true}));}));
