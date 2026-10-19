@@ -33,7 +33,55 @@
   d.addEventListener('close',()=>navigator?.destroy(),{once:true});
  }
 
- async function campaigns(){const d=popup(tr('حملات الإرسال','Sending campaigns'));d.append(el('p',tr('راجع واعتمد كل مسودة قبل بدء الحملة. تقدر تقفل الصفحة؛ السيرفر يكمل. الإيقاف يؤثر على الرسائل التالية، والرسالة الجاري إرسالها قد تصل.','Review and approve each draft before starting. The server continues after you close the page. Pausing affects upcoming messages; the in-flight message may still arrive.')));const rows=await request('/api/campaigns');for(const c of rows){const card=el('section');card.className='launch-card';card.append(el('h3',c.channel+' · '+stateLabel(c.status)),el('p',Object.entries(c.counts||{}).map(([k,n])=>stateLabel(k)+': '+n).join(' · ')),button(tr('فتح ومراجعة','Open and review'),()=>review(c.id)));for(const [action,a,b]of [['pause','إيقاف مؤقت','Pause'],['resume','استكمال','Resume'],['cancel','إلغاء','Cancel']])card.append(button(tr(a,b),async()=>{if(action==='cancel'&&!await window.MrsaalDialog.confirm(tr('إلغاء الرسائل المتبقية؟','Cancel remaining messages?')))return;await request('/api/campaigns/'+c.id+'/'+action,'POST',{});d.close();await campaigns();}));d.append(card);}d.append(button(tr('تحديث','Refresh'),async()=>{d.close();await campaigns();}));}
+ async function campaigns(){
+  const d=popup(tr('حملات الإرسال','Sending campaigns'));d.classList.add('followup-smart','campaigns-smart');
+  const intro=el('p',tr('راجع حملاتك، واعرف حالة الرسائل، وكمّل من آخر خطوة.','Review your campaigns, check message status and pick up where you left off.'));intro.className='campaigns-intro';d.append(intro);
+  const content=el('div');content.className='followup-content campaign-list';d.append(content);
+  const footer=el('div');footer.className='campaigns-footer';d.append(footer);
+  let navigator,loading=false;
+  const refresh=button(tr('تحديث الحملات','Refresh campaigns'),async()=>{const before=refresh.textContent;refresh.textContent=tr('جاري التحديث…','Refreshing…');try{await load();}finally{refresh.textContent=before;}});refresh.classList.add('campaign-refresh');footer.append(refresh);
+  function icon(name){const span=el('span',name);span.className='material-symbols-outlined';span.setAttribute('aria-hidden','true');return span;}
+  function campaignCard(c,index){
+   const card=el('section');card.className='launch-card campaign-card';
+   const heading=el('div');heading.className='campaign-card-heading';const channel=el('div');channel.className='campaign-channel';
+   const mark=el('span');mark.className='campaign-channel-icon';mark.append(icon(c.channel==='whatsapp'?'chat':'mail'));
+   const copy=el('div'),title=el('h3',(c.channel==='whatsapp'?tr('حملة واتساب','WhatsApp campaign'):tr('حملة إيميل','Email campaign'))+' · '+(index+1));copy.append(title);
+   const created=new Date(c.created_at);if(c.created_at&&Number.isFinite(created.getTime())){const time=el('time',created.toLocaleString(en()?'en-GB':'ar-EG',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}));time.dateTime=created.toISOString();copy.append(time);}
+   channel.append(mark,copy);const badge=el('span',stateLabel(c.status));badge.className='campaign-state';badge.dataset.state=c.status;heading.append(channel,badge);card.append(heading);
+   const counts=el('div');counts.className='campaign-counts';
+   for(const [state,count]of Object.entries(c.counts||{})){const value=Number(count);if(!Number.isFinite(value)||value<=0)continue;const chip=el('span'),number=el('strong',String(value));chip.append(number,el('span',stateLabel(state)));counts.append(chip);}
+   if(!counts.children.length)counts.append(el('span',tr('لا توجد رسائل في الحملة.','No messages in this campaign.')));card.append(counts);
+   const actions=el('div');actions.className='campaign-card-actions';const open=button(tr('فتح ومراجعة','Open and review'),async()=>{d.close();await review(c.id);});open.classList.add('campaign-open');actions.append(open);
+   async function apply(action){
+    if(action==='cancel'&&!await window.MrsaalDialog.confirm(tr('إلغاء الرسائل المتبقية؟ الرسالة الجاري إرسالها قد تصل.','Cancel remaining messages? An in-flight message may still arrive.')))return;
+    await request('/api/campaigns/'+c.id+'/'+action,'POST',{});await load();
+   }
+   if(c.status==='running')actions.append(button(tr('إيقاف مؤقت','Pause'),()=>apply('pause')));
+   if(c.status==='paused'){
+    const resume=button(tr('استكمال','Resume'),()=>apply('resume'));
+    const needsReview=['draft','generating'].some(key=>Number(c.counts?.[key])>0);resume.disabled=needsReview;actions.append(resume);
+    if(needsReview){const hint=el('p',tr('راجع واعتمد المسودات المتبقية قبل الاستكمال.','Review and approve the remaining drafts before resuming.'));hint.className='campaign-action-hint';card.append(hint);}
+   }
+   if(['draft','paused','running'].includes(c.status)){const cancel=button(tr('إلغاء الحملة','Cancel campaign'),()=>apply('cancel'));cancel.classList.add('campaign-cancel');actions.append(cancel);}
+   card.append(actions);return card;
+  }
+  async function load(){
+   if(loading)return;loading=true;refresh.disabled=true;content.setAttribute('aria-busy','true');
+   const status=d.querySelector('.launch-status');status.textContent=tr('جاري تحميل الحملات…','Loading campaigns…');
+   try{
+    const rows=await request('/api/campaigns');if(!d.isConnected)return;
+    const top=content.scrollTop;content.replaceChildren();
+    if(!rows.length){const empty=el('div');empty.className='campaigns-empty';empty.append(icon('outgoing_mail'),el('h3',tr('لسه مفيش حملات','No campaigns yet')),el('p',tr('حدّد الشركات وجهّز رسائلك عشان تبدأ أول حملة.','Select companies and prepare your messages to create your first campaign.')));content.append(empty);}
+    else rows.forEach((c,index)=>content.append(campaignCard(c,index)));
+    const note=el('details');note.className='campaigns-note';note.append(el('summary',tr('عن تشغيل وإيقاف الحملات','About running and pausing campaigns')),el('p',tr('راجع واعتمد كل مسودة قبل بدء الحملة. تقدر تقفل الصفحة؛ السيرفر يكمل. الإيقاف يؤثر على الرسائل التالية، والرسالة الجاري إرسالها قد تصل.','Review and approve every draft before starting. The server continues after you close the page. Pausing affects upcoming messages; an in-flight message may still arrive.')));content.append(note);
+    content.scrollTop=top;navigator?.refresh();status.textContent='';
+   }catch(error){status.textContent=error.message||tr('تعذر تحميل الحملات. جرّب التحديث.','Could not load campaigns. Try refreshing.');}
+   finally{loading=false;refresh.disabled=false;content.setAttribute('aria-busy','false');}
+  }
+  navigator=window.MrsaalSmartScroll?.attach({root:d,scroller:content,host:footer,items:()=>[...content.querySelectorAll('.campaign-card')],label:card=>card.querySelector('h3').textContent});
+  d.addEventListener('close',()=>navigator?.destroy(),{once:true});await load();
+ }
+
  async function writeDraft(card,subject,body,write,approve,generate){
   if(card.getAttribute('aria-busy')==='true')return;
   let status=card.querySelector('.draft-generation-status');

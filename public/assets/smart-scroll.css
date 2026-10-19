@@ -1,4 +1,4 @@
-/* Only the three approved modal types use smart navigation. */
+/* Scoped smart navigation for approved modal types. */
 .smart-scroll-dialog{--smart-thumb:var(--accent,#65947d);--smart-line:var(--border,#d3e1d8);--smart-panel:var(--surface,#fff)}
 .smart-scroll-body{scrollbar-width:thin;scrollbar-color:var(--smart-thumb) transparent;scrollbar-gutter:stable;overscroll-behavior:contain;min-height:0}
 .smart-scroll-body::-webkit-scrollbar{width:6px;height:6px}.smart-scroll-body::-webkit-scrollbar-track{background:transparent}.smart-scroll-body::-webkit-scrollbar-thumb{background:var(--smart-thumb);border-radius:20px}
@@ -13,3 +13,34 @@
 .provider-guide.smart-scroll-dialog .guide-shell{height:min(780px,calc(100dvh - 42px))}.provider-guide.smart-scroll-dialog .guide-body{flex:1}.provider-guide.smart-scroll-dialog .guide-footer{flex-wrap:wrap;flex:none;gap:10px}.provider-guide .guide-footer>.smart-scroll-bar{flex-basis:100%}.provider-guide.smart-scroll-dialog .guide-section h3{position:sticky;top:0;z-index:1;padding:10px 0;background:var(--smart-panel)}
 @media(max-width:600px){.smart-scroll-button{min-width:42px;min-height:42px}.smart-scroll-row{padding:8px 12px}.launch-dialog.followup-smart[open]{height:calc(100dvh - 20px);max-height:calc(100dvh - 20px)}.followup-smart .launch-dialog-head{padding:14px}.followup-smart .launch-dialog-head h2{font-size:17px}.followup-smart>.followup-filter{padding-inline:14px}.followup-smart .followup-content{padding-inline:8px}.provider-guide.smart-scroll-dialog .guide-shell{height:calc(100dvh - 20px)}#preview-overlay .preview-company-nav{flex-wrap:wrap}#preview-overlay .preview-company-nav button{min-height:42px}}
 @media(max-height:500px){.smart-scroll-row{padding-block:4px;min-height:36px}.provider-guide.smart-scroll-dialog .guide-shell{height:calc(100dvh - 20px)}.smart-scroll-button{min-height:32px}.followup-smart .launch-dialog-head{padding-block:8px}}
+
+/* Campaigns use the same fixed shell; only their list scrolls. */
+.launch-dialog.campaigns-smart[open]{width:min(700px,calc(100vw - 24px))}
+.campaigns-smart .campaigns-intro{flex:none;margin:0;padding:12px 20px;font-size:13px;line-height:1.8;color:var(--text2)}
+.campaigns-smart .campaign-list{padding-top:4px}
+.campaigns-smart .campaign-card{padding:16px;margin:10px 0 14px;border:1px solid var(--border);background:var(--surface);border-radius:16px}
+.campaigns-smart .campaign-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.campaigns-smart .campaign-channel{display:flex;align-items:center;gap:11px;min-width:0}
+.campaigns-smart .campaign-channel-icon{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:12px;background:var(--surface2);color:var(--accent)}
+.campaigns-smart .campaign-channel-icon .material-symbols-outlined{font-size:22px}
+.campaigns-smart .campaign-card h3{position:static;background:none;border:0;margin:0;padding:0;font-size:15px;line-height:1.7;overflow-wrap:anywhere}
+.campaigns-smart .campaign-channel time{display:block;font-size:12px;line-height:1.7;margin-top:3px;color:var(--text2)}
+.campaigns-smart .campaign-state{font-size:12px;line-height:1.5;padding:5px 10px;border:1px solid var(--border);border-radius:20px;white-space:nowrap;color:var(--text2);background:var(--surface2)}
+.campaigns-smart .campaign-state[data-state=running],.campaigns-smart .campaign-state[data-state=completed]{color:var(--accent);border-color:var(--accent)}
+.campaigns-smart .campaign-counts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.campaigns-smart .campaign-counts>span{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:9px;background:var(--surface2);color:var(--text2);font-size:12px;line-height:1.6}
+.campaigns-smart .campaign-counts strong{font-size:14px;color:var(--text);font-variant-numeric:tabular-nums}
+.campaigns-smart .campaign-card-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px;border-top:1px solid var(--border);padding-top:14px;margin-top:16px}
+.campaigns-smart .campaign-card-actions .btn{margin:0;min-height:40px;font-size:13px;padding:8px 12px;border-radius:10px}
+.campaigns-smart .campaign-card-actions .campaign-open{background:var(--accent);color:var(--on-accent,var(--bg));border-color:var(--accent)}
+.campaigns-smart .campaign-card-actions .campaign-cancel{margin-inline-start:auto;background:transparent;color:var(--text2);border:1px solid var(--border)}
+.campaigns-smart .campaign-card-actions .campaign-cancel:hover{color:var(--red,#dc6868);border-color:currentColor}
+.campaigns-smart .campaign-action-hint{font-size:12px;color:var(--text2);line-height:1.8;margin:12px 0 0}
+.campaigns-smart .campaigns-footer{flex:none;border-top:1px solid var(--border);padding-bottom:12px;background:var(--surface)}
+.campaigns-smart .campaigns-footer .smart-scroll-bar{border-top:0}
+.campaigns-smart .campaign-refresh{display:block;margin:4px 16px 0 auto;min-height:40px;font-size:13px}
+html[dir=rtl] .campaigns-smart .campaign-refresh{margin-left:16px;margin-right:auto}
+.campaigns-smart .campaigns-note{padding:12px 4px;font-size:12px;line-height:1.8;color:var(--text2)}
+.campaigns-smart .campaigns-note summary{min-height:36px;cursor:pointer}.campaigns-smart .campaigns-note p{margin-top:8px}
+.campaigns-smart .campaigns-empty{text-align:center;padding:36px 16px;color:var(--text2)}.campaigns-smart .campaigns-empty>.material-symbols-outlined{font-size:32px;color:var(--accent)}.campaigns-smart .campaigns-empty h3{font-size:17px;color:var(--text);margin:12px 0 8px}.campaigns-smart .campaigns-empty p{font-size:13px;line-height:1.8}
+@media(max-width:480px){.campaigns-smart .campaigns-intro{padding:10px 14px}.campaigns-smart .campaign-card{padding:14px}.campaigns-smart .campaign-card-heading{flex-wrap:wrap}.campaigns-smart .campaign-state{margin-inline-start:51px}.campaigns-smart .campaign-card-actions .btn{min-height:44px}.campaigns-smart .campaign-card-actions .campaign-open{flex:1 1 140px}}
