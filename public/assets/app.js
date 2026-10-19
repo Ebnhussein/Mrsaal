@@ -680,11 +680,17 @@ function toast(msg,type='info'){
 
 let waTimer = null;
 let waChecking = false;
-async function loadWhatsAppStatus() {
-  if(waChecking || !document.querySelector('.app.active'))return;
-  waChecking=true;
-  const refreshButton=document.getElementById('wa-refresh');
-  if(refreshButton){refreshButton.disabled=true;refreshButton.setAttribute('aria-busy','true');refreshButton.textContent=cvLabel('جاري التحديث…','Refreshing…');}
+let waStatusRequest=null,waManualRefresh=false;
+async function loadWhatsAppStatus(manual=false) {
+  if(!document.querySelector('.app.active'))return;
+  if(manual&&waManualRefresh)return waStatusRequest;
+  const refreshButton=document.getElementById('wa-refresh'),feedback=document.getElementById('wa-refresh-feedback');
+  if(manual){waManualRefresh=true;if(refreshButton){refreshButton.disabled=true;refreshButton.setAttribute('aria-busy','true');refreshButton.textContent=cvLabel('جاري التحديث…','Refreshing…');}if(feedback)feedback.textContent='';}
+  if(!waStatusRequest){waChecking=true;waStatusRequest=readWhatsAppStatus().finally(()=>{waChecking=false;waStatusRequest=null;});}
+  try{const ok=await waStatusRequest;if(manual&&feedback){feedback.textContent=ok?cvLabel('تم تحديث الحالة من السيرفر — ','Status updated from the server — ')+new Date().toLocaleTimeString(document.documentElement.lang==='en'?'en-GB':'ar-EG',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):cvLabel('تعذر تحديث الحالة. راجع السبب الموضح بالأعلى.','Status refresh failed. See the reason above.');}return ok;}
+  finally{if(manual){waManualRefresh=false;if(refreshButton){refreshButton.disabled=false;refreshButton.setAttribute('aria-busy','false');refreshButton.textContent=cvLabel('تحديث الحالة','Refresh status');}}}
+}
+async function readWhatsAppStatus(){
   try {
     const state=await api('/api/whatsapp/status');waState=state.status;refreshWorkspace();
     const labels={connected:cvLabel('🟢 متصل','🟢 Connected'),connecting:cvLabel('🟡 جاري الاتصال…','🟡 Connecting…'),qr:cvLabel('امسح رمز QR من تطبيق واتساب','Scan the QR in WhatsApp'),disconnected:cvLabel('⚪ غير متصل','⚪ Disconnected')};
@@ -693,8 +699,8 @@ async function loadWhatsAppStatus() {
     image.style.display=state.qr?'block':'none';
     if(state.qr)image.src=state.qr;else image.removeAttribute('src');
     if(window.MrsaalWA)await window.MrsaalWA.render(state);
-  }catch(err){window.MrsaalWA?.statusUnavailable?.(err.message);const image=document.getElementById('wa-qr');image.style.display='none';image.removeAttribute('src');document.getElementById('wa-status').textContent=cvLabel('تعذر قراءة حالة واتساب: ','Could not read WhatsApp status: ')+(window.MrsaalWA?.safeText(err.message)||cvLabel('حاول مرة أخرى','Please retry'));}
-  finally{waChecking=false;if(refreshButton){refreshButton.disabled=false;refreshButton.setAttribute('aria-busy','false');refreshButton.textContent=cvLabel('تحديث الحالة','Refresh status');}}
+    return true;
+  }catch(err){window.MrsaalWA?.statusUnavailable?.(err.message);const image=document.getElementById('wa-qr');image.style.display='none';image.removeAttribute('src');document.getElementById('wa-status').textContent=cvLabel('تعذر قراءة حالة واتساب: ','Could not read WhatsApp status: ')+(window.MrsaalWA?.safeText(err.message)||cvLabel('حاول مرة أخرى','Please retry'));return false;}
 }
 async function connectWhatsApp(){
   if(window.MrsaalWA)return window.MrsaalWA.connect();

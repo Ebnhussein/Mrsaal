@@ -1,12 +1,10 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
 const source=fs.readFileSync(require.resolve('../public/assets/app.js'),'utf8');
-for(const fail of [false,true])test(`WhatsApp refresh blocks duplicate clicks and restores control after ${fail?'error':'success'}`,async()=>{
- let settle,calls=0;const pending=new Promise((resolve,reject)=>{settle=()=>fail?reject(new Error('Offline')):resolve({status:'connected'});});
- const nodes=Object.fromEntries(['wa-refresh','wa-status','wa-qr'].map(id=>[id,{style:{},attrs:{},setAttribute(k,v){this.attrs[k]=v;},removeAttribute(){}}]));
- const box={document:{querySelector:()=>true,getElementById:id=>nodes[id]},api:()=>{calls++;return pending;},refreshWorkspace(){},cvLabel:(ar,en)=>en,window:{},waState:null};
- vm.runInNewContext(source.slice(source.indexOf('let waTimer = null;'),source.indexOf('async function connectWhatsApp()')),box);
- const first=box.loadWhatsAppStatus();assert.equal(nodes['wa-refresh'].disabled,true);assert.equal(nodes['wa-refresh'].attrs['aria-busy'],'true');assert.equal(nodes['wa-refresh'].textContent,'Refreshing…');
- await box.loadWhatsAppStatus();assert.equal(calls,1);settle();await first;
- assert.equal(nodes['wa-refresh'].disabled,false);assert.equal(nodes['wa-refresh'].attrs['aria-busy'],'false');assert.equal(nodes['wa-refresh'].textContent,'Refresh status');
+function setup(){let calls=0,resolve,reject;const pending=new Promise((a,b)=>{resolve=a;reject=b;});const nodes=Object.fromEntries(['wa-refresh','wa-refresh-feedback','wa-status','wa-qr'].map(id=>[id,{style:{},attrs:{},disabled:false,textContent:'Refresh status',setAttribute(k,v){this.attrs[k]=v;},removeAttribute(){}}]));const box={document:{documentElement:{lang:'en'},querySelector:()=>true,getElementById:id=>nodes[id]},api:()=>{calls++;return pending;},refreshWorkspace(){},cvLabel:(ar,en)=>en,window:{},waState:null};vm.runInNewContext(source.slice(source.indexOf('let waTimer = null;'),source.indexOf('async function connectWhatsApp()')),box);return {box,nodes,get calls(){return calls;},resolve:()=>resolve({status:'connected'}),reject:()=>reject(new Error('Offline'))};}
+for(const fail of [false,true])test(`manual refresh waits for real ${fail?'failed':'successful'} response and prevents duplicate requests`,async()=>{
+ const h=setup(),button=h.nodes['wa-refresh'];const first=h.box.loadWhatsAppStatus(true);assert.equal(button.disabled,true);assert.equal(button.attrs['aria-busy'],'true');assert.equal(button.textContent,'Refreshing…');const second=h.box.loadWhatsAppStatus(true);assert.equal(h.calls,1);assert.equal(button.disabled,true);fail?h.reject():h.resolve();await Promise.all([first,second]);assert.equal(button.disabled,false);assert.equal(button.attrs['aria-busy'],'false');assert.equal(button.textContent,'Refresh status');assert.match(h.nodes['wa-refresh-feedback'].textContent,fail?/failed/:/updated from the server/);
+});
+test('background polling never animates the button; a manual click joins the pending request until it completes',async()=>{
+ const h=setup(),button=h.nodes['wa-refresh'];const background=h.box.loadWhatsAppStatus();assert.equal(button.disabled,false);assert.equal(button.textContent,'Refresh status');const manual=h.box.loadWhatsAppStatus(true);assert.equal(button.disabled,true);assert.equal(h.calls,1);h.resolve();await Promise.all([manual,background]);assert.equal(button.disabled,false);assert.match(h.nodes['wa-refresh-feedback'].textContent,/updated/);
 });
