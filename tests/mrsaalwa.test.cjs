@@ -120,3 +120,19 @@ test('MrsaalWA preflight reports disconnected state distinctly; recipient format
   await f.beta.send('owner','+201012345678','Draft');assert.equal(f.calls.find(c=>c[0]==='send')[2],'201012345678');
  }finally{await f.close();}
 });
+
+
+test('QR disappearing after scan advances to authenticated state without exposing a false disconnect',async()=>{
+ const f=await fixture();try{await f.grant('owner');await f.beta.select('owner','mrsaalwa');await f.beta.connect('owner');
+ f.g.qr=async()=>{f.sessions[0].status='authenticating';throw provider.fail('MRSAALWA_REJECTED');};
+ const result=await f.beta.status('owner');assert.equal(result.status,'connecting');assert.equal(result.qr,null);
+ f.sessions[0].status='qr_ready';f.g.qr=async()=>{throw provider.fail('MRSAALWA_TIMEOUT');};
+ await assert.rejects(f.beta.status('owner'),e=>e.code==='MRSAALWA_TIMEOUT');
+ }finally{await f.close();}
+});
+test('gateway response body timeout is typed and an ambiguous send is not replayed',async()=>{
+ let calls=0;const api=provider.createGateway({base:'http://host',key:'secret'},async()=>{calls++;return {ok:true,status:200,text:async()=>{throw new Error('private body timeout');}};});
+ await assert.rejects(api.session(sid),e=>e.code==='MRSAALWA_TIMEOUT');
+ await assert.rejects(api.send(sid,'201012345678',{text:'test'}),e=>e.code==='WA_SEND_UNCERTAIN'&&e.deliveryUncertain);
+ assert.equal(calls,2);
+});

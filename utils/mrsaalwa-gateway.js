@@ -8,10 +8,12 @@ function config(env=process.env){
 }
 function createGateway(settings,fetcher=globalThis.fetch){
  async function request(path,method='GET',body){
-  let r;try{r=await fetcher(settings.base+'/api'+path,{method,redirect:'error',signal:AbortSignal.timeout(method==='GET'?15000:45000),headers:{'X-API-Key':settings.key,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});}catch{throw fail('MRSAALWA_TIMEOUT');}
+  const started=Date.now();const operation=path.includes('/messages/')?'send':path.endsWith('/qr')?'qr':path.endsWith('/sessions')?'sessions':'session';
+  const timeoutError=phase=>{console.warn('MrsaalWA gateway timeout:',JSON.stringify({operation,phase,elapsedMs:Date.now()-started}));return fail('MRSAALWA_TIMEOUT');};
+  let r;try{r=await fetcher(settings.base+'/api'+path,{method,redirect:'error',signal:AbortSignal.timeout(method==='GET'?15000:45000),headers:{'X-API-Key':settings.key,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});}catch{throw timeoutError('headers');}
   if(!r.ok)throw fail(r.status===401||r.status===403?'MRSAALWA_AUTH':r.status===404?'MRSAALWA_SESSION':r.status===409?'MRSAALWA_BUSY':'MRSAALWA_REJECTED');
   if(r.status===204)return {};
-  const text=await r.text();if(text.length>2*1024*1024)throw fail('MRSAALWA_RESPONSE');
+  let text;try{text=await r.text();}catch{throw timeoutError('body');}if(text.length>2*1024*1024)throw fail('MRSAALWA_RESPONSE');
   try{return JSON.parse(text);}catch{throw fail('MRSAALWA_RESPONSE');}
  }
  function path(id){if(!UUID.test(id||''))throw fail('MRSAALWA_SESSION');return '/sessions/'+id;}

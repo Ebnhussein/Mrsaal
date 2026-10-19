@@ -53,10 +53,12 @@ async function select(id,provider,initialise=false){
 }
 async function status(id,includeQR=true){
  const p=await profile(id);if(!p.session_id)return {provider:'mrsaalwa',status:'disconnected',qr:null,phone:null,hasSession:false};
- try{const g=gateway(),s=await g.session(p.session_id);const state={ready:'connected',qr_ready:'qr',created:'disconnected',initializing:'connecting',authenticating:'connecting',action_required:'disconnected',failed:'disconnected',disconnected:'disconnected'}[s.status]||'disconnected';
+ try{const g=gateway();let s=await g.session(p.session_id),qr=null;
+  if(includeQR&&s.status==='qr_ready'){try{qr=await g.qr(p.session_id);}catch(e){if(e.code!=='MRSAALWA_REJECTED')throw e;const next=await g.session(p.session_id);if(!['authenticating','initializing','ready'].includes(next.status))throw e;s=next;}}
+  const state={ready:'connected',qr_ready:'qr',created:'disconnected',initializing:'connecting',authenticating:'connecting',action_required:'disconnected',failed:'disconnected',disconnected:'disconnected'}[s.status]||'disconnected';
   if(p.last_status!==state){await event(id,'connection',state);if(p.last_status==='connected'&&state==='disconnected')require('./notifications').whatsappDisconnected(id,{});}
   await run('UPDATE whatsapp_preferences SET last_status=$2,last_error=NULL,last_seen=NOW() WHERE user_id=$1 AND session_id=$3',[id,state,p.session_id]);
-  return {provider:'mrsaalwa',status:state,phone:s.phone||null,hasSession:true,qr:includeQR&&s.status==='qr_ready'?await g.qr(p.session_id):null};
+  return {provider:'mrsaalwa',status:state,phone:s.phone||null,hasSession:true,qr};
  }catch(e){await run('UPDATE whatsapp_preferences SET last_error=$2,last_seen=NOW() WHERE user_id=$1',[id,e.code||'MRSAALWA_RESPONSE']);throw e;}
 }
 async function connect(id,{method='qr',phone='',acknowledge=false}={}){

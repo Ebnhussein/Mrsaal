@@ -685,13 +685,13 @@ async function loadWhatsAppStatus() {
   waChecking=true;
   try {
     const state=await api('/api/whatsapp/status');waState=state.status;refreshWorkspace();
-    const labels={connected:'🟢 متصل',connecting:'🟡 جاري الاتصال...',qr:'امسح رمز QR من تطبيق واتساب',disconnected:'⚪ غير متصل'};
+    const labels={connected:cvLabel('🟢 متصل','🟢 Connected'),connecting:cvLabel('🟡 جاري الاتصال…','🟡 Connecting…'),qr:cvLabel('امسح رمز QR من تطبيق واتساب','Scan the QR in WhatsApp'),disconnected:cvLabel('⚪ غير متصل','⚪ Disconnected')};
     document.getElementById('wa-status').textContent=(labels[state.status]||cvLabel('جاري التحقق من الاتصال','Checking connection'))+(state.phone?' — '+state.phone:'')+(state.error?' — '+(window.MrsaalWA?.safeText(state.error)||cvLabel('تعذر إكمال الاتصال','Connection could not be completed')):'')+(state.status==='disconnected'&&Number.isInteger(state.availableSlots)?' · '+cvLabel('أماكن الربط المتاحة: ','Available connection slots: ')+state.availableSlots:'');
     const image=document.getElementById('wa-qr');
     image.style.display=state.qr?'block':'none';
     if(state.qr)image.src=state.qr;else image.removeAttribute('src');
     if(window.MrsaalWA)await window.MrsaalWA.render(state);
-  }catch(err){const image=document.getElementById('wa-qr');image.style.display='none';image.removeAttribute('src');document.getElementById('wa-status').textContent=cvLabel('تعذر قراءة حالة واتساب: ','Could not read WhatsApp status: ')+(window.MrsaalWA?.safeText(err.message)||cvLabel('حاول مرة أخرى','Please retry'));if(window.MrsaalWA)await window.MrsaalWA.render({status:'disconnected'}).catch(()=>{});}
+  }catch(err){window.MrsaalWA?.statusUnavailable?.(err.message);const image=document.getElementById('wa-qr');image.style.display='none';image.removeAttribute('src');document.getElementById('wa-status').textContent=cvLabel('تعذر قراءة حالة واتساب: ','Could not read WhatsApp status: ')+(window.MrsaalWA?.safeText(err.message)||cvLabel('حاول مرة أخرى','Please retry'));}
   finally{waChecking=false;}
 }
 async function connectWhatsApp(){
@@ -709,7 +709,8 @@ async function disconnectWhatsApp(){
   try{await api('/api/whatsapp/disconnect','POST',{});await loadWhatsAppStatus();}
   catch(err){toast(err.message,'error');}
 }
-waTimer=setInterval(loadWhatsAppStatus,4000);
+async function pollWhatsAppStatus(){await loadWhatsAppStatus();waTimer=setTimeout(pollWhatsAppStatus,window.MrsaalWA?.pairingActive()?1200:4000);}
+waTimer=setTimeout(pollWhatsAppStatus,4000);
 loadWhatsAppStatus();
 
 let refreshingReports=false, lastReplySync=0;

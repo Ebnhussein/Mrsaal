@@ -73,8 +73,9 @@ router.post('/send', requireAuth, wrap(async (req, res) => {
 
   if (!hasEmail(company) && !hasPhone(company)) return res.status(400).json({ error: 'لا توجد وسيلة تواصل صالحة' });
   if (typeof body !== 'string' || !body.trim()) return res.status(400).json({ error: 'نص الرسالة مطلوب' });
-  // Preserve the typed connection error so the shared handler can localise its real cause.
-  if (channel==='whatsapp') await requireConnected(req.session.userId);
+  // Immediate sends perform readiness checks in delivery and again under the provider lock.
+  // Scheduling still checks the connection here before saving a job.
+  if (scheduledAt && channel==='whatsapp') await requireConnected(req.session.userId);
 
   const account=channel==='email'?await resolveAccount(req.session.userId,req.body.senderAccountId||null):null;
   if(scheduledAt)return res.json(await require('../utils/schedule-send').schedule(req.session.userId,{company,channel,account,cv,body,subject:subject||'',scheduledAt,idempotencyKey:req.body.idempotencyKey}));

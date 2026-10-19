@@ -5,13 +5,37 @@
  const node=(tag,text,cls)=>{const e=document.createElement(tag);if(text)e.textContent=text;if(cls)e.className=cls;return e;};
  async function request(path,body){const r=await fetch('/api/whatsapp/'+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','X-Mrsaal-WA':'1'},...(body?{body:JSON.stringify(body)}:{})});const data=await r.json();if(!r.ok)throw window.MrsaalErrors?window.MrsaalErrors.from(data,r.status):Object.assign(new Error(data.error),{code:data.code});return data;}
  function safeText(text){return String(text||'').replace(/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/ig,tr('معرّف داخلي مخفي','Internal ID hidden'));}
+ let pairingError=null,pairingDialog,dialogTitle,dialogStatus,dialogQR,dialogCode,dialogHint,dialogCancel;
+ function ensurePairingDialog(){
+  if(pairingDialog)return;
+  pairingDialog=node('dialog',null,'mrsaalwa-dialog');pairingDialog.id='wa-pairing-dialog';pairingDialog.setAttribute('aria-labelledby','wa-pairing-title');
+  const header=node('header');dialogTitle=node('h2');dialogTitle.id='wa-pairing-title';const close=node('button','×','mrsaalwa-dialog-close');close.type='button';close.setAttribute('aria-label',tr('إغلاق','Close'));close.onclick=()=>pairingDialog.close();header.append(dialogTitle,close);
+  dialogStatus=node('p',null,'mrsaalwa-dialog-status');dialogStatus.setAttribute('role','status');dialogStatus.setAttribute('aria-live','polite');dialogQR=node('img');dialogQR.alt=tr('رمز ربط واتساب','WhatsApp pairing QR');dialogQR.hidden=true;
+  dialogCode=node('output',null,'mrsaalwa-code');dialogCode.dir='ltr';dialogCode.hidden=true;
+  dialogHint=node('p',null,'mrsaalwa-dialog-hint');dialogCancel=node('button',tr('إلغاء محاولة الربط','Cancel linking attempt'),'btn btn-secondary');dialogCancel.type='button';dialogCancel.onclick=()=>{pairingDialog.close();disconnect(true);};
+  pairingDialog.append(header,dialogStatus,dialogQR,dialogCode,dialogHint,dialogCancel);document.body.append(pairingDialog);
+ }
+ function openPairingDialog(){pairingError=null;ensurePairingDialog();pairingDialog.dir=document.documentElement.lang==='en'?'ltr':'rtl';if(!pairingDialog.open)pairingDialog.showModal();paintPairing(lastState);}
+ function paintPairing(state){
+  if(!pairingDialog?.open)return;
+  if(pairingError&&state.status!=='connected'){dialogStatus.textContent=pairingError;dialogStatus.dataset.loading='false';dialogCancel.disabled=busy||!canCancel;return;}
+  const connected=state.status==='connected',connecting=state.status==='connecting',phoneMode=selected==='mrsaalwa'&&method==='phone';
+  dialogTitle.textContent=connected?tr('واتساب متصل','WhatsApp connected'):phoneMode?tr('الربط بكود الموبايل','Link with phone number'):tr('ربط واتساب بالـQR','Connect WhatsApp with QR');
+  const waiting=busy||connecting||(!state.qr&&!code?.textContent&&!connected);
+  dialogStatus.dataset.loading=String(waiting);
+  dialogStatus.textContent=connected?tr('تم الربط. تقدر تبدأ الإرسال.','Connected. You can start sending.'):connecting?tr('جاري الاتصال… بنكمل مزامنة واتساب.','Connecting… Finishing WhatsApp setup.'):phoneMode&&code?.textContent?tr('اكتب الكود ده في واتساب على موبايلك.','Enter this code in WhatsApp on your phone.'):state.qr?tr('امسح الرمز من الأجهزة المرتبطة في واتساب.','Scan this QR from Linked devices in WhatsApp.'):tr('جاري تجهيز الربط…','Preparing connection…');
+  dialogQR.hidden=connected||connecting||phoneMode||!state.qr;if(!dialogQR.hidden)dialogQR.src=state.qr;else dialogQR.removeAttribute('src');
+  dialogCode.hidden=connected||connecting||!phoneMode||!code?.textContent;dialogCode.textContent=dialogCode.hidden?'':code.textContent;
+  dialogHint.textContent=connected?tr('تقدر تقفل النافذة وتكمل شغلك.','Close this window and continue your work.'):tr('واتساب ← الأجهزة المرتبطة ← ربط جهاز. الحالة بتتحدّث تلقائيًا. إغلاق النافذة لا يلغي المحاولة.','WhatsApp → Linked devices → Link a device. Status updates automatically. Closing this window keeps the attempt active.');
+  dialogCancel.hidden=connected;dialogCancel.disabled=busy||!canCancel;
+ }
  function statusMessage(text,kind='info'){notice.dataset.kind=kind;notice.hidden=!text;notice.replaceChildren(...(text?[node('span',safeText(text))]:[]));}
  function error(e){
   if(['REAUTH_REQUIRED','ADMIN_GOOGLE_REQUIRED'].includes(e.code)){
-   statusMessage('','identity');
+   pairingDialog?.close();statusMessage('','identity');
    const verify=()=>window.MrsaalDialog.identity({onContinue:()=>{try{sessionStorage.setItem('mrsaal-wa-return',method);}catch{}}});
    void verify();
-  }else statusMessage(e.message,'error');
+  }else {statusMessage(e.message,'error');if(pairingDialog?.open){pairingError=safeText(e.message);dialogStatus.textContent=pairingError;dialogStatus.dataset.loading='false';}}
  }
  function guidance(state=lastState){
   lastState=state;if(!steps)return;
@@ -76,15 +100,16 @@
   canCancel=!state.phone&&state.status!=='connected'&&(state.hasSession||['qr','connecting'].includes(state.status));document.getElementById('mrsaalwa-cancel').hidden=!canCancel;
   canDisconnect=state.status==='connected'||!!state.phone;const disconnectButton=document.getElementById('wa-disconnect');disconnectButton.disabled=!canDisconnect||busy;disconnectButton.title=canDisconnect?tr('فصل حساب واتساب المرتبط','Disconnect the linked WhatsApp account'):tr('لا يوجد حساب واتساب مرتبط','No WhatsApp account is linked');
   if(state.status==='connected'){code.hidden=true;code.textContent='';}
+  document.getElementById('wa-qr').style.display='none';code.hidden=true;paintPairing(state);
   if(!options.betaAvailable&&selected!=='mrsaalwa'&&!notice.textContent)notice.textContent=tr('MrsaalWA غير متاح لهذا الحساب حاليًا. تواصل مع الدعم.','MrsaalWA is currently unavailable for this account. Contact support.');
  }
- async function connect(){init();if(busy)return;if(selected==='mrsaalwa'&&method==='phone'&&!validatePhone(true))return;busy=true;const button=document.getElementById('wa-connect');button.disabled=true;statusMessage(tr('بنجهّز وسيلة الربط. استنى لحظات…','Preparing your connection. Please wait…'),'loading');guidance();try{
+ async function connect(){init();if(busy)return;if(selected==='mrsaalwa'&&method==='phone'&&!validatePhone(true))return;busy=true;openPairingDialog();const button=document.getElementById('wa-connect');button.disabled=true;statusMessage(tr('بنجهّز وسيلة الربط. استنى لحظات…','Preparing your connection. Please wait…'),'loading');guidance();try{
   const phone=normalisePhone(document.getElementById('mrsaalwa-phone').value);const acknowledge=document.getElementById('mrsaalwa-pair-ack').checked;
   const result=await request('connect',selected==='mrsaalwa'?{method,phone,acknowledge}:{});statusMessage(method==='phone'?tr('بنجهّز كود الربط. بعد ظهوره اكتبه في واتساب على موبايلك.','Preparing your pairing code. Enter it in WhatsApp on your phone when it appears.'):tr('امسح QR من واتساب على موبايلك. الحالة بتتحدّث تلقائيًا.','Scan the QR with WhatsApp on your phone. The status updates automatically.'));
-  if(/^[A-Z0-9-]{8,12}$/i.test(result.pairingCode||'')){code.textContent=result.pairingCode;code.hidden=false;}
+  if(/^[A-Z0-9-]{8,12}$/i.test(result.pairingCode||'')){code.textContent=result.pairingCode;code.hidden=true;paintPairing(lastState);}
   await loadWhatsAppStatus();
- }catch(e){error(e);}finally{busy=false;guidance();}}
+ }catch(e){error(e);}finally{busy=false;guidance();paintPairing(lastState);}}
  async function disconnect(cancelAttempt=false){init();if(busy||!(canDisconnect||(cancelAttempt&&canCancel)))return;const accepted=await window.MrsaalDialog.confirm(cancelAttempt?tr('إلغاء محاولة الربط الحالية؟','Cancel the current linking attempt?'):tr('فصل واتساب؟ هتحتاج تربطه من جديد.','Disconnect WhatsApp? You will need to link it again.'));if(!accepted)return;busy=true;try{await request('disconnect',{});code.hidden=true;code.textContent='';notice.textContent=tr('تم فصل الربط.','Disconnected.');await loadWhatsAppStatus();}catch(e){error(e);}finally{busy=false;}}
- window.MrsaalWA={render,connect,disconnect,safeText,restoreMethod(value){if(value==='phone')document.getElementById('mrsaalwa-pairing')?.querySelectorAll('button')[1]?.click();}};
- document.addEventListener('mrsaal:language',()=>{options=null;root?.remove();root=null;loadWhatsAppStatus();});
+ window.MrsaalWA={render,connect,disconnect,safeText,statusUnavailable(message){if(pairingDialog?.open){dialogStatus.textContent=tr('تعذر تحديث الحالة: ','Could not update status: ')+safeText(message);dialogStatus.dataset.loading='false';}},pairingActive:()=>!!pairingDialog?.open&&lastState.status!=='connected',restoreMethod(value){if(value==='phone')document.getElementById('mrsaalwa-pairing')?.querySelectorAll('button')[1]?.click();}};
+ document.addEventListener('mrsaal:language',()=>{options=null;pairingDialog?.close();pairingDialog?.remove();pairingDialog=null;root?.remove();root=null;loadWhatsAppStatus();});
 })();

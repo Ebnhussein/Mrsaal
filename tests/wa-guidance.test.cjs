@@ -4,6 +4,9 @@ function fixture(){
  const nodes=[];
  class El{
   constructor(tag,text=''){this.tag=tag;this.value='';this.textContent=text;this.children=[];this.dataset={};this.style={};nodes.push(this);}
+  showModal(){this.open=true;}
+  close(){this.open=false;}
+  removeAttribute(k){delete this[k];}
   click(){this.onclick?.();}
   focus(){this.focused=true;}
   scrollIntoView(){this.scrolled=true;}
@@ -15,7 +18,7 @@ function fixture(){
   querySelectorAll(selector){const out=[];function visit(n){for(const c of n.children){if(c.tag===selector)out.push(c);visit(c);}}visit(this);return out;}
  }
  const host=new El('div');for(const id of ['wa-status','wa-qr','wa-connect','wa-disconnect']){const n=new El(id==='wa-qr'?'img':'button');n.id=id;host.append(n);}
- const byId=id=>nodes.find(n=>n.id===id),document={documentElement:{lang:'en'},createElement:t=>new El(t),getElementById:byId,addEventListener(){}};
+ const byId=id=>nodes.find(n=>n.id===id),document={body:new El('body'),documentElement:{lang:'en'},createElement:t=>new El(t),getElementById:byId,addEventListener(){}};
  let failure=null;const calls=[];const identities=[],saved=new Map(),window={MrsaalDialog:{identity:async options=>{identities.push(options);return false;}},MrsaalErrors:{from:(d)=>Object.assign(new Error(d.error),{code:d.code})}};
  const fetch=async url=>{calls.push(url);return url.endsWith('/options')?{ok:true,json:async()=>({provider:'mrsaalwa',betaAvailable:true})}:failure?{ok:false,status:401,json:async()=>failure}:{ok:true,json:async()=>({pairingCode:'ABCD1234'})};};
  const context={window,document,fetch,Option:function(t,v){const e=new El('option',t);e.value=v;return e;},sessionStorage:{setItem:(k,v)=>saved.set(k,v)},loadWhatsAppStatus:async()=>window.MrsaalWA.render({status:'qr',hasSession:true}),Date,console};

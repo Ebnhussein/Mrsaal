@@ -10,7 +10,7 @@ function harness(companies,connectionError=null){
  return {writes,sent,generated,events,get connected(){return connected},get accounts(){return accounts},async post(name,body){let result,status=200;const res={status:s=>{status=s;return res},json:r=>{result=r},setHeader(){},flushHeaders(){},on(){},write:s=>{events.push(JSON.parse(s.slice(6)))},end(){}};await routes.find(r=>r.name===name).handlers.at(-1)({session:{userId:'u'},body},res);return {result,status}}};
 }
 const both={id:'both',name:'Both',email:'to@example.com',phone:'201012345678'};
-test('company with both contacts uses explicitly selected WhatsApp, without Gmail',async()=>{const h=harness([both]);await h.post('/send',{companyId:'both',channel:'whatsapp',body:'Message'});assert.equal(h.sent.join(','),'whatsapp');assert.equal(h.accounts,0);assert.equal(h.connected,1);});
+test('company with both contacts uses explicitly selected WhatsApp, without Gmail',async()=>{const h=harness([both]);await h.post('/send',{companyId:'both',channel:'whatsapp',body:'Message'});assert.equal(h.sent.join(','),'whatsapp');assert.equal(h.accounts,0);assert.equal(h.connected,0);});
 test('missing chosen contact is skipped and logged before AI or sender lookup',async()=>{const h=harness([{id:'phone',name:'Phone',phone:'201012345678'}]);const r=await h.post('/send',{companyId:'phone',channel:'email'});assert.equal(r.result.status,'skipped');assert.equal(h.sent.length,0);assert.equal(h.accounts,0);assert.equal(h.writes[0].args[5],'skipped');assert.equal(h.writes[0].args[7],'email');});
 test('unreviewed legacy bulk request is blocked before generation or delivery',async()=>{const h=harness([both]);const r=await h.post('/send-bulk',{companyIds:['both'],channel:'email'});assert.equal(r.status,409);assert.equal(h.generated.length,0);assert.equal(h.sent.length,0);});
 test('scheduled WhatsApp pins log channel even when company has email',async()=>{const h=harness([both]);const r=await h.post('/send',{companyId:'both',channel:'whatsapp',body:'WA',scheduledAt:new Date(Date.now()+60000).toISOString()});assert.equal(r.result.status,'scheduled');assert.equal(h.accounts,0);const log=h.writes.find(w=>w.sql.includes('INSERT INTO email_log'));assert.equal(log.args[8],'whatsapp');assert.equal(log.args[4],both.phone);});
@@ -31,7 +31,7 @@ test('skip already sent is channel-specific even if company global status is sen
 test('WhatsApp readiness errors preserve their typed code before delivery instead of becoming generic conflicts',async()=>{
  for(const code of ['WA_NOT_CONNECTED','MRSAALWA_SESSION','MRSAALWA_TIMEOUT','MRSAALWA_AUTH']){
   const error=Object.assign(new Error(code),{code,status:code==='WA_NOT_CONNECTED'?409:503});
-  const h=harness([both],error);await assert.rejects(h.post('/send',{companyId:'both',channel:'whatsapp',body:'Saved draft'}),e=>e===error&&e.code===code);
+  const h=harness([both],error);await assert.rejects(h.post('/send',{companyId:'both',channel:'whatsapp',body:'Saved draft',scheduledAt:new Date(Date.now()+3600000).toISOString()}),e=>e===error&&e.code===code);
   assert.equal(h.sent.length,0);assert.equal(h.writes.length,0);assert.equal(h.accounts,0);
   const catalog=require('../utils/public-errors');for(const language of ['ar','en']){const result=catalog.describe(error,language);assert.equal(result.code,code);assert.notEqual(result.error,catalog.describe({status:409},language).error);}
  }
