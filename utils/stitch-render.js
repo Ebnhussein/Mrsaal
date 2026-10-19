@@ -18,7 +18,11 @@ function renderExact(page,legacy,{posts=[],post=null}={},language='ar'){
  }
  if(page==='plans')html=html.replace(/<main\b[\s\S]*?<\/main>/,()=>require('./public-minimal').plansContent(lang));
  if(page==='product')html=html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/,(_,open,content,close)=>open+require('./public-minimal').mobileProduct(lang)+'<div class="sx-desktop-home">'+lazyDesktop(content)+'</div>'+close);
- if(page==='home')html=html.replace(/<main\b[\s\S]*?<\/main>/,()=>require('./home-story').homeStory(lang)).replace('</head>','<link rel="stylesheet" href="/assets/home-story.css?v=20261019-faq"><script defer src="/assets/home-story.js?v=20261016-2"></script><script defer src="/assets/home-faq.js?v=20261019-faq"></script></head>');
+ if(page==='home')html=html.replace(/<main\b[\s\S]*?<\/main>/,()=>require('./home-story').homeStory(lang)).replace('</head>','<link rel="stylesheet" href="/assets/home-story.css?v=20261019-shared-faq"><script defer src="/assets/home-story.js?v=20261016-2"></script></head>');
+ if(['home','plans','help'].includes(page)){
+  if(page!=='home')html=require('./public-faq').replaceFAQ(html,lang,page);
+  html=html.replace('</head>','<link rel="stylesheet" href="/assets/public-faq.css?v=20261019-shared"><script defer src="/assets/home-faq.js?v=20261019-shared"></script></head>');
+ }
  if(page==='blog'){
   const articles=mergeGuides(posts);
   const searchData={language:lang,mode:'guides',categories:Object.entries(categories).map(([id,c])=>({id,title:c[lang],icon:'menu_book'})),issues:articles.map(p=>({id:p.slug,category:categoryKey(p.category),title:p['title_'+lang],keywords:p['excerpt_'+lang],href:'/'+lang+'/blog/'+encodeURIComponent(p.slug)}))};
@@ -37,6 +41,8 @@ function renderExact(page,legacy,{posts=[],post=null}={},language='ar'){
  html=html.replace('</head>',`<link rel="alternate" hreflang="ar" href="https://mrsaal.ebnhussein.co/ar/${suffix}"><link rel="alternate" hreflang="en" href="https://mrsaal.ebnhussein.co/en/${suffix}"></head>`);
  html=html.replace(/(\/assets\/stitch-exact\/interactions\.js)\?v=[^"\s<>]+/g,'$1?v=locale-20261015');
  html=html.replace('</head>','<script src="/assets/theme-init.js?v=locale-20261015"></script></head>');
+ html=require('./public-footer').applyFooter(html,lang);
+ html=html.replace('</head>','<link rel="stylesheet" href="/assets/public-footer.css?v=20261019-shared"></head>');
  return applyShell(html,lang,page,suffix).replaceAll('v=responsive-2','v=home-full-mobile-20261010-1').replace(/(\/assets\/(?:account\.(?:js|css)|help-search\.js|stitch-exact\/common\.css)\?[^"\s<>]+)/g,'$1&clarity=20261016');
 }
 module.exports={renderExact};

@@ -1,0 +1,36 @@
+/* Shared question selector on Home, Plans and Help. */
+body.stitch-exact .hs-faq{--hs-bg:#f7faf7;--hs-panel:#fff;--hs-ink:#15382d;--hs-muted:#52665d;--hs-line:#dce6df;--hs-green:#1b6b4b;--hs-shadow:0 24px 70px #183d2c0d;color:var(--hs-ink);width:min(1180px,calc(100% - 64px));margin-inline:auto;box-sizing:border-box;text-align:start}
+body.stitch-exact[data-theme=dark] .hs-faq{--hs-bg:#0d1e19;--hs-panel:#142c23;--hs-ink:#edf8f1;--hs-muted:#b1c7bb;--hs-line:#304b3e;--hs-green:#a5e9c0;--hs-shadow:0 24px 70px #0002}
+body.stitch-exact .hs-faq *{box-sizing:border-box}
+body.stitch-exact .hs-faq :where(h2,h3,p){margin:0}
+body.stitch-exact .hs-faq :where(h2,h3){font-weight:700;text-wrap:balance}
+body.stitch-exact .hs-faq .hs-eyebrow{font-size:12px;color:var(--hs-green);font-weight:700}
+body.stitch-exact .hs-faq :where(button,a):focus-visible{outline:3px solid var(--hs-green);outline-offset:5px}
+body.stitch-exact .hs-faq a{text-decoration:none}
+body.stitch-exact .hs-faq{padding:48px 0 64px;border-top:1px solid var(--hs-line)}
+body.stitch-exact .hs-faq-heading{text-align:center;max-width:560px;margin:0 auto 28px}
+body.stitch-exact .hs-faq-heading h2{font-size:clamp(25px,3vw,34px);line-height:1.5;margin:10px 0}
+body.stitch-exact .hs-faq-heading>p:last-child{font-size:14px;color:var(--hs-muted)}
+body.stitch-exact .hs-faq-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.18fr);gap:16px;max-width:940px;margin-inline:auto;align-items:stretch}
+body.stitch-exact .hs-faq-questions{display:flex;flex-direction:column;gap:10px}
+body.stitch-exact .hs-faq-question{display:flex;align-items:center;gap:12px;width:100%;min-height:76px;padding:17px 18px;text-align:start;font:inherit;font-size:15px;font-weight:600;line-height:1.65;color:var(--hs-ink);background:var(--hs-panel);border:1px solid var(--hs-line);border-radius:14px;cursor:pointer;transition:background .18s,border-color .18s}
+body.stitch-exact .hs-faq-question:hover{border-color:var(--hs-green)}
+body.stitch-exact .hs-faq-question>.material-symbols-outlined:first-child{color:var(--hs-green)}
+body.stitch-exact .hs-faq-question>.material-symbols-outlined:last-child{margin-inline-start:auto;font-size:18px}
+html[dir=rtl] .hs-faq-question>.material-symbols-outlined:last-child,html[dir=rtl] .hs-faq-footer .material-symbols-outlined{transform:scaleX(-1)}
+body.stitch-exact .hs-faq-question[aria-pressed=true]{background:var(--hs-green);border-color:var(--hs-green);color:var(--hs-bg)}
+body.stitch-exact .hs-faq-question[aria-pressed=true]>.material-symbols-outlined:first-child{color:inherit}
+body.stitch-exact .hs-faq-response{min-width:0;min-height:248px;padding:28px;border:1px solid var(--hs-line);border-radius:20px;background:var(--hs-panel);box-shadow:var(--hs-shadow);display:flex;flex-direction:column;justify-content:center;gap:24px}
+body.stitch-exact .hs-faq-response [hidden]{display:none!important}
+body.stitch-exact .hs-faq-response .hs-faq-label{font-size:12px;color:var(--hs-muted);margin-bottom:12px}
+body.stitch-exact .hs-faq-response h3{font-size:24px;line-height:1.6;margin-bottom:12px}
+body.stitch-exact .hs-faq-response article>p:last-child{font-size:14px;line-height:1.95;color:var(--hs-muted)}
+body.stitch-exact .hs-faq-footer{display:flex!important;max-width:940px;margin:26px auto 0;padding-top:18px;border-top:1px solid var(--hs-line);display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;color:var(--hs-muted)}
+body.stitch-exact .hs-faq-footer a{display:inline-flex;align-items:center;gap:8px;min-height:44px;color:var(--hs-green);font-weight:700}
+@media(max-width:760px){body.stitch-exact .hs-faq-grid{grid-template-columns:minmax(0,1fr)}body.stitch-exact .hs-faq-heading{text-align:start}body.stitch-exact .hs-faq-heading .hs-eyebrow{justify-content:flex-start}body.stitch-exact .hs-faq-question{min-height:58px;font-size:14px;padding:13px 15px}body.stitch-exact .hs-faq-response{padding:22px;min-height:245px}body.stitch-exact .hs-faq-response h3{font-size:22px}}
+@media(max-width:420px){body.stitch-exact .hs-faq-footer{display:flex!important;align-items:flex-start;flex-direction:column}}
+
+body.stitch-exact .hs-faq-response a{color:var(--hs-green);text-decoration:underline}
+body.stitch-exact .hs-faq-response strong{font-weight:700}
+@media(max-width:760px){body.stitch-exact .hs-faq{width:calc(100% - 32px);padding:30px 0!important}body.stitch-exact .hs-faq-heading h2{font-size:25px}}
+@media(prefers-reduced-motion:reduce){body.stitch-exact .hs-faq *{transition:none!important}}

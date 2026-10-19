@@ -1,0 +1,15 @@
+/* One homepage footer across public pages, independent of page utility CSS. */
+body.stitch-exact .sx-public-footer{--pf-bg:#d9fbed;--pf-ink:#012018;--pf-muted:#3e4945;--pf-line:#bdc9c4;background:var(--pf-bg);color:var(--pf-ink);padding:48px 32px!important;margin:48px 0 0;width:100%;font-family:Inter,'IBM Plex Sans Arabic',sans-serif;font-size:14px;line-height:1.8;text-align:start}
+body.stitch-exact[data-theme=dark] .sx-public-footer{--pf-bg:#17322c;--pf-ink:#edf7f1;--pf-muted:#b3c6bc;--pf-line:#2a473d}
+body.stitch-exact .sx-public-footer *{box-sizing:border-box}
+body.stitch-exact .sx-public-footer>div{max-width:1216px;width:100%;margin-inline:auto;padding:0}
+body.stitch-exact .sx-public-footer>div>div:first-child{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px;margin-bottom:32px}
+body.stitch-exact .sx-public-footer>div>div:first-child>div{display:flex;flex-direction:column;gap:10px;min-width:0}
+body.stitch-exact .sx-public-footer a{color:var(--pf-muted);text-decoration:none;display:inline-flex;align-items:center;min-height:32px;line-height:1.8;font-size:14px;overflow-wrap:anywhere}
+body.stitch-exact .sx-public-footer a:hover{color:var(--pf-ink);text-decoration:underline}
+body.stitch-exact .sx-public-footer a:focus-visible{outline:2px solid currentColor;outline-offset:4px}
+body.stitch-exact .sx-public-footer>div>div:first-child>div>span{font-weight:700;color:var(--pf-ink);font-size:15px;margin-bottom:4px}
+body.stitch-exact .sx-public-footer>div>div:last-child{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-top:24px;border-top:1px solid var(--pf-line);font-size:13px;color:var(--pf-muted)}
+body.stitch-exact .sx-public-footer>div>div:last-child>div{display:flex;align-items:center;gap:12px}
+body.stitch-exact .sx-public-footer img{width:32px;height:32px;object-fit:contain}
+@media(max-width:1023px){body.stitch-exact .sx-public-footer{display:none}}
