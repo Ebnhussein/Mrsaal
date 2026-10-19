@@ -2,6 +2,8 @@
 const translations=require('./error-translations.json');
 const reverse=new Map(Object.entries(translations).map(([ar,en])=>[en,ar]));
 const messages={
+ CAMPAIGN_ALREADY_SENT:['خيار تخطي الرسائل المُرسلة مفعّل، وكل الشركات المختارة أُرسل لها على الوسائل المتاحة. اقفله لو تقصد تجهيز رسائل جديدة.','Skip previously sent messages is enabled, and the selected companies have already been contacted on their available channels. Turn it off to prepare new messages.'],
+ CAMPAIGN_SELECTION_STALE:['قائمة الشركات المختارة مش متاحة في الحساب الحالي. حدّث قائمة الشركات وحدّدها من جديد.','The selected companies are unavailable in the current account. Refresh your company list and select them again.'],
  CAMPAIGN_INPUT:['اختار وسيلة إرسال صحيحة ومن 1 إلى 500 شركة، وراجع خيارات الإرسال.','Choose a valid sending channel and 1–500 companies, and check the sending options.'],
  NO_ELIGIBLE_COMPANIES:['مفيش شركات مناسبة للاختيارات الحالية. راجع التحديد وخيار تخطي الرسائل المُرسلة.','No companies match these sending options. Check your selection and the option to skip previously sent messages.'],
  SCHEDULE_TIME_PAST:['موعد الجدولة عدى. اختار تاريخ ووقت جديدين في المستقبل، وبعدها جرّب تاني.','The scheduled time has passed. Choose a new date and time in the future, then try again.'],

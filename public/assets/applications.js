@@ -17,6 +17,19 @@
  function close(){
   if(overlay.hidden)return;window.MrsaalTour?.stop();overlay.hidden=true;locks.forEach(([el,value])=>el.inert=value);locks=[];document.body.style.overflow=overflowBefore;focusBefore?.focus();
  }
+ function showError(error){
+  let host=document.getElementById('applications-send-error');
+  if(!host){host=document.createElement('div');host.id='applications-send-error';host.className='card';host.setAttribute('role','status');document.getElementById('page-send').prepend(host);}
+  const message=document.createElement('p');message.textContent=error.message;host.replaceChildren(message);host.hidden=false;
+  if(['CAMPAIGN_ALREADY_SENT','NO_ELIGIBLE_COMPANIES'].includes(error.code)&&document.getElementById('opt-skip-sent').checked){
+   const action=document.createElement('button');action.type='button';action.className='btn btn-secondary';action.textContent=document.documentElement.lang==='en'?'Allow new messages to previously contacted companies':'السماح برسائل جديدة للشركات المُرسل إليها سابقًا';
+   action.onclick=()=>{document.getElementById('opt-skip-sent').checked=false;updateChannelSummary();host.hidden=true;};host.append(action);
+  }
+  if(error.code==='CAMPAIGN_SELECTION_STALE'){
+   const refresh=document.createElement('button');refresh.type='button';refresh.className='btn btn-secondary';refresh.textContent=document.documentElement.lang==='en'?'Refresh company list':'تحديث قائمة الشركات';refresh.onclick=async()=>{refresh.disabled=true;try{if(await loadCompanies())host.hidden=true;}finally{refresh.disabled=false;}};host.append(refresh);
+  }
+  host.scrollIntoView?.({block:'nearest',behavior:'smooth'});
+ }
  function open(){
   if(!companies.some(c=>c.selected)){toast(t('حدد شركات لتجهيز الإرسال'),'info');return;}
   if(!overlay.hidden)return;
@@ -38,8 +51,8 @@
  const navigate=nav;nav=function(page){if(page==='send'){close();navigate('companies');open();return;}close();const result=navigate(page);syncSelection();return result;};
  const select=selectSettings;selectSettings=function(...args){const result=select(...args);syncSelection();return result;};
  const summarize=updateChannelSummary;updateChannelSummary=function(){const result=summarize();const excluded=companies.filter(c=>c.selected).length-deliveryQueue(selectedDeliveryChannel()).length,note=document.getElementById('applications-excluded');note.hidden=!excluded;note.textContent=excluded+' '+t('شركة مستبعدة لأنها أُرسل إليها على نفس القناة.');return result;};
- const start=startSend;startSend=async function(){document.getElementById('send-filter').value='selected';if(document.getElementById('opt-preview').checked&&document.getElementById('sched-type').value==='now')close();return start();};
- document.addEventListener('mrsaal:language',syncSelection);
- window.MrsaalApplications={open,close};
+ const start=startSend;let starting=false;startSend=async function(){if(starting)return false;starting=true;document.getElementById('send-filter').value='selected';try{const success=await start();if(success)close();return success;}finally{starting=false;}};
+ document.addEventListener('mrsaal:language',()=>{syncSelection();updateChannelSummary();});
+ window.MrsaalApplications={open,close,showError};
  syncSelection();
 })();

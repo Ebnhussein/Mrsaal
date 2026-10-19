@@ -378,16 +378,17 @@ function selectedDeliveryChannel(){return document.getElementById('send-channel'
 function deliveryOptions(channel=selectedDeliveryChannel()){
  return {channel,bothChannels:!!document.getElementById('opt-send-both')?.checked,preferredChannel:document.getElementById('send-priority')?.value||'email',skipSent:document.getElementById('opt-skip-sent').checked};
 }
-function companyDeliveryChannels(company,channel){
- if(channel!=='available')return deliveryOptions(channel).skipSent&&log.some(l=>l.company_id===company.id&&l.channel===channel&&l.status==='sent')?[]:[channel];
- return window.MrsaalDeliveryPlan.channels(company,deliveryOptions(channel),log);
+function companyDeliveryChannels(company,channel,options=deliveryOptions(channel)){
+ if(channel!=='available')return options.skipSent&&log.some(l=>l.company_id===company.id&&l.channel===channel&&l.status==='sent')?[]:[channel];
+ return window.MrsaalDeliveryPlan.channels(company,options,log);
 }
-function deliveryQueue(channel){
+function deliveryQueue(channel,options=deliveryOptions(channel)){
  const filter=document.getElementById('send-filter').value;
- return companies.filter(c=>!(filter==='selected'&&!c.selected)&&!(filter==='pending'&&c.status!=='pending')&&companyDeliveryChannels(c,channel).length>0);
+ return companies.filter(c=>!(filter==='selected'&&!c.selected)&&!(filter==='pending'&&c.status!=='pending')&&companyDeliveryChannels(c,channel,options).length>0);
 }
 function updateChannelSummary(){
  const channel=selectedDeliveryChannel(),mixed=channel==='available',queue=deliveryQueue(channel);
+ const policy=document.getElementById('send-repeat-policy');if(policy)policy.textContent=deliveryOptions(channel).skipSent?cvLabel('الحالي: استبعاد الرسائل المُرسلة سابقًا على نفس الوسيلة.','Current: exclude previously sent messages on the same channel.'):cvLabel('الحالي: السماح بإرسال رسائل جديدة للشركات المُرسل إليها سابقًا.','Current: allow new messages to previously contacted companies.');
  let emails=0,whatsapp=0,missing=0;
  for(const co of queue)for(const selected of companyDeliveryChannels(co,channel)){if(companyChannelReason(co,selected))missing++;else if(selected==='email')emails++;else whatsapp++;}
  document.getElementById('channel-summary').textContent=cvLabel(`${emails} رسالة إيميل · ${whatsapp} رسالة واتساب · ${missing} شركة هتتخطى لنقص بيانات التواصل.`,`${emails} email messages · ${whatsapp} WhatsApp messages · ${missing} companies skipped for missing contact details.`);
@@ -556,12 +557,11 @@ async function startSend() {
 
   if(selectedDeliveryChannel()!=='whatsapp'&&gmailChanging){toast('استنى تغيير حساب الإرسال يخلص','info');return;}
   if(!ensureCV())return;
-  const channel=selectedDeliveryChannel();batchChannel=channel;
-  const previewMode=document.getElementById('opt-preview').checked;
-  const queue=deliveryQueue(channel);
+  const channel=selectedDeliveryChannel(),options=Object.freeze({...deliveryOptions(channel)});batchChannel=channel;
+  const queue=deliveryQueue(channel,options);
   if(!queue.length){toast('مفيش شركات مناسبة للاختيارات الحالية','info');return;}
-  if(queue.some(c=>companyDeliveryChannels(c,channel).includes('whatsapp')&&!companyChannelReason(c,'whatsapp'))&&waState!=='connected'){toast('اربط واتساب قبل إرسال هذه الدفعة.','error');openSettings('channels');return;}
-  try{await MrsaalLaunch.create(queue.map(c=>c.id),channel);}catch(e){toast(e.message,'error');}
+  if(queue.some(c=>companyDeliveryChannels(c,channel,options).includes('whatsapp')&&!companyChannelReason(c,'whatsapp'))&&waState!=='connected'){toast('اربط واتساب قبل إرسال هذه الدفعة.','error');openSettings('channels');return;}
+  try{await MrsaalLaunch.create(queue.map(c=>c.id),channel,options);return true;}catch(e){window.MrsaalApplications?.showError?.(e);toast(e.message,'error');return false;}
 }
 
 function stopSend(){stopFlag=true;toast('تم طلب الإيقاف...','info');}

@@ -27,6 +27,10 @@ test('mixed creation is transactional, owner-scoped, uses independent drafts and
   assert.equal(rows.length,5);assert(!rows.some(r=>r.company_id==='foreign'));assert.equal(rows.find(r=>r.company_id==='both'&&r.channel==='email').body,'Email draft');assert.equal(rows.find(r=>r.company_id==='both'&&r.channel==='whatsapp').body,'WhatsApp draft');assert.equal(rows.find(r=>r.company_id==='missing').status,'skipped');assert(rows.every(r=>['draft','skipped'].includes(r.status)));
   await pg.exec("INSERT INTO email_log(id,user_id,company_id,channel,status) VALUES('sent','owner','both','email','sent');");
   const filtered=await create({companyIds:['both'],skipSent:true});assert.equal(filtered.data.campaigns.length,1);assert.equal(filtered.data.campaigns[0].channel,'whatsapp');assert.equal(accountLookups,1);
+  await pg.exec("INSERT INTO email_log(id,user_id,company_id,channel,status) VALUES('wa-sent','owner','both','whatsapp','sent');");
+  await assert.rejects(create({companyIds:['both'],skipSent:true}),e=>e.code==='CAMPAIGN_ALREADY_SENT');
+  const repeat=await create({companyIds:['both'],skipSent:false});assert.equal(repeat.data.campaigns.length,2);
+  await assert.rejects(create({companyIds:['foreign'],skipSent:false}),e=>e.code==='CAMPAIGN_SELECTION_STALE');
   const count=(await db.get('SELECT COUNT(*) AS n FROM campaigns')).n;rejectAccount=true;await assert.rejects(create(),/Reconnect Gmail/);assert.equal((await db.get('SELECT COUNT(*) AS n FROM campaigns')).n,count);
   assert.equal((await create({bothChannels:'true'})).status,400);
  }finally{await pg.close();}

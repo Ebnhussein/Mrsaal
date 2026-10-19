@@ -11,14 +11,14 @@ router.post('/',wrap(async(req,res)=>{
   await client.query('BEGIN');await client.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[userId]);
   if(!(await client.query('SELECT id FROM cv_profiles WHERE id=$1 AND user_id=$2',[cv.id,userId])).rows.length){const e=new Error('السيرة المحددة لم تعد متاحة. اختار نسخة موجودة.');e.status=409;throw e;}
   const sent=skipSent?(await client.query("SELECT company_id,channel,status FROM email_log WHERE user_id=$1 AND company_id=ANY($2::text[]) AND status='sent'",[userId,companyIds])).rows:[];
-  const groups=new Map();
+  const groups=new Map();let matched=0;
   for(const companyId of new Set(companyIds)){
-   const co=(await client.query('SELECT * FROM companies WHERE id=$1 AND user_id=$2',[companyId,userId])).rows[0];if(!co)continue;
+   const co=(await client.query('SELECT * FROM companies WHERE id=$1 AND user_id=$2',[companyId,userId])).rows[0];if(!co)continue;matched++;
    for(const selected of planner.channels(co,{channel,bothChannels,preferredChannel,skipSent},sent)){
     if(!groups.has(selected))groups.set(selected,[]);groups.get(selected).push(co);
    }
   }
-  if(!groups.size){const e=new Error('مفيش شركات مناسبة للاختيارات الحالية');e.status=400;e.code='NO_ELIGIBLE_COMPANIES';throw e;}
+  if(!groups.size){const e=new Error('مفيش شركات مناسبة للاختيارات الحالية');e.status=400;e.code=matched&&skipSent?'CAMPAIGN_ALREADY_SENT':'CAMPAIGN_SELECTION_STALE';throw e;}
   const needsEmail=groups.get('email')?.some(co=>planner.valid(co,'email'));
   const account=needsEmail?await require('../utils/gmail-accounts').resolveAccount(userId,req.body.senderAccountId):null;
   const campaigns=[];
