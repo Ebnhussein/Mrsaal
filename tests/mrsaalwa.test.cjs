@@ -31,7 +31,7 @@ test('beta is opt-in; each user gets a distinct server-owned session and QR or p
  const f=await fixture();try{await assert.rejects(f.beta.select('owner','mrsaalwa'),e=>e.code==='MRSAALWA_DISABLED');assert.equal(f.calls.length,0);await f.grant('owner');await f.grant('other');await f.beta.select('owner','mrsaalwa');await f.beta.select('other','mrsaalwa');
  await f.beta.connect('owner',{method:'qr'});await f.beta.connect('other',{method:'phone',phone:'201012345678',acknowledge:true});assert.notEqual((await f.beta.profile('owner')).session_id,(await f.beta.profile('other')).session_id);
  assert.equal(f.calls.find(c=>c[0]==='pair')[1],sid2);const state=await f.beta.status('owner');assert.equal(state.status,'qr');assert(state.qr.startsWith('data:image/png'));assert(!Object.hasOwn(state,'session_id'));
- await assert.rejects(f.beta.connect('other',{method:'phone',phone:'201012345678',acknowledge:true}),e=>e.code==='MRSAALWA_PAIR_WAIT');
+ await assert.rejects(f.beta.connect('other',{method:'phone',phone:'201012345678',acknowledge:true}),e=>e.code==='MRSAALWA_PAIR_COOLDOWN');
  }finally{await f.close();}
 });
 test('session ownership survives a failed start; a retry reuses it instead of creating another',async()=>{
@@ -135,4 +135,25 @@ test('gateway response body timeout is typed and an ambiguous send is not replay
  await assert.rejects(api.session(sid),e=>e.code==='MRSAALWA_TIMEOUT');
  await assert.rejects(api.send(sid,'201012345678',{text:'test'}),e=>e.code==='WA_SEND_UNCERTAIN'&&e.deliveryUncertain);
  assert.equal(calls,2);
+});
+
+
+test('phone pairing can relink a QR-ready session with stale phone metadata, but cannot silently change numbers',async()=>{
+ const f=await fixture();try{
+  await f.grant('owner');await f.beta.select('owner','mrsaalwa');await f.beta.connect('owner');
+  Object.assign(f.sessions[0],{status:'qr_ready',phone:'+201012345678'});
+  await assert.rejects(f.beta.connect('owner',{method:'phone',phone:'201099999999',acknowledge:true}),e=>e.code==='MRSAALWA_PAIR_DIFFERENT_NUMBER');
+  assert.equal(f.calls.filter(c=>c[0]==='pair').length,0);
+  const result=await f.beta.connect('owner',{method:'phone',phone:'201012345678',acknowledge:true});
+  assert.equal(result.pairingCode,'ABCD1234');assert.equal(f.calls.filter(c=>c[0]==='pair').length,1);
+  await assert.rejects(f.beta.connect('owner',{method:'phone',phone:'201012345678',acknowledge:true}),e=>e.code==='MRSAALWA_PAIR_COOLDOWN'&&e.status===429);
+  f.sessions[0].status='authenticating';
+  await assert.rejects(f.beta.connect('owner',{method:'phone',phone:'201012345678',acknowledge:true}),e=>e.code==='MRSAALWA_PAIR_WAIT');
+  f.sessions[0].status='ready';assert.equal((await f.beta.connect('owner',{method:'phone',phone:'201012345678',acknowledge:true})).status,'connected');
+  assert.equal(f.calls.filter(c=>c[0]==='pair').length,1);
+ }finally{await f.close();}
+});
+test('pairing preparation, cooldown and number replacement have separate bilingual causes',()=>{
+ const catalog=require('../utils/public-errors');
+ for(const lang of ['ar','en']){const values=['MRSAALWA_PAIR_WAIT','MRSAALWA_PAIR_COOLDOWN','MRSAALWA_PAIR_DIFFERENT_NUMBER'].map(code=>catalog.describe({code,status:409},lang).error);assert.equal(new Set(values).size,3);for(const value of values)assert(!value.includes('undefined'));}
 });

@@ -88,9 +88,14 @@ async function connect(id,{method='qr',phone='',acknowledge=false}={}){
   if(s.status==='ready')return {ok:true,status:'connected'};
   if(!s.engineLoaded){const sessions=await g.list();if(maxSessions()>0&&sessions.filter(x=>x.engineLoaded&&x.id!==p.session_id).length>=maxSessions())throw fail('MRSAALWA_CAPACITY',409);await g.start(p.session_id);s=await g.session(p.session_id);}
   if(method==='phone'){
-   // Never request a pairing code for an already authenticated session.
-   if(s.phone||!['qr_ready','initializing'].includes(s.status))throw fail('MRSAALWA_PAIR_WAIT',409);
-   if(p.pair_requested_at&&Date.now()-new Date(p.pair_requested_at).getTime()<60000)throw fail('MRSAALWA_PAIR_WAIT',429);
+   // A start may finish authentication before its follow-up status response.
+   if(s.status==='ready')return {ok:true,status:'connected'};
+   if(!['qr_ready','initializing'].includes(s.status))throw fail('MRSAALWA_PAIR_WAIT',409);
+   // OpenWA retains phone metadata after losing authentication. It is not proof
+   // of a live login. Permit relinking the same number, never silently rebind it.
+   const previousPhone=String(s.phone||'').replace(/\D/g,'').replace(/^00/,'');
+   if(s.phone&&previousPhone!==phone)throw fail('MRSAALWA_PAIR_DIFFERENT_NUMBER',409);
+   if(p.pair_requested_at&&Date.now()-new Date(p.pair_requested_at).getTime()<60000)throw fail('MRSAALWA_PAIR_COOLDOWN',429);
    await run('UPDATE whatsapp_preferences SET pair_requested_at=NOW() WHERE user_id=$1',[id]);
    const pairingCode=await g.pair(p.session_id,phone);await event(id,'pair_requested');return {ok:true,pairingCode};
   }
