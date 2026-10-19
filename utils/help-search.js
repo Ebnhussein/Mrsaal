@@ -4,6 +4,7 @@ const {guides}=require('./website-guides');const fs=require('fs'),path=require('
 const categories=[['account','الحساب والدخول','Account and sign-in','person'],['files','السي في والشركات','CV and company files','description'],['gmail','Gmail والإيميل','Gmail and email','mail'],['whatsapp','واتساب','WhatsApp','chat'],['ai','الذكاء الاصطناعي','AI providers and writing','auto_awesome'],['sending','الإرسال والحملات','Sending and campaigns','send'],['reports','التقارير والإشعارات','Reports and notifications','notifications'],['support','المساعدة والدعم','Help and support','support_agent']];
 // Issue titles are navigation labels; answers always come from the published product guide.
 const issues=[
+ ['company-edit','files','company-edit','تعديل اسم الشركة أو بيانات التواصل','Edit a company name or contact details','تعديل شركة شركات رقم هاتف ايميل كود الدولة تحديد حفظ','edit companies company phone email name country code selected save'],
  ['confirm','account','account-email','رسالة تأكيد البريد مش بتوصل','Confirmation email is not arriving','تسجيل حساب جديد تفعيل كود لينك تأكيد سبام','signup register verification code link spam confirmation'],
  ['password','account','account-email','نسيت كلمة المرور أو مش عارف أدخل','Forgot password or cannot sign in','دخول تسجيل موبايل باسورد كلمة سر نسيت','login sign in mobile password reset forgot'],
  ['profile','account','setup','أكمّل بيانات الحساب إزاي؟','How do I finish account setup?','اسم رقم موبايل إعدادات بيانات حساب','name phone profile settings setup'],

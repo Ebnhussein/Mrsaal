@@ -5,7 +5,8 @@
  let focusBefore=null,locks=[],overflowBefore='';
  function syncSelection(){
   const selected=companies.filter(c=>c.selected).length,visible=filteredCompanyRows(),checked=visible.filter(c=>c.selected).length;
-  document.getElementById('applications-selection').hidden=!selected;
+  document.getElementById('applications-selection').hidden=false;
+  document.querySelectorAll('[data-company-selection-action]').forEach(button=>{button.disabled=!selected;});
   const hiddenCount=selected-checked,note=document.getElementById('applications-hidden-selected');note.hidden=!hiddenCount;note.textContent=hiddenCount+' '+t('شركة محددة خارج النتائج الظاهرة؛ الفلتر لا يلغي التحديد.');
   document.getElementById('selection-count').textContent=t('تم تحديد')+' '+selected+' '+t('شركة');
   document.querySelectorAll('[data-select-visible],#applications-select-visible').forEach(input=>{input.checked=!!visible.length&&checked===visible.length;input.indeterminate=checked>0&&checked<visible.length;input.disabled=!visible.length;});

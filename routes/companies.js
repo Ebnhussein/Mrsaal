@@ -56,6 +56,8 @@ router.post('/import/commit', requireAuth, upload.single('file'), asyncHandler(a
   }
 }));
 
+router.patch('/:id/details', requireAuth, asyncHandler(async (req,res)=>{const company=await require('../utils/company-edit').update(req.session.userId,req.params.id,req.body,req.body.expected);res.json({ok:true,company});}));
+
 router.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
   const { status, selected, scheduled_at } = req.body;
   if (status!==undefined&&!['pending','sent','failed','scheduled','skipped','processing','uncertain','cancelled'].includes(status)) return res.status(400).json({error:'حالة الشركة غير صحيحة.'});

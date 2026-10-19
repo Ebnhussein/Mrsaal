@@ -1,6 +1,6 @@
 /* Shared bilingual guide for tours, help search and the product assistant. */
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.MrsaalGuide=factory();})(typeof window!=='undefined'?window:globalThis,function(){return {
-  "version": "2026-10-17-platform-ai-chain",
+  "version": "2026-10-19-company-edit",
   "tours": {
     "home": [
       {
@@ -115,9 +115,16 @@
       {
         "id": "applications-selection",
         "title": "جهز الإرسال بعد التحديد",
-        "body": "بعد تحديد شركة أو أكثر يظهر شريط الإجراءات. اضغط تجهيز الإرسال لاختيار القناة والحساب والتوقيت. إلغاء التحديد يزيل الاختيارات كلها، والحذف داخل المزيد مع تأكيد.",
+        "body": "شريط الإجراءات ظاهر دائمًا. حدد شركة أو أكثر لتفعيل تجهيز الإرسال وتعديل الشركات والحذف. تجهيز الإرسال يفتح القناة والحساب والتوقيت، والتعديل يفتح بيانات الشركات المحددة. حذف المحدد في آخر الشريط على الشمال ويطلب تأكيدًا.",
         "title_en": "Prepare sending after selection",
-        "body_en": "Select one or more companies to show the action bar. Prepare sending opens the channel, account and timing controls. Clear selection removes all selections; deletion is under More and requires confirmation."
+        "body_en": "The action bar stays visible. Select one or more companies to enable Prepare sending, Edit companies and Delete selected. Prepare sending opens the channel, account and timing controls; Edit companies opens the selected company details. Delete selected is at the left end and asks for confirmation."
+      },
+      {
+        "id": "edit-selected-companies",
+        "title": "صحّح بيانات شركاتك",
+        "title_en": "Correct your company details",
+        "body": "حدد شركة أو أكثر ثم افتح تعديل الشركات. احفظ كل شركة لوحدها، وضيف كود الدولة للرقم. التعديل والحذف ظاهرين لكن معطّلين من غير تحديد؛ الحذف في آخر الشريط على الشمال.",
+        "body_en": "Select one or more companies, then open Edit companies. Save each company separately and include the phone country code. Edit and Delete stay visible but disabled without a selection; Delete is at the left end of the action bar."
       }
     ],
     "send": [
@@ -704,6 +711,16 @@
       "action": "tour",
       "keywords": "الجديد تحديث تحديثات ابديت updates new changes",
       "keywords_en": "new updates changed release latest MrsaalWA schedule editing"
+    },
+    {
+      "id": "company-edit",
+      "title": "تعديل بيانات الشركات المحددة",
+      "title_en": "Edit selected company details",
+      "keywords": "تعديل اسم شركة الشركات رقم الهاتف كود الدولة ايميل موقع مجال حفظ",
+      "keywords_en": "edit company name email phone country code industry location save selected",
+      "action": "companies",
+      "answer": "من الشركات والتقديم، حدد شركة أو أكثر، ثم اضغط تعديل الشركات جنب تجهيز الإرسال. الزرار والحذف ظاهرين لكن غير متاحين من غير تحديد. في بوب أب التعديل اختار الشركة وعدّل الاسم والإيميل والرقم والمجال والموقع، واضغط حفظ التعديلات لكل شركة بشكل منفصل. الرقم لازم بكود الدولة مثل +201012345678. يكفي إيميل أو رقم صالح. احفظ أو تراجع عن التعديلات قبل الانتقال لشركة أخرى. التعديل لا يعيد كتابة الرسائل ولا يغيّر السجلات القديمة؛ راجع المسودات قبل الإرسال. لو الشركة عليها إرسال أو جدولة نشطة أو نتيجة غير مؤكدة، راجع التقارير وأوقف الإرسال أو ألغِ الجدولة قبل تعديل بياناتها. زر حذف المحدد في آخر الشريط على الشمال ويطلب تأكيدًا.",
+      "answer_en": "In Companies and applications, select one or more companies, then choose Edit companies next to Prepare sending. Edit and Delete remain visible but disabled with no selection. In the editor popup, choose a company and update its name, email, phone, industry and location. Save each company separately. Phone numbers need a country code, for example +201012345678. Provide at least one valid email or phone number. Save or reset changes before switching companies. Editing does not rewrite saved messages or historical reports; review drafts before sending. An active send, schedule or uncertain delivery blocks editing; review Reports and stop sending or cancel the schedule first. Delete selected is at the left end of the action bar and asks for confirmation."
     }
   ]
 };});
