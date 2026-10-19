@@ -9,7 +9,7 @@ function applyFooter(html,lang){
   cache.set(lang,footer.replace('<footer class="','<footer class="sx-public-footer '));
  }
  // The blog's imported footer can sit inside main; remove it as well.
- html=html.replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/g,tag=>/class="hs-faq-footer"/.test(tag)?tag:'');
+ html=html.replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/g,tag=>/class="hs-faq-footer"|id="account-privacy"/.test(tag)?tag:'');
  return html.replace('</body>',cache.get(lang)+'</body>');
 }
 module.exports={applyFooter};

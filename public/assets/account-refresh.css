@@ -1,0 +1,56 @@
+/* Public authentication: a compact form paired with the Mrsaal journey. */
+body.stitch-exact .auth-layout{--auth-bg:#f7faf7;--auth-panel:#fff;--auth-ink:#183b2d;--auth-muted:#566a60;--auth-line:#d5e3da;--auth-green:#196749;--auth-soft:#e8f3ec;--auth-input:#f6f9f7;--auth-on:#fff;--auth-shadow:#193c2810;color:var(--auth-ink);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,480px);gap:64px;align-items:center;width:min(1080px,calc(100% - 64px));max-inline-size:calc(100% - 32px);margin:32px auto 56px;padding-top:96px!important;padding-bottom:0;min-width:0}
+body.stitch-exact[data-theme=dark] .auth-layout{--auth-bg:#0d201b;--auth-panel:#142c24;--auth-ink:#edf8f1;--auth-muted:#b4cbbd;--auth-line:#365347;--auth-green:#9ce2b8;--auth-soft:#213e30;--auth-input:#10261e;--auth-on:#123627;--auth-shadow:#0002}
+body.stitch-exact .auth-layout *{box-sizing:border-box}
+body.stitch-exact .auth-layout .auth-story{padding:24px 8px;max-width:500px;color:var(--auth-ink)}
+body.stitch-exact .auth-story .auth-eyebrow{display:block;color:var(--auth-green);font-size:12px;letter-spacing:.05em;font-weight:600}
+body.stitch-exact .auth-story h2{font-size:clamp(30px,3vw,43px);line-height:1.5;font-weight:700;letter-spacing:-.025em;margin:16px 0 18px;color:var(--auth-ink)}
+body.stitch-exact .auth-story>p{font-size:15px;line-height:1.95;max-width:410px;color:var(--auth-muted);margin:0}
+body.stitch-exact .auth-journey{list-style:none;display:grid;gap:0;padding:0;margin:28px 0;max-width:420px}
+body.stitch-exact .auth-journey li{position:relative;display:flex;align-items:flex-start;gap:16px;padding:0 0 24px;font-size:14px}
+body.stitch-exact .auth-journey li:not(:last-child):before{position:absolute;content:'';inset-inline-start:19px;top:43px;bottom:4px;width:1px;background:var(--auth-line)}
+body.stitch-exact .auth-journey .auth-journey-number{display:grid;place-items:center;flex:none;width:40px;height:40px;border:1px solid var(--auth-line);border-radius:12px;padding:0;background:var(--auth-soft);color:var(--auth-green);font-size:12px;font-weight:600;direction:ltr}
+body.stitch-exact .auth-journey h3{font-size:15px;line-height:1.7;font-weight:600;margin:0 0 4px;color:var(--auth-ink)}
+body.stitch-exact .auth-journey p{font-size:13px;line-height:1.85;margin:0;color:var(--auth-muted)}
+body.stitch-exact .auth-beta-note{display:flex;align-items:flex-start;gap:10px;padding-top:18px;border-top:1px solid var(--auth-line);max-width:420px}
+body.stitch-exact .auth-beta-note>span{color:var(--auth-green)}body.stitch-exact .auth-beta-note p{font-size:12px;line-height:1.8;color:var(--auth-muted);margin:0}
+body.stitch-exact .auth-layout>.auth-panel{width:100%;max-width:none;margin:0;padding:28px!important;border:1px solid var(--auth-line);border-radius:22px;background:var(--auth-panel);color:var(--auth-ink);box-shadow:0 14px 48px var(--auth-shadow);--surface:var(--auth-panel);--text:var(--auth-ink);--border:var(--auth-line)}
+body.stitch-exact .auth-panel .account-header{margin-bottom:18px;gap:8px}body.stitch-exact .auth-panel .account-brand{font-size:14px;line-height:1.7;font-weight:600;color:var(--auth-green)}body.stitch-exact .auth-panel .account-brand img{width:25px;height:25px}
+body.stitch-exact .auth-panel #account-title{font-size:25px!important;font-weight:700;line-height:1.6!important;margin:0 0 5px;letter-spacing:-.02em;color:var(--auth-ink)}
+body.stitch-exact .auth-panel #account-description{font-size:13px;line-height:1.85;color:var(--auth-muted);opacity:1;margin:0 0 18px}
+body.stitch-exact .auth-panel .account-google{height:48px;min-height:48px;margin:0;gap:12px;background:#fff;color:#24342c;border:1px solid #c9d8ce;border-radius:11px;box-shadow:none;font-size:14px;font-weight:600}
+body.stitch-exact .auth-panel .account-google:hover{background:#f4f8f5;border-color:#85a893}
+body.stitch-exact .auth-panel .account-divider{display:flex;align-items:center;gap:12px;font-size:12px;line-height:1.7;margin:18px 0;color:var(--auth-muted)}
+body.stitch-exact .auth-panel .account-divider:before,body.stitch-exact .auth-panel .account-divider:after{content:'';flex:1;height:1px;background:var(--auth-line)}
+body.stitch-exact .auth-panel form{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+body.stitch-exact .auth-panel form label{font-size:13px;font-weight:500;line-height:1.8;color:var(--auth-ink)}
+body.stitch-exact .auth-panel .input{margin-top:6px;width:100%;min-height:46px;padding:10px 12px;border:1px solid var(--auth-line);border-radius:10px;background:var(--auth-input);color:var(--auth-ink);font-size:16px;line-height:1.5;box-shadow:none}
+body.stitch-exact .auth-panel .input:focus-visible{border-color:var(--auth-green);outline:2px solid var(--auth-green);outline-offset:2px}
+body.stitch-exact .auth-password-heading{display:flex;justify-content:space-between;align-items:center;gap:10px}
+body.stitch-exact .auth-panel #account-forgot{min-height:30px;padding:2px 0;background:transparent;border:0;border-radius:0;color:var(--auth-green);font-size:12px;font-weight:500;line-height:1.8;text-decoration:none}
+body.stitch-exact .auth-panel #account-forgot:hover{text-decoration:underline}
+body.stitch-exact .auth-password-control{position:relative}
+body.stitch-exact .auth-panel .auth-password-control .input{padding-inline-end:66px}
+body.stitch-exact .auth-password-toggle{position:absolute;inset-inline-end:5px;top:5px;bottom:5px;min-width:52px;min-height:36px;padding:4px 8px;border:0;border-radius:7px;background:transparent;color:var(--auth-green);font:inherit;font-size:12px;cursor:pointer}
+body.stitch-exact .auth-password-toggle:hover{background:var(--auth-soft)}
+body.stitch-exact .auth-panel small{font-size:12px;line-height:1.7;color:var(--auth-muted);opacity:1}
+body.stitch-exact .auth-panel .account-terms{align-items:flex-start;gap:10px;line-height:1.8;font-size:12px;font-weight:400}
+body.stitch-exact .auth-panel .account-terms input{flex:none;width:17px;height:17px;margin-top:3px;accent-color:var(--auth-green)}
+body.stitch-exact .auth-panel #account-submit{width:100%;min-height:46px;padding:11px 16px;background:var(--auth-green);color:var(--auth-on);border:1px solid var(--auth-green);border-radius:11px;font-size:14px;font-weight:600;line-height:1.6}
+body.stitch-exact .auth-panel #account-submit:hover{filter:brightness(.96)}
+body.stitch-exact .auth-panel #account-navigation{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin:20px 0 0;padding-top:16px;border-top:1px solid var(--auth-line);font-size:13px;line-height:1.7}
+body.stitch-exact .auth-panel #account-switch-label{color:var(--auth-muted)}
+body.stitch-exact .auth-panel #account-signup:not([hidden]),body.stitch-exact .auth-panel #account-signin{order:initial;flex:0 0 auto;margin:0;min-height:38px;padding:7px 13px;max-width:100%;border:1px solid var(--auth-line);border-radius:9px;background:var(--auth-soft);color:var(--auth-green);font-size:13px;line-height:1.7;font-weight:600;box-shadow:none}
+body.stitch-exact .auth-panel #account-signup:not([hidden]):hover,body.stitch-exact .auth-panel #account-signin:hover{border-color:var(--auth-green)}
+body.stitch-exact .auth-panel>footer{display:block!important;margin-top:18px;padding:0!important;font-size:12px;text-align:center;color:var(--auth-muted)}
+body.stitch-exact .auth-panel>footer a{color:var(--auth-muted);padding:5px;text-decoration:none}
+body.stitch-exact .auth-panel #account-status{font-size:13px;line-height:1.8;margin:0 0 14px;border:1px solid var(--auth-line);background:var(--auth-soft);color:var(--auth-ink)}
+body.stitch-exact .auth-panel #account-captcha:empty{padding:0;min-height:0}
+body.stitch-exact .auth-panel #account-waiting{padding:8px 0;gap:14px}
+body.stitch-exact .auth-panel .account-mail-icon{width:60px;height:60px;display:grid;place-items:center;background:var(--auth-soft);color:var(--auth-green);border-radius:18px;margin:auto}
+body.stitch-exact .auth-layout[data-auth-mode=signup] form{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 14px}
+body.stitch-exact .auth-layout[data-auth-mode=signup] #account-phone-group,body.stitch-exact .auth-layout[data-auth-mode=signup] #account-terms-group,body.stitch-exact .auth-layout[data-auth-mode=signup] #account-captcha,body.stitch-exact .auth-layout[data-auth-mode=signup] #account-submit{grid-column:1/-1}
+body.stitch-exact .auth-layout[data-reauth]{grid-template-columns:minmax(0,460px);justify-content:center;gap:0}
+@media(max-width:900px){body.stitch-exact>main.auth-layout{display:block!important;width:calc(100% - 24px)!important;max-width:500px;max-inline-size:calc(100% - 24px);margin:0 auto 28px!important;padding-top:84px!important;padding-inline:0!important;overflow:visible;height:auto;max-height:none}body.stitch-exact .auth-layout .auth-story{display:none}body.stitch-exact .auth-layout>.auth-panel{padding:24px!important;border-radius:18px}body.stitch-exact .auth-panel #account-title{font-size:24px!important}body.stitch-exact .auth-layout[data-auth-mode=signup] form{grid-template-columns:minmax(0,1fr)}body.stitch-exact .auth-panel #account-navigation{display:flex}body.stitch-exact .auth-panel #account-navigation>.btn{width:auto}body.stitch-exact .auth-panel #account-captcha{overflow:visible}}
+@media(max-width:380px){body.stitch-exact .auth-layout>.auth-panel{padding:20px 16px!important}body.stitch-exact>main.auth-layout{padding-top:78px!important}body.stitch-exact .auth-panel .account-brand{font-size:13px}}
+@media(prefers-reduced-motion:reduce){body.stitch-exact .auth-panel *{transition:none!important}}

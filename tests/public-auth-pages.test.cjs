@@ -3,3 +3,16 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 test('public login and signup both expose working account forms and preserve distinct destinations',()=>{for(const lang of ['ar','en'])for(const page of ['login','signup']){const html=render(lang,page);assert(html.includes('data-auth-page="'+page+'"'));assert.equal((html.match(/id="account-form"/g)||[]).length,1);assert(html.includes('/assets/account.js'));assert(html.includes('/assets/account.css'));assert(html.includes('href="/'+lang+'/signup"'));assert(html.includes('href="/'+lang+'/login"'));assert(html.includes('href="/auth/google"'));assert(html.includes('href="/'+(lang==='ar'?'en':'ar')+'/'+page+'"'));assert(html.includes('content="noindex"'));}});
 test('public start buttons lead to registration while sign-in buttons keep the login route',()=>{for(const lang of ['ar','en'])for(const page of ['home','product','plans','help','blog']){const html=render(lang,page);assert(html.includes('class="sx-header-start" href="/'+lang+'/signup"'));assert(html.includes('class="sx-header-login" href="/'+lang+'/login"'));assert(!/<a\b[^>]*href="\/(ar|en)\/login"[^>]*>[^<]*(?:ابدأ|Start free|Get started)/i.test(html));}});
 test('Turnstile is allowed on public auth pages and remains excluded from unrelated pages',()=>{const security=require('../middleware/security-headers');for(const pathname of ['/ar/login','/en/signup','/ar/login/','/ar/blog']){const headers={};security({path:pathname,secure:true},{setHeader:(k,v)=>headers[k]=v},()=>{});assert.equal(headers['Content-Security-Policy'].includes('https://challenges.cloudflare.com'),pathname!=='/ar/blog');}});
+test('public auth keeps all controller targets including legal links after shared footer rendering',()=>{
+ const controller=fs.readFileSync(path.join(__dirname,'../public/assets/account.js'),'utf8');
+ const targets=[...controller.matchAll(/\$\('([a-z-]+)'\)/g)].map(m=>'account-'+m[1]);
+ for(const lang of ['ar','en'])for(const page of ['login','signup']){
+  const html=render(lang,page);
+  for(const id of new Set(targets.filter(id=>id!=='account-language')))assert(html.includes(`id="${id}"`),`${lang}/${page} missing ${id}`);
+  const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(ids.length,new Set(ids).size);
+  assert(html.indexOf('id="account-google"')<html.indexOf('id="account-form"'));
+  assert(html.includes(`href="/${lang}/privacy"`));assert(html.includes(`href="/${lang}/terms"`));
+  assert(!html.includes('id="account-language"'));
+  assert.equal((html.match(/data-auth-password=/g)||[]).length,2);
+ }
+});

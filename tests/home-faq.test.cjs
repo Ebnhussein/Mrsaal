@@ -46,7 +46,7 @@ test('Public pages use exactly the homepage desktop and mobile footer, including
    const html=render(lang,page);
    assert(html.includes(footer),`${lang}/${page} desktop footer`);
    assert(html.includes(mobile),`${lang}/${page} mobile footer`);
-   assert.equal((html.match(/<footer\b/g)||[]).length,page==='home'?3:2,`${lang}/${page} no imported duplicates`);
+   assert.equal((html.match(/<footer\b/g)||[]).length,['home','login','signup'].includes(page)?3:2,`${lang}/${page} no imported duplicates`);
    assert(html.includes('/assets/public-footer.css?'));
   }
  }
