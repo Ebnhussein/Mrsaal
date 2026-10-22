@@ -15,10 +15,10 @@
   };
   const [title,description]=copy[action]||copy.error,d=popup(title);d.classList.add('campaign-notice');d.dataset.notice=action;
   d.setAttribute('aria-labelledby','campaign-notice-title');d.querySelector('h2').id='campaign-notice-title';
-  const mark=el('span',action==='error'?'!':'✓');mark.className='campaign-notice-mark';mark.setAttribute('aria-hidden','true');d.append(mark);
+  const mark=el('span',action==='error'?'!':'✓');mark.className='campaign-notice-mark';mark.setAttribute('aria-hidden','true');d.prepend(mark);
   const text=el('p',description);text.className='campaign-notice-description';d.append(text);
   const actions=el('div');actions.className='campaign-notice-actions';
-  if(onView){const view=button(tr('عرض حملات الإرسال','View sending campaigns'),async()=>{d.close();await onView();});view.classList.add('btn-primary');actions.append(view);}
+  if(onView){const view=button(tr('عرض حملات الإرسال','View sending campaigns'),async()=>{d.close();await onView();});view.className='btn btn-primary campaign-notice-primary';actions.append(view);}
   if(onOther)actions.append(button(tr('مراجعة الوسيلة التانية','Review the other channel'),async()=>{d.close();await onOther();}));
   actions.append(button(tr('تمام','Got it'),()=>d.close()));d.append(actions);return d;
  }

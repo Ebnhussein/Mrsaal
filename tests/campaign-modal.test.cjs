@@ -2,6 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 class Node{
  constructor(tag,text=''){this.tag=tag;this.textContent=text;this.children=[];this.className='';this.attrs={};this.dataset={};this.style={};this.disabled=false;this.isConnected=true;this.scrollTop=0;this.classList={add:(...c)=>{this.className+=' '+c.join(' ');}};}
+ prepend(...items){for(const item of items)item.parentElement=this;this.children.unshift(...items);}
  append(...items){for(const item of items)item.parentElement=this;this.children.push(...items);}setAttribute(k,v){this.attrs[k]=v;}addEventListener(){}
  replaceChildren(...items){this.children=items;}close(){this.closed=true;}
  querySelector(s){return this.querySelectorAll(s)[0];}

@@ -40,13 +40,30 @@
 #mrsaal-support .support-tools>button{flex:1 1 0;min-width:0;text-align:center}
 .review-smart .review-footer>.btn,.review-smart .review-card-actions>.btn{white-space:normal;max-width:100%}
 
-/* Campaign outcomes appear in the top layer with an explicit next step. */
-.launch-dialog.campaign-notice{position:fixed;inset:0;margin:auto!important;width:min(440px,calc(100vw - 32px));height:auto;max-height:calc(100dvh - 32px);padding:24px;box-sizing:border-box;text-align:start}
+/* Compact outcomes: intrinsic height avoids stretching between inset edges. */
+.launch-dialog.campaign-notice[open]{
+ --notice-icon-bg:#e5f5ee;--notice-icon-ink:#176b50;
+ position:fixed;inset:0;margin:auto!important;display:block;
+ width:min(448px,calc(100vw - 32px));max-width:calc(100vw - 32px);
+ height:fit-content;min-height:0;max-height:calc(100dvh - 32px);
+ padding:32px 28px 24px;box-sizing:border-box;overflow:auto;
+ border:1px solid var(--border);border-radius:24px;background:var(--surface);
+ color:var(--text);box-shadow:0 24px 80px #0003;text-align:center;
+}
+html[data-theme=dark] .campaign-notice[open]{--notice-icon-bg:#203e33;--notice-icon-ink:#83ddbf}
+.campaign-notice::backdrop{background:#071b17a6;backdrop-filter:blur(4px)}
+.campaign-notice .launch-dialog-head{justify-content:center;padding:0;margin:0 0 12px;border:0}
+.campaign-notice .launch-dialog-head h2{font-size:22px;font-weight:750;line-height:1.5;text-align:center;margin:0;max-width:100%;overflow-wrap:anywhere}
+.campaign-notice .launch-dialog-head .launch-close{position:absolute;inset-block-start:14px;inset-inline-end:14px;width:36px;height:36px;min-height:36px;font-size:23px;border:0;background:transparent;color:var(--text2)}
+.campaign-notice .launch-close:hover{background:var(--surface2);color:var(--text)}
 .campaign-notice .launch-status:empty{display:none}
-.campaign-notice-mark{display:grid;place-items:center;width:48px;height:48px;margin-block:8px 16px;border-radius:50%;background:var(--surface2);color:var(--accent,var(--green));font-size:26px;font-weight:700}
-.campaign-notice-description{margin:0 0 22px;font-size:15px;line-height:1.8;overflow-wrap:anywhere}
-.campaign-notice-actions{display:flex;flex-wrap:wrap;gap:10px}
-.campaign-notice-actions button{min-height:44px;flex:1 1 160px}
-@media(max-width:480px){.launch-dialog.campaign-notice{padding:20px}.campaign-notice-actions button{flex-basis:100%}}
-
-.campaign-notice[data-notice=error] .campaign-notice-mark{color:var(--red,#c13c45)}
+.campaign-notice-mark{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 18px;border:6px solid var(--surface);outline:1px solid var(--border);border-radius:50%;box-sizing:border-box;background:var(--notice-icon-bg);color:var(--notice-icon-ink);font-size:29px;font-weight:700;line-height:1}
+.campaign-notice-description{margin:0 auto 24px;max-width:35ch;font-size:15px;line-height:1.85;color:var(--text2);overflow-wrap:anywhere}
+.campaign-notice-actions{display:flex;flex-wrap:wrap;gap:10px;padding-top:20px;border-top:1px solid var(--border)}
+.campaign-notice .campaign-notice-actions button{min-height:46px;flex:1 1 145px;border-radius:12px;font-size:14px;font-weight:650;padding:11px 14px}
+.campaign-notice .campaign-notice-primary{background:var(--notice-icon-ink);border:1px solid var(--notice-icon-ink);color:var(--surface)}
+.campaign-notice .campaign-notice-actions .btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
+.campaign-notice button:focus-visible{outline:3px solid var(--notice-icon-ink);outline-offset:3px}
+.campaign-notice[data-notice=error] .campaign-notice-mark{color:var(--red,#c13c45);background:var(--surface2)}
+@media(max-width:480px){.launch-dialog.campaign-notice[open]{width:calc(100vw - 24px);max-width:calc(100vw - 24px);padding:28px 20px 20px;border-radius:20px;max-height:calc(100dvh - 24px)}.campaign-notice .launch-dialog-head h2{font-size:20px}.campaign-notice-actions button{flex-basis:100%}.campaign-notice-description{font-size:14px}}
+@media(max-height:480px){.launch-dialog.campaign-notice[open]{padding-block:18px}.campaign-notice-mark{width:48px;height:48px;font-size:23px;margin-bottom:10px}.campaign-notice-description{margin-bottom:14px}.campaign-notice-actions{padding-top:12px}}
