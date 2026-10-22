@@ -47,3 +47,21 @@ test('mixed-channel chooser opens the chosen review with sibling navigation and 
  assert.deepEqual(dialog.querySelectorAll('h3').map(n=>n.textContent),['Email','WhatsApp']);assert.equal(opened.length,0);
  await dialog.querySelectorAll('button')[1].onclick();assert.equal(dialog.closed,true);assert.equal(opened[0][0],'wa');assert.equal(opened[0][1],'2026-10-21T09:00');assert.strictEqual(opened[0][2],batches);
 });
+test('campaign outcome popup is localized, dismissible and opens campaigns only on an explicit click',async()=>{
+ const source=fs.readFileSync('public/assets/launch.js','utf8'),start=source.indexOf(' function campaignNotice('),end=source.indexOf(' function field(',start);
+ for(const english of [false,true]){
+  let dialog,opened=0,other=0;const box={tr:(ar,en)=>english?en:ar,el:(tag,text)=>new Node(tag,text),popup:title=>{dialog=new Node('dialog');dialog.append(new Node('h2',title));return dialog;},button:(text,fn)=>{const n=new Node('button',text);n.onclick=fn;return n;}};
+  vm.runInNewContext(source.slice(start,end),box);box.campaignNotice('start',{onView:async()=>opened++,onOther:async()=>other++});assert.equal(opened,0);assert.equal(other,0);assert.match(dialog.querySelector('h2').textContent,english?/Campaign started/:/الحملة بدأت/);
+  const buttons=dialog.querySelectorAll('button');assert.equal(buttons.length,3);await buttons[0].onclick();assert.equal(opened,1);assert(dialog.closed);
+  box.campaignNotice('scheduled');assert.match(dialog.querySelector('h2').textContent,english?/scheduled/:/جدولة/);await dialog.querySelector('button').onclick();assert(dialog.closed);
+ }
+});
+
+test('starting a campaign shows its outcome after acknowledgement, and a failed request stays reviewable without retrying',async()=>{
+ const source=fs.readFileSync('public/assets/launch.js','utf8'),start=source.indexOf(' async function review('),end=source.indexOf(' async function channelBatches(',start);
+ for(const [scheduled,error]of [[null,null],['2026-12-01T12:00:00.000Z',null],[null,new Error('Connection lost')]]){
+  let dialog,posts=0;const notices=[];
+  const box={popup:()=>{dialog=new Node('dialog');dialog.append(new Node('h2'),Object.assign(new Node('p'),{className:'launch-status'}));return dialog;},tr:(_a,b)=>b,el:(tag,text)=>new Node(tag,text),button:(text,fn)=>{const n=new Node('button',text);n.onclick=fn;return n;},field:(host,label,value)=>{const wrap=new Node('label',label),input=new Node('input');input.value=value;wrap.append(input);host.append(wrap);return input;},stateLabel:s=>s,window:{MrsaalSchedule:{read:()=>({valid:true,scheduledAt:scheduled}),reject:()=>false}},request:async(_p,method)=>{if(method==='POST'){posts++;if(error)throw error;return {ok:true};}return {campaign:{channel:'email',status:'draft'},items:[]};},campaignNotice:(action,options)=>notices.push({action,options}),campaigns:async()=>{}};
+  vm.runInNewContext(source.slice(start,end),box);await box.review('id');assert.equal(notices.length,0);await dialog.querySelector('.review-footer').querySelector('button').onclick();assert.equal(posts,1);assert.equal(notices[0].action,error?'error':scheduled?'scheduled':'start');assert.equal(Boolean(dialog.closed),!error);if(error)assert.equal(notices[0].options.message,'Connection lost');
+ }
+});

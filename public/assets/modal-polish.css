@@ -39,3 +39,14 @@
 #mrsaal-support .support-more:not([open])>div{display:none!important}
 #mrsaal-support .support-tools>button{flex:1 1 0;min-width:0;text-align:center}
 .review-smart .review-footer>.btn,.review-smart .review-card-actions>.btn{white-space:normal;max-width:100%}
+
+/* Campaign outcomes appear in the top layer with an explicit next step. */
+.launch-dialog.campaign-notice{position:fixed;inset:0;margin:auto!important;width:min(440px,calc(100vw - 32px));height:auto;max-height:calc(100dvh - 32px);padding:24px;box-sizing:border-box;text-align:start}
+.campaign-notice .launch-status:empty{display:none}
+.campaign-notice-mark{display:grid;place-items:center;width:48px;height:48px;margin-block:8px 16px;border-radius:50%;background:var(--surface2);color:var(--accent,var(--green));font-size:26px;font-weight:700}
+.campaign-notice-description{margin:0 0 22px;font-size:15px;line-height:1.8;overflow-wrap:anywhere}
+.campaign-notice-actions{display:flex;flex-wrap:wrap;gap:10px}
+.campaign-notice-actions button{min-height:44px;flex:1 1 160px}
+@media(max-width:480px){.launch-dialog.campaign-notice{padding:20px}.campaign-notice-actions button{flex-basis:100%}}
+
+.campaign-notice[data-notice=error] .campaign-notice-mark{color:var(--red,#c13c45)}
