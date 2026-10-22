@@ -4,7 +4,7 @@ class Node{
  constructor(tag,text=''){this.tag=tag;this.textContent=text;this.children=[];this.className='';this.attrs={};this.dataset={};this.style={};this.disabled=false;this.isConnected=true;this.scrollTop=0;this.classList={add:(...c)=>{this.className+=' '+c.join(' ');}};}
  prepend(...items){for(const item of items)item.parentElement=this;this.children.unshift(...items);}
  append(...items){for(const item of items)item.parentElement=this;this.children.push(...items);}setAttribute(k,v){this.attrs[k]=v;}addEventListener(){}
- replaceChildren(...items){this.children=items;}close(){this.closed=true;}
+ getAttribute(k){return this.attrs[k];}replaceChildren(...items){this.children=items;}close(){this.closed=true;}
  querySelector(s){return this.querySelectorAll(s)[0];}
  querySelectorAll(s){const found=[];function visit(n){for(const c of n.children){if(s.split(',').some(selector=>selector[0]==='.'?c.className.split(' ').includes(selector.slice(1)):c.tag===selector))found.push(c);visit(c);}}visit(this);return found;}
 }
@@ -37,7 +37,7 @@ test('campaign review keeps editable cards inside the scroll region and sending 
  assert.equal(reads,1);assert.equal(dialog.querySelectorAll('.review-card').length,2);
  const content=dialog.querySelector('.review-content'),footer=dialog.querySelector('.review-footer');
  assert.equal(content.querySelectorAll('.review-card').length,2);assert(content.querySelector('.review-schedule'));
- assert.equal(footer.querySelectorAll('button').length,2);assert.equal(footer.querySelectorAll('textarea').length,0);
+ assert.equal(footer.querySelectorAll('button').length,3);assert.equal(footer.querySelectorAll('textarea').length,0);
  assert.equal(content.querySelector('textarea').value,'Saved message');assert.equal(content.querySelector('textarea').readOnly,true);
  assert.equal(attached.scroller,content);assert.equal(attached.host,footer);assert.equal(attached.items().length,3);
 });
@@ -63,6 +63,17 @@ test('starting a campaign shows its outcome after acknowledgement, and a failed 
  for(const [scheduled,error]of [[null,null],['2026-12-01T12:00:00.000Z',null],[null,new Error('Connection lost')]]){
   let dialog,posts=0;const notices=[];
   const box={popup:()=>{dialog=new Node('dialog');dialog.append(new Node('h2'),Object.assign(new Node('p'),{className:'launch-status'}));return dialog;},tr:(_a,b)=>b,el:(tag,text)=>new Node(tag,text),button:(text,fn)=>{const n=new Node('button',text);n.onclick=fn;return n;},field:(host,label,value)=>{const wrap=new Node('label',label),input=new Node('input');input.value=value;wrap.append(input);host.append(wrap);return input;},stateLabel:s=>s,window:{MrsaalSchedule:{read:()=>({valid:true,scheduledAt:scheduled}),reject:()=>false}},request:async(_p,method)=>{if(method==='POST'){posts++;if(error)throw error;return {ok:true};}return {campaign:{channel:'email',status:'draft'},items:[]};},campaignNotice:(action,options)=>notices.push({action,options}),campaigns:async()=>{}};
-  vm.runInNewContext(source.slice(start,end),box);await box.review('id');assert.equal(notices.length,0);await dialog.querySelector('.review-footer').querySelector('button').onclick();assert.equal(posts,1);assert.equal(notices[0].action,error?'error':scheduled?'scheduled':'start');assert.equal(Boolean(dialog.closed),!error);if(error)assert.equal(notices[0].options.message,'Connection lost');
+  vm.runInNewContext(source.slice(start,end),box);await box.review('id');assert.equal(notices.length,0);await dialog.querySelector('.review-footer').querySelectorAll('button')[1].onclick();assert.equal(posts,1);assert.equal(notices[0].action,error?'error':scheduled?'scheduled':'start');assert.equal(Boolean(dialog.closed),!error);if(error)assert.equal(notices[0].options.message,'Connection lost');
  }
+});
+
+test('approval stays disabled after success, resets on editing, and bulk skips approved and empty drafts without sending',async()=>{
+ const source=fs.readFileSync('public/assets/launch.js','utf8');let dialog;const calls=[];
+ const box={window:{},tr:(_a,b)=>b,el:(tag,text)=>new Node(tag,text),stateLabel:s=>s,popup:()=>{dialog=new Node('dialog');dialog.append(new Node('h2'),Object.assign(new Node('p'),{className:'launch-status'}));return dialog;},field:(host,label,value='')=>{const wrap=new Node('label'),input=new Node('input');input.value=value;wrap.append(input);host.append(wrap);return input;},request:async(path,method='GET')=>{calls.push([path,method]);if(method==='GET')return {campaign:{status:'draft',channel:'email'},items:[{id:'a',company_id:'a',status:'draft',subject:'Subject',body:'Message'},{id:'b',company_id:'b',status:'ready',subject:'Approved',body:'Saved'},{id:'c',company_id:'c',status:'draft',subject:'',body:''}]};return {};}};
+ vm.runInNewContext(source.slice(source.indexOf(' function button('),source.indexOf(' function popup('))+source.slice(source.indexOf(' async function review('),source.indexOf(' async function channelBatches(')),box);
+ await box.review('campaign');const cards=dialog.querySelectorAll('.review-card'),approve=cards[0].querySelector('.review-approve');assert.equal(cards[1].querySelector('.review-approve').disabled,true);
+ await approve.onclick();assert.equal(approve.disabled,true);assert.equal(approve.textContent,'Approved ✓');assert.equal(cards[0].querySelectorAll('input')[0].readOnly,true);
+ await cards[0].querySelector('button').onclick();assert.equal(approve.disabled,false);
+ await dialog.querySelector('.review-approve-all').onclick();assert.equal(approve.disabled,true);assert.equal(cards[2].querySelector('.review-approve').disabled,false);
+ assert.equal(calls.filter(([p,m])=>m==='PATCH'&&p.endsWith('/a')).length,2);assert.equal(calls.filter(([p,m])=>m==='PATCH'&&p.endsWith('/b')).length,0);assert.equal(calls.filter(([p,m])=>m==='PATCH'&&p.endsWith('/c')).length,0);assert(!calls.some(([p])=>p.endsWith('/start')));
 });
