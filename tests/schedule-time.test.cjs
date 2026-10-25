@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),{createRequire}=require('node:module');
-const parse=require('../utils/schedule-time').parse;
+const parse=require('../utils/delivery/schedule-time').parse;
 const frozen=Date.now();
 function fixedDate(now){return class extends Date{static now(){return now();}};}
 function browser({lang='ar',now=()=>frozen,value=new Date(frozen+60000).toISOString()}={}){
@@ -31,10 +31,10 @@ test('single-message confirmation does not send or mark a company failed if time
  await context.confirmSend();assert.equal(flushes,1);assert.equal(sends,0);
 });
 test('scheduler revalidates after waiting for the user lock and creates no rows when the time expires',async()=>{
- let now=frozen;const statements=[];const filename=require.resolve('../utils/schedule-send');
+ let now=frozen;const statements=[];const filename=require.resolve('../utils/delivery/schedule-send');
  const scheduleTime={parse(value){const ts=Date.parse(value);if(ts<=now)throw Object.assign(new Error('Expired'),{code:'SCHEDULE_TIME_PAST',status:400});return new Date(ts).toISOString();}};
  const client={async query(sql){statements.push(sql);if(sql.startsWith('SELECT id FROM users'))now+=120000;return {rows:[]};},release(){}};
- const box={module:{exports:{}},require:id=>id==='./db'?{pool:{connect:async()=>client}}:id==='./schedule-time'?scheduleTime:createRequire(filename)(id),Date:fixedDate(()=>now)};
+ const box={module:{exports:{}},require:id=>id==='../db'?{pool:{connect:async()=>client}}:id==='./schedule-time'?scheduleTime:createRequire(filename)(id),Date:fixedDate(()=>now)};
  vm.runInNewContext(fs.readFileSync(filename,'utf8'),box);
  await assert.rejects(box.module.exports.schedule('u',{company:{id:'c'},channel:'email',body:'Draft',scheduledAt:new Date(frozen+60000).toISOString(),idempotencyKey:'valid-key'}),e=>e.code==='SCHEDULE_TIME_PAST');
  assert(statements.includes('ROLLBACK'));assert(!statements.some(s=>s.startsWith('INSERT')));

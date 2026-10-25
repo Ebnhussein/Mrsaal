@@ -1,7 +1,7 @@
 'use strict';
 // Editors and background workers claim work under the same user row lock.
 // An editor can never open while a matching send is already processing/uncertain.
-const {pool}=require('./db');const {randomUUID}=require('crypto');
+const {pool}=require('../db');const {randomUUID}=require('crypto');
 const fail=(code,status=409)=>Object.assign(new Error(code),{code,status,beforeSend:true});
 async function transaction(userId,fn){const c=await pool.connect();try{await c.query('BEGIN');const u=await c.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[userId]);if(!u.rows.length)throw fail('EDIT_NOT_FOUND',404);const result=await fn(c);await c.query('COMMIT');return result;}catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}}
 async function begin(userId,companyId,channel){

@@ -1,16 +1,16 @@
-const {checkToolAccess}=require('./access-control');
+const {checkToolAccess}=require('../access-control');
 const cron=require('node-cron');
 const {v4:uuidv4}=require('uuid');
-const {all,get,run}=require('./db');
-const {generateEmail,generateWhatsAppMessage}=require('./ai/index');
-const {sendEmail}=require('./gmail/client');
-const {resolveAccount}=require('./gmail/accounts');
-const {sendWhatsAppMessage}=require('./whatsapp/baileys');
-const {syncReplies}=require('./gmail/reply-tracker');
+const {all,get,run}=require('../db');
+const {generateEmail,generateWhatsAppMessage}=require('../ai/index');
+const {sendEmail}=require('../gmail/client');
+const {resolveAccount}=require('../gmail/accounts');
+const {sendWhatsAppMessage}=require('../whatsapp/baileys');
+const {syncReplies}=require('../gmail/reply-tracker');
 const BASE_URL=(process.env.BASE_URL||'https://mrsaal.ebnhussein.co').replace(/\/$/,'');
 let busy=false,syncBusy=false;
 const tasks=[];
-const {chooseChannel,skipReason}=require('../utils/delivery-channel');
+const {chooseChannel,skipReason}=require('./channel');
 async function ensureSchedulerSchema(){await run('ALTER TABLE scheduled_jobs ADD COLUMN IF NOT EXISTS log_id TEXT');}
 async function tick(){
  if(busy)return;busy=true;try{
@@ -18,7 +18,7 @@ async function tick(){
  for(const job of jobs){try{await checkToolAccess(job.user_id);}catch{continue;}
  const claim=await require('./edit-safety').claimSchedule(job);if(!claim)continue;
  try{const draft=await get('SELECT * FROM email_log WHERE id=$1 AND user_id=$2',[job.log_id,job.user_id]);if(!draft?.body?.trim()){await run("UPDATE scheduled_jobs SET status='failed' WHERE id=$1",[job.id]);if(job.log_id)await run("UPDATE email_log SET status='failed',reason='المسودة تحتاج المراجعة؛ لم يتم توليد أو إرسال نص تلقائيًا' WHERE id=$1",[job.log_id]);continue;}
- const result=await require('./delivery').deliver(job.user_id,{companyId:job.company_id,channel:draft.channel,subject:draft.subject||'',body:draft.body,senderAccountId:job.sender_account_id,cvId:job.cv_id,idempotencyKey:'schedule:'+job.id,existingLogId:job.log_id});await run('UPDATE scheduled_jobs SET status=$1 WHERE id=$2',[result.status,job.id]);
+ const result=await require('./index').deliver(job.user_id,{companyId:job.company_id,channel:draft.channel,subject:draft.subject||'',body:draft.body,senderAccountId:job.sender_account_id,cvId:job.cv_id,idempotencyKey:'schedule:'+job.id,existingLogId:job.log_id});await run('UPDATE scheduled_jobs SET status=$1 WHERE id=$2',[result.status,job.id]);
  }catch(e){await run("UPDATE scheduled_jobs SET status='uncertain' WHERE id=$1",[job.id]);console.warn('Scheduled delivery requires review',job.id);}
  }
  }catch(e){console.warn('Scheduler unavailable',e.code||e.name);}finally{busy=false;}

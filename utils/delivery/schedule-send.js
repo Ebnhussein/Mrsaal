@@ -1,5 +1,5 @@
 'use strict';
-const {pool}=require('./db');const {randomUUID,createHash}=require('crypto');
+const {pool}=require('../db');const {randomUUID,createHash}=require('crypto');
 async function schedule(userId,{company,channel,account,cv,body,subject='',scheduledAt,idempotencyKey}){
  scheduledAt=require('./schedule-time').parse(scheduledAt);
  if(!scheduledAt){const e=new Error('اختار تاريخ ووقت صحيحين للجدولة.');e.status=400;e.code='SCHEDULE_TIME_INVALID';throw e;}

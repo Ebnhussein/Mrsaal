@@ -15,7 +15,7 @@ const { sendWhatsAppMessage, requireConnected } = require('../utils/whatsapp/ser
 
 const BASE_URL = (process.env.BASE_URL || 'https://mrsaal.ebnhussein.co').replace(/\/$/,'');
 
-const {hasEmail,hasPhone,chooseChannel,skipReason,destination}=require('../utils/delivery-channel');
+const {hasEmail,hasPhone,chooseChannel,skipReason,destination}=require('../utils/delivery/channel');
 async function recordSkip(userId,company,channel,reason){
  await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,status,reason,channel) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
  [uuidv4(),userId,company.id,company.name,destination(company,channel)||'', 'skipped',reason,channel]);
@@ -60,7 +60,7 @@ router.post('/generate', requireAuth, wrap(async (req, res) => {
 
 router.post('/send', requireAuth, wrap(async (req, res) => {
   const { companyId, subject, body } = req.body;
-  const scheduledAt = require('../utils/schedule-time').parse(req.body.scheduledAt);
+  const scheduledAt = require('../utils/delivery/schedule-time').parse(req.body.scheduledAt);
   const company = await get('SELECT * FROM companies WHERE id=$1 AND user_id=$2', [companyId, req.session.userId]);
   if (!company) return res.status(404).json({ error: 'الشركة غير موجودة' });
   const channel=chooseChannel(company,req.body.channel);
@@ -78,9 +78,9 @@ router.post('/send', requireAuth, wrap(async (req, res) => {
   if (scheduledAt && channel==='whatsapp') await requireConnected(req.session.userId);
 
   const account=channel==='email'?await resolveAccount(req.session.userId,req.body.senderAccountId||null):null;
-  if(scheduledAt)return res.json(await require('../utils/schedule-send').schedule(req.session.userId,{company,channel,account,cv,body,subject:subject||'',scheduledAt,idempotencyKey:req.body.idempotencyKey}));
+  if(scheduledAt)return res.json(await require('../utils/delivery/schedule-send').schedule(req.session.userId,{company,channel,account,cv,body,subject:subject||'',scheduledAt,idempotencyKey:req.body.idempotencyKey}));
 
-  const result=await require('../utils/delivery').deliver(req.session.userId,{companyId,channel,subject:subject||'',body,senderAccountId:req.body.senderAccountId||null,idempotencyKey:req.body.idempotencyKey});
+  const result=await require('../utils/delivery/index').deliver(req.session.userId,{companyId,channel,subject:subject||'',body,senderAccountId:req.body.senderAccountId||null,idempotencyKey:req.body.idempotencyKey});
   return res.status(result.ok?200:409).json(result);
 }));
 
