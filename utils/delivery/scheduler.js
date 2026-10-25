@@ -1,4 +1,4 @@
-const {checkToolAccess}=require('../access-control');
+const {checkToolAccess}=require('../auth/access-control');
 const cron=require('node-cron');
 const {v4:uuidv4}=require('uuid');
 const {all,get,run}=require('../db');

@@ -11,7 +11,7 @@ async function deliver(userId,{companyId,channel,subject='',body,senderAccountId
  try{
  const reason=require('./channel').skipReason(company,channel);
  if(reason){const result={ok:true,status:'skipped',skipped:true,channel,reason};await run('UPDATE delivery_attempts SET status=$1,result=$2 WHERE id=$3',['skipped',JSON.stringify(result),attempt.id]);return result;}
- await require('../access-control').checkToolAccess(userId);if(channel==='whatsapp')await require('../whatsapp/safety').assertWithinDailyCap(userId);credit=await require('../usage/limits').reserve(userId,'send');
+ await require('../auth/access-control').checkToolAccess(userId);if(channel==='whatsapp')await require('../whatsapp/safety').assertWithinDailyCap(userId);credit=await require('../usage/limits').reserve(userId,'send');
  const user=await get('SELECT * FROM users WHERE id=$1',[userId]);
  const account=channel==='email'?await require('../gmail/accounts').resolveAccount(userId,senderAccountId):null;
  const cv=await require('../cv/store').active(userId,cvId);if(cvId&&!cv)throw new Error('السيرة المحددة لم تعد متاحة');

@@ -2,7 +2,7 @@
 const router=require('express').Router();const {randomBytes,timingSafeEqual}=require('crypto');const {v4:uuidv4}=require('uuid');
 const {getAuthUrl,getTokensFromCode,getUserInfo}=require('../utils/gmail/client');const {get,run}=require('../utils/db');const {saveAccount}=require('../utils/gmail/accounts');const wrap=require('../middleware/async-handler');const {requireAuth}=require('../middleware/auth');
 const saveSession=req=>new Promise((resolve,reject)=>req.session.save(e=>e?reject(e):resolve()));
-async function begin(req,res,mode,replies=false){await require('../utils/registration').googleLimit(req.ip);const state=randomBytes(32).toString('hex');req.session.googleFlow={state,mode,userId:mode==='link'?req.session.userId:null,replies,expires:Date.now()+600000};await saveSession(req);res.redirect(getAuthUrl(state,mode,{replies}));}
+async function begin(req,res,mode,replies=false){await require('../utils/auth/registration').googleLimit(req.ip);const state=randomBytes(32).toString('hex');req.session.googleFlow={state,mode,userId:mode==='link'?req.session.userId:null,replies,expires:Date.now()+600000};await saveSession(req);res.redirect(getAuthUrl(state,mode,{replies}));}
 router.get('/google',wrap((req,res)=>begin(req,res,'login')));
 router.get('/google/link',requireAuth,wrap((req,res)=>begin(req,res,'link',req.query.replies==='1')));
 router.get('/google/callback',wrap(async(req,res)=>{

@@ -58,7 +58,7 @@ function loadServices() {
     scheduler: require('./utils/delivery/scheduler'),
     notifications: require('./utils/notifications'),
     launchSchema: require('./utils/launch-schema'),
-    accessControl: require('./utils/access-control'),
+    accessControl: require('./utils/auth/access-control'),
     mrsaalwa: require('./utils/whatsapp/mrsaalwa'),
     whatsapp: require('./utils/whatsapp/baileys'),
     campaignWorker: require('./utils/delivery/campaign-worker'),

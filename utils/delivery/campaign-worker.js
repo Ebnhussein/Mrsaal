@@ -6,7 +6,7 @@ async function tick(){if(busy||stopping)return;busy=true;let client,locked=false
  await client.query('BEGIN');try{const reminders=(await client.query("SELECT id,user_id,name,remind_at FROM companies WHERE remind_at<=$1 AND reminder_sent=false LIMIT 20 FOR UPDATE SKIP LOCKED",[Date.now()])).rows;for(const co of reminders){await client.query("SELECT mrsaal_notify($1,$2,'followup_reminder','messages',$3::jsonb,$4::jsonb)",[co.user_id,'reminder:'+co.id+':'+co.remind_at,JSON.stringify({page:'followup'}),JSON.stringify({company:co.name})]);await client.query('UPDATE companies SET reminder_sent=true WHERE id=$1 AND remind_at=$2',[co.id,co.remind_at]);}await client.query('COMMIT');}catch(e){await client.query('ROLLBACK');throw e;}
 
  const c=await get("SELECT * FROM campaigns WHERE status='running' AND next_at<=NOW() ORDER BY next_at LIMIT 1");if(!c)return;
- try{await require('../access-control').checkToolAccess(c.user_id);}catch{await run("UPDATE campaigns SET status='paused' WHERE id=$1",[c.id]);return;}
+ try{await require('../auth/access-control').checkToolAccess(c.user_id);}catch{await run("UPDATE campaigns SET status='paused' WHERE id=$1",[c.id]);return;}
  const claim=await require('./edit-safety').claimCampaign(c);if(!claim.active)return;const item=claim.item;
  if(!item){await run("UPDATE campaigns SET status='completed' WHERE id=$1 AND status='running'",[c.id]);await require('../notifications').emit(c.user_id,'campaign-done:'+c.id,'schedule_done','messages',{page:'campaigns',campaignId:c.id});return;}
  // Status may have changed while the worker acquired the item.

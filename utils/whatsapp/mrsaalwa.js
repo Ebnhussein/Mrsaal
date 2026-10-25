@@ -28,7 +28,7 @@ async function prepareDefault(id){
  if(p.provider==='mrsaalwa'||p.provider_chosen||!await allowed(id))return p;
  await select(id,'mrsaalwa',true);return profile(id);
 }
-async function assertAllowed(id){if(!await allowed(id))throw fail('MRSAALWA_DISABLED',403);await require('../access-control').checkToolAccess(id);}
+async function assertAllowed(id){if(!await allowed(id))throw fail('MRSAALWA_DISABLED',403);await require('../auth/access-control').checkToolAccess(id);}
 async function locked(id,task){await ensureSchema();const c=await pool.connect();try{await c.query('BEGIN');const r=await c.query('SELECT id FROM users WHERE id=$1 FOR NO KEY UPDATE NOWAIT',[id]);if(!r.rows.length)throw fail('MRSAALWA_DISABLED',403);const result=await task(c);await c.query('COMMIT');return result;}catch(e){await c.query('ROLLBACK');if(e.code==='55P03')throw fail('MRSAALWA_BUSY',409);throw e;}finally{c.release();}}
 async function event(id,type,code=null){await run('INSERT INTO mrsaalwa_events(id,user_id,event,code) VALUES($1,$2,$3,$4)',[randomUUID(),id,type,code]);await run("DELETE FROM mrsaalwa_events WHERE created_at<NOW()-INTERVAL '14 days'");}
 async function busy(id){return !!await get(`SELECT id FROM delivery_attempts WHERE user_id=$1 AND status IN ('processing','uncertain')

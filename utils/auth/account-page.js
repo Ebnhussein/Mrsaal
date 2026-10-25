@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('fs'),path=require('path');
-const form=fs.readFileSync(path.join(__dirname,'../public/account.html'),'utf8').match(/<main\b[^>]*>([\s\S]*?)<\/main>/)[1];
+const form=fs.readFileSync(path.join(__dirname,'../../public/account.html'),'utf8').match(/<main\b[^>]*>([\s\S]*?)<\/main>/)[1];
 function accountContent(lang,page){
  const en=lang==='en',signup=page==='signup';
  const title=en?(signup?'Your next step starts here.':'Welcome back.'):(signup?'خطوتك الجاية تبدأ هنا.':'أهلًا بيك من تاني.');

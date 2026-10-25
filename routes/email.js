@@ -1,4 +1,4 @@
-const {checkToolAccess}=require('../utils/access-control');
+const {checkToolAccess}=require('../utils/auth/access-control');
 // routes/email.js
 const express = require('express');
 const router = express.Router();

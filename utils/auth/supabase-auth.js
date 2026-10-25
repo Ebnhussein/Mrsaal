@@ -1,5 +1,5 @@
 'use strict';
-const {get,run}=require('./db');const {randomUUID}=require('crypto');
+const {get,run}=require('../db');const {randomUUID}=require('crypto');
 function configured(){return !!(process.env.SUPABASE_URL&&process.env.SUPABASE_PUBLISHABLE_KEY);}
 async function request(path,body,token=null,method=null){
  if(!configured()){const e=new Error('تسجيل البريد غير مفعّل بعد. استخدم Google أو تواصل مع الدعم.');e.status=503;throw e;}

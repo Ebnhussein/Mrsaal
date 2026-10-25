@@ -1,5 +1,5 @@
 'use strict';
-const {createHmac}=require('crypto');const {run}=require('./db');
+const {createHmac}=require('crypto');const {run}=require('../db');
 function fail(message,status=400,code='INVALID_REGISTRATION'){throw Object.assign(new Error(message),{status,code});}
 function profile(body){if(typeof body.name!=='string'||typeof body.phone!=='string')fail('اكتب الاسم ورقم الموبايل بشكل صحيح.');const name=String(body.name||'').trim().replace(/\s+/g,' ');if(name.length<2||name.length>120)fail('اكتب اسمك من حرفين إلى 120 حرفًا.');const raw=String(body.phone||'').replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).trim();const phone=raw.replace(/[\s()-]/g,'').replace(/^00/,'+');if(!/^\+[1-9]\d{7,14}$/.test(phone))fail('اكتب رقم الموبايل بكود الدولة، مثل +201012345678.');if(body.acceptTerms!==true)fail('وافق على الشروط وسياسة الخصوصية للمتابعة.');return {name,phone};}
 function captcha(body){const siteKey=process.env.TURNSTILE_SITE_KEY;if(!siteKey)return {};const token=body.captchaToken;if(typeof token!=='string'||token.length<10||token.length>4096)fail('أكمل التحقق من أنك إنسان وحاول مرة أخرى.',400,'CAPTCHA_REQUIRED');return {gotrue_meta_security:{captcha_token:token}};}
