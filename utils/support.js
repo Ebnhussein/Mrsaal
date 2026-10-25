@@ -1,6 +1,6 @@
 'use strict';
 const docs=require('./support-knowledge');
-const {callGemini}=require('./ai');
+const {callGemini}=require('./ai/index');
 const catalogue=new Map(docs.map(d=>[d.id,d]));
 const OUTSIDE='أنا مساعد مرسال، أقدر أشرح استخدام البرنامج وحل مشاكله فقط. اختار موضوع زي رفع السي في، استيراد الشركات، أسلوب الكتابة أو الإرسال.';
 function parse(t){try{return JSON.parse(t.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,''));}catch{return null;}}

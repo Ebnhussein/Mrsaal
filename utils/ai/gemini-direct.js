@@ -1,6 +1,6 @@
-const health=require('./ai-health');
+const health=require('./health');
 const { GoogleGenAI } = require('@google/genai');
-const {withRecovery,withOutputRecovery,compactPrompt,retryAfter,hardQuota}=require('./ai-retry');
+const {withRecovery,withOutputRecovery,compactPrompt,retryAfter,hardQuota}=require('./retry');
 
 // =====================================================
 // قائمة الموديلات الافتراضية — ضيف أو رتّب الموديلات هنا.

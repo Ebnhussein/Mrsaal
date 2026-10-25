@@ -1,10 +1,10 @@
 'use strict';
 // Explicit platform chain enables cloud providers plus local fallback. Legacy settings remain compatible.
 const platformChainEnabled=()=>!!process.env.MRSAAL_AI_MODEL_CHAIN?.trim();
-const {callGemini:legacyCall}=require('./ai-legacy');
+const {callGemini:legacyCall}=require('./gemini-direct');
 async function platformCall(prompt,maxTokens,apiKey,modelName,validate,deadline,userId){
- if(platformChainEnabled())return require('./ai-platform').callPlatformAI(prompt,maxTokens,validate,deadline,userId);
- if(process.env.LOCAL_AI_BASE_URL?.trim())return require('./ai-local').callLocalAI(prompt,maxTokens,validate,deadline,userId);
+ if(platformChainEnabled())return require('./platform').callPlatformAI(prompt,maxTokens,validate,deadline,userId);
+ if(process.env.LOCAL_AI_BASE_URL?.trim())return require('./local').callLocalAI(prompt,maxTokens,validate,deadline,userId);
  return legacyCall(prompt,maxTokens,apiKey,modelName,validate,deadline);
 }
 
@@ -14,7 +14,7 @@ async function runOperation(userId,kind,fn){
  const timeout=Number(process.env.AI_TOTAL_TIMEOUT_MS);
  const deadline=Date.now()+(Number.isFinite(timeout)&&timeout>=modelTimeout&&timeout<=90000?timeout:45000);
  if(!userId)return fn({deadline});
- const {get}=require('./db'),usage=require('./usage-limits'),leases=require('./ai-leases');
+ const {get}=require('../db'),usage=require('../usage-limits'),leases=require('./leases');
  const lease=await leases.acquire(userId);let credit,operation;
  try{const prefs=await get('SELECT ai_source,ai_personal_fallback FROM users WHERE id=$1',[userId]);
  operation={deadline,source:prefs?.ai_source==='personal'?'personal':'mrsaal',fallback:prefs?.ai_personal_fallback===true};
@@ -28,7 +28,7 @@ async function callGemini(prompt,maxTokens=1200,apiKey=null,modelName=null,valid
  if(!userId)return platformCall(prompt,maxTokens,apiKey,modelName,validate,operation?.deadline,null);
  if(!operation)return runOperation(userId,kind,op=>callGemini(prompt,maxTokens,null,null,validate,userId,op,kind));
  if(Date.now()>=operation.deadline){const e=new Error('انتهت مهلة الكتابة. جرّب موديلًا أسرع.');e.code='TIMEOUT';throw e;}
- const personal=async()=>{if(Date.now()>=operation.deadline)throw Object.assign(new Error('انتهت مهلة الكتابة.'),{code:'TIMEOUT'});await operation.usePersonal?.();const text=await require('./ai-providers').callUserAI(userId,prompt,maxTokens,validate,operation.deadline);if(text===null)throw new Error('اختار منصة شخصية وموديل مفعّل من الإعدادات، أو استخدم مرسال AI.');return text;};
+ const personal=async()=>{if(Date.now()>=operation.deadline)throw Object.assign(new Error('انتهت مهلة الكتابة.'),{code:'TIMEOUT'});await operation.usePersonal?.();const text=await require('./providers').callUserAI(userId,prompt,maxTokens,validate,operation.deadline);if(text===null)throw new Error('اختار منصة شخصية وموديل مفعّل من الإعدادات، أو استخدم مرسال AI.');return text;};
  if(operation.source==='personal')return personal();
  try{return await platformCall(prompt,maxTokens,null,null,validate,operation.deadline,userId);}
  catch(e){if(!operation.fallback||e.code==='AI_CANCELLED')throw e;return personal();}

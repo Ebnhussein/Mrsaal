@@ -1,5 +1,5 @@
 'use strict';
-const {get,run,pool}=require('./db');const {randomUUID}=require('crypto');
+const {get,run,pool}=require('../db');const {randomUUID}=require('crypto');
 function bounded(name,fallback,min,max){const n=Number(process.env[name]);return Number.isInteger(n)&&n>=min&&n<=max?n:fallback;}
 function fail(message,code='AI_UNAVAILABLE',status=429){return Object.assign(new Error(message),{code,status});}
 async function first(scope){return get("SELECT id,user_id FROM local_ai_queue WHERE scope=$1 AND status='waiting' AND expires_at>NOW() ORDER BY created_at,id LIMIT 1",[scope]);}

@@ -7,11 +7,11 @@ function setup({generate,local,models,env:extra={}}={}){
  const env={MRSAAL_AI_MODEL_CHAIN:plan,GROQ_API_KEY:'groq-secret',GEMINI_API_KEY:'google-secret',OPENROUTER_API_KEY:'router-secret',LOCAL_AI_API_KEY:'local-secret',LOCAL_AI_BASE_URL:'https://local.test/v1',...extra};
  const box={module:{exports:{}},process:{env},Date:{now:()=>now},console:{log(){},warn(){}},require:id=>{
   if(id==='crypto')return {createHash};
-  if(id==='./ai-health')return {available:(p,k,m)=>cache.get(p+m),failed:(p,k,m,c)=>cache.set(p+m,{code:c}),success:(p,k,m)=>cache.delete(p+m)};
-  if(id==='./ai-providers')return {listModels:async(p,k,free,timeout)=>{discovery.push({p,timeout});return models?models(p):[{id:p==='groq'?'openai/gpt-oss-20b':'gemini-3.1-flash-lite'}];},generate:async(...a)=>{calls.push(a);return generate?generate(...a):'{"body":"OK"}';}};
-  if(id==='./ai-local')return {cleanEnvelope:t=>t.trim(),callLocalAI:async(...a)=>{calls.push(['local',...a]);return local?local(...a):'{"body":"LOCAL"}';}};
+  if(id==='./health')return {available:(p,k,m)=>cache.get(p+m),failed:(p,k,m,c)=>cache.set(p+m,{code:c}),success:(p,k,m)=>cache.delete(p+m)};
+  if(id==='./providers')return {listModels:async(p,k,free,timeout)=>{discovery.push({p,timeout});return models?models(p):[{id:p==='groq'?'openai/gpt-oss-20b':'gemini-3.1-flash-lite'}];},generate:async(...a)=>{calls.push(a);return generate?generate(...a):'{"body":"OK"}';}};
+  if(id==='./local')return {cleanEnvelope:t=>t.trim(),callLocalAI:async(...a)=>{calls.push(['local',...a]);return local?local(...a):'{"body":"LOCAL"}';}};
   throw Error(id);
- }};vm.runInNewContext(fs.readFileSync(require.resolve('../utils/ai-platform'),'utf8'),box);return {api:box.module.exports,calls,discovery,env,cache,tick:n=>now+=n};
+ }};vm.runInNewContext(fs.readFileSync(require.resolve('../utils/ai/platform'),'utf8'),box);return {api:box.module.exports,calls,discovery,env,cache,tick:n=>now+=n};
 }
 const valid=t=>!!JSON.parse(t).body;
 test('platform chain discovers a real model once, reuses it and never touches personal credentials',async()=>{
@@ -42,16 +42,16 @@ test('automatic Gemini selection excludes image, live and preview models and pre
 test('platform chain respects existing one-credit operation and explicit personal source selection',async()=>{
  for(const source of ['mrsaal','personal']){
   const events=[],env={MRSAAL_AI_MODEL_CHAIN:plan,LOCAL_AI_BASE_URL:'https://local.test'};
-  const deps={'./ai-legacy':{},'./writing-profile':require('../utils/writing-profile'),'./ai-platform':{callPlatformAI:async()=>{events.push('platform');return 'OK';}},'./ai-providers':{callUserAI:async()=>{events.push('personal');return 'OK';}},'./db':{get:async()=>({ai_source:source})},'./usage-limits':{reserve:async(u,k)=>{events.push(k);return 'credit';},commit:async()=>events.push('commit'),release:async()=>events.push('refund')},'./ai-leases':{acquire:async()=>1,release:async()=>events.push('released')}};
-  const box={module:{exports:{}},process:{env},console,require:id=>deps[id]};vm.runInNewContext(fs.readFileSync(require.resolve('../utils/ai'),'utf8'),box);
+  const deps={'./gemini-direct':{},'./writing-profile':require('../utils/ai/writing-profile'),'./platform':{callPlatformAI:async()=>{events.push('platform');return 'OK';}},'./providers':{callUserAI:async()=>{events.push('personal');return 'OK';}},'../db':{get:async()=>({ai_source:source})},'../usage-limits':{reserve:async(u,k)=>{events.push(k);return 'credit';},commit:async()=>events.push('commit'),release:async()=>events.push('refund')},'./leases':{acquire:async()=>1,release:async()=>events.push('released')}};
+  const box={module:{exports:{}},process:{env},console,require:id=>deps[id]};vm.runInNewContext(fs.readFileSync(require.resolve('../utils/ai/index'),'utf8'),box);
   assert.equal(await box.module.exports.callGemini('facts',1200,null,null,null,'owner'),'OK');assert.deepEqual(events,source==='mrsaal'?['ai','platform','commit','released']:['personal_ai','personal','commit','released']);
  }
 });
 
 test('cloud transport sends JSON mode and low-reasoning options only when requested',async()=>{
  const requests=[];
- const box={module:{exports:{}},AbortSignal,process:{env:{}},require:id=>id==='./db'?{all:async()=>[]}:id==='./connection-secrets'?{}:require(path.resolve(__dirname,'../utils',id)),fetch:async(url,opts)=>{requests.push({url,body:JSON.parse(opts.body)});return {ok:true,json:async()=>url.includes('googleapis')?{candidates:[{content:{parts:[{text:'{"body":"OK"}'}]},finishReason:'STOP'}]}:{choices:[{message:{content:'{"body":"OK"}'},finish_reason:'stop'}]}};}};
- vm.runInNewContext(fs.readFileSync(require.resolve('../utils/ai-providers'),'utf8'),box);
+ const box={module:{exports:{}},AbortSignal,process:{env:{}},require:id=>id==='./db'?{all:async()=>[]}:id==='./connection-secrets'?{}:require(path.resolve(__dirname,'../utils/ai',id)),fetch:async(url,opts)=>{requests.push({url,body:JSON.parse(opts.body)});return {ok:true,json:async()=>url.includes('googleapis')?{candidates:[{content:{parts:[{text:'{"body":"OK"}'}]},finishReason:'STOP'}]}:{choices:[{message:{content:'{"body":"OK"}'},finish_reason:'stop'}]}};}};
+ vm.runInNewContext(fs.readFileSync(require.resolve('../utils/ai/providers'),'utf8'),box);
  await box.module.exports.generate('groq','secret','openai/gpt-oss-20b','JSON facts',1200,1000,{json:true,fast:true});assert.equal(requests[0].body.response_format.type,'json_object');assert.equal(requests[0].body.reasoning_effort,'low');
  await box.module.exports.generate('gemini','secret','gemini-test','JSON facts',1200,1000,{json:true});assert.equal(requests[1].body.generationConfig.responseMimeType,'application/json');
  await box.module.exports.generate('openrouter','secret','openrouter/free','JSON facts',1200,1000,{json:true,fast:true});assert.equal(requests[2].body.reasoning.enabled,false);

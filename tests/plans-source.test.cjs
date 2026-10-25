@@ -5,7 +5,7 @@ function load(file,deps){const box={module:{exports:{}},require:id=>deps[id]||re
 function engine({source='mrsaal',fallback=false,failed=false,invalid=false}={}){
  const calls=[],records=[],usage={reserve:async(u,k)=>(records.push(['reserve',k]),k),commit:async(u,k)=>records.push(['commit',k]),release:async(u,k)=>records.push(['release',k])};
  const reviewed={subject:'Hello',body:'A short honest application.',notes:[],needsUserInput:invalid};
- const ai=load('utils/ai.js',{'./writing-profile':require('../utils/writing-profile'),'./db':{get:async()=>({ai_source:source,ai_personal_fallback:fallback})},'./ai-leases':{acquire:async()=>1,release:async()=>{}},'./usage-limits':usage,'./ai-legacy':{callGemini:async(p,t,key,model,valid)=>{calls.push(['mrsaal',key,model]);if(failed)throw Error('offline');const text=JSON.stringify(reviewed);assert(valid(text));return text;}},'./ai-providers':{callUserAI:async()=>{calls.push(['personal']);return JSON.stringify(reviewed);}}});
+ const ai=load('utils/ai/index.js',{'./writing-profile':require('../utils/ai/writing-profile'),'../db':{get:async()=>({ai_source:source,ai_personal_fallback:fallback})},'./leases':{acquire:async()=>1,release:async()=>{}},'../usage-limits':usage,'./gemini-direct':{callGemini:async(p,t,key,model,valid)=>{calls.push(['mrsaal',key,model]);if(failed)throw Error('offline');const text=JSON.stringify(reviewed);assert(valid(text));return text;}},'./providers':{callUserAI:async()=>{calls.push(['personal']);return JSON.stringify(reviewed);}}});
  return {ai,calls,records};
 }
 const args={userId:'owner',apiKey:'never-auto-spend-this-key',modelName:'personal-model',cv:'Developer',company:{name:'Example'},instructions:''};

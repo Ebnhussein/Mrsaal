@@ -1,7 +1,7 @@
 'use strict';
-const health=require('./ai-health');
-const {withRecovery,withOutputRecovery,compactPrompt,retryAfter,hardQuota}=require('./ai-retry');
-const {all}=require('./db');const {unseal}=require('./connection-secrets');
+const health=require('./health');
+const {withRecovery,withOutputRecovery,compactPrompt,retryAfter,hardQuota}=require('./retry');
+const {all}=require('../db');const {unseal}=require('../connection-secrets');
 const PROVIDERS={gemini:{name:'Google Gemini',base:'https://generativelanguage.googleapis.com/v1beta'},openrouter:{name:'OpenRouter',base:'https://openrouter.ai/api/v1'},openai:{name:'OpenAI',base:'https://api.openai.com/v1'},groq:{name:'Groq',base:'https://api.groq.com/openai/v1'}};
 function provider(id){if(!Object.hasOwn(PROVIDERS,id)){const e=new Error('منصة غير مدعومة');e.status=400;throw e;}return PROVIDERS[id];}
 // Runtime settings in Coolify. Bounds keep requests below the UI deadline.

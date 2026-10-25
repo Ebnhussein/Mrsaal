@@ -27,10 +27,10 @@ test('summary routes bind owner/version and source hash, persist approval and re
  }finally{await pg.close();}
 });
 test('local generation uses approved summary and puts variable company after stable facts, personal keeps original',async()=>{
- const traces=[];const deps={'./writing-profile':require('../utils/writing-profile'),'./ai-legacy':{},'./ai-local':{callLocalAI:async(p)=>{traces.push(p);return JSON.stringify({subject:'Hello',body:'Draft'});}}};
- const ai=load('utils/ai.js',deps,{process:{env:{LOCAL_AI_BASE_URL:'https://example.test/v1'}}});
+ const traces=[];const deps={'./writing-profile':require('../utils/ai/writing-profile'),'./gemini-direct':{},'./local':{callLocalAI:async(p)=>{traces.push(p);return JSON.stringify({subject:'Hello',body:'Draft'});}}};
+ const ai=load('utils/ai/index.js',deps,{process:{env:{LOCAL_AI_BASE_URL:'https://example.test/v1'}}});
  await ai.generateEmail({cv:'ORIGINAL FULL CV',cvSummary:'APPROVED FACTS',company:{name:'First Company'}});assert(traces[0].includes('APPROVED FACTS'));assert(!traces[0].includes('ORIGINAL FULL CV'));assert(traces[0].indexOf('APPROVED FACTS')<traces[0].indexOf('First Company'));
  await ai.generateEmail({cv:'ORIGINAL FULL CV',company:{name:'Second Company'}});assert(traces[1].includes('ORIGINAL FULL CV'));
- const calls=[];const personal=load('utils/ai.js',{'./writing-profile':require('../utils/writing-profile'),'./ai-legacy':{},'./ai-providers':{callUserAI:async(u,p)=>{calls.push(p);return JSON.stringify({subject:'Hello',body:'Draft'});}}},{process:{env:{LOCAL_AI_BASE_URL:'https://example.test/v1'}}});
+ const calls=[];const personal=load('utils/ai/index.js',{'./writing-profile':require('../utils/ai/writing-profile'),'./gemini-direct':{},'./providers':{callUserAI:async(u,p)=>{calls.push(p);return JSON.stringify({subject:'Hello',body:'Draft'});}}},{process:{env:{LOCAL_AI_BASE_URL:'https://example.test/v1'}}});
  await personal.generateEmail({userId:'owner',cv:'ORIGINAL FULL CV',cvSummary:'APPROVED FACTS',company:{name:'Company'},_aiOperation:{source:'personal',deadline:Date.now()+90000}});assert(calls[0].includes('ORIGINAL FULL CV'));assert(!calls[0].includes('APPROVED FACTS'));
 });

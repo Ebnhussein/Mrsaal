@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
-const {withRecovery,retryAfter,hardQuota}=require('../utils/ai-retry');
+const {withRecovery,retryAfter,hardQuota}=require('../utils/ai/retry');
 test('temporary AI failure retries once, then succeeds; daily quota and auth never retried',async()=>{
  let calls=0;assert.equal(await withRecovery(async()=>{if(++calls===1)throw {code:'TEMPORARY',retryAfterMs:0};return 'OK';},Date.now()+10000),'OK');assert.equal(calls,2);
  for(const code of ['AUTH','QUOTA','CREDITS']){calls=0;await assert.rejects(withRecovery(async()=>{calls++;throw Object.assign(new Error('fail'),{code});},Date.now()+10000));assert.equal(calls,1);}

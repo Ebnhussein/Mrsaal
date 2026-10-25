@@ -27,14 +27,14 @@ test('Google entry and API mutation counters survive reload and never store raw 
  const response=res();await rate({session:{userId:'owner'},path:'/api/cv',method:'POST'},response,()=>assert.fail('over limit'));assert.equal(response.statusCode,429);
 }));
 test('local queue caps waiting, hides other accounts, supports cancellation, and enforces global daily admission',async()=>database(async(db)=>{
- const queue=load('utils/local-ai-queue.js',{'./db':db},{LOCAL_AI_QUEUE_LIMIT:'1',LOCAL_AI_QUEUE_WAIT_MS:'2000',LOCAL_AI_GLOBAL_REQUESTS_PER_MINUTE:'10',LOCAL_AI_GLOBAL_DAILY_REQUESTS:'2'});const deadline=Date.now()+15000;
+ const queue=load('utils/ai/local-queue.js',{'../db':db},{LOCAL_AI_QUEUE_LIMIT:'1',LOCAL_AI_QUEUE_WAIT_MS:'2000',LOCAL_AI_GLOBAL_REQUESTS_PER_MINUTE:'10',LOCAL_AI_GLOBAL_DAILY_REQUESTS:'2'});const deadline=Date.now()+15000;
  const pending=queue.wait({scope:'scope'},'owner',deadline,async()=>null);const cancelled=assert.rejects(pending,e=>e.code==='AI_CANCELLED');
  for(let i=0;i<30;i++){if((await queue.status('owner','scope')).state==='waiting')break;await new Promise(r=>setTimeout(r,10));}
  assert.equal((await queue.status('owner','scope')).position,1);assert.equal((await queue.status('other','scope')).state,'idle');await queue.cancel('other','scope');assert.equal((await queue.status('owner','scope')).state,'waiting');await assert.rejects(queue.wait({scope:'scope'},'other',deadline,async()=>null),e=>e.status===429);await queue.cancel('owner','scope');await cancelled;assert.equal((await queue.status('owner','scope')).state,'idle');
  await queue.globalAllowance('scope');await queue.globalAllowance('scope');await assert.rejects(queue.globalAllowance('scope'),e=>e.status===429);await db.run("UPDATE users SET ai_limit=1 WHERE id='owner';INSERT INTO local_ai_usage(user_id,requests) VALUES('owner',1)");await assert.rejects(queue.globalAllowance('another-scope','owner'),e=>e.status===429);
 }));
 test('queue acquires the first available slot and removes waiting state, without storing prompt text',async()=>database(async(db)=>{
- const queue=load('utils/local-ai-queue.js',{'./db':db},{LOCAL_AI_QUEUE_WAIT_MS:'1000'});const result=await queue.wait({scope:'scope'},'owner',Date.now()+10000,async()=>({slot:1,token:'test-slot'}));assert.equal(result.slot,1);assert.equal((await db.get('SELECT COUNT(*)::int AS n FROM local_ai_queue')).n,0);
+ const queue=load('utils/ai/local-queue.js',{'../db':db},{LOCAL_AI_QUEUE_WAIT_MS:'1000'});const result=await queue.wait({scope:'scope'},'owner',Date.now()+10000,async()=>({slot:1,token:'test-slot'}));assert.equal(result.slot,1);assert.equal((await db.get('SELECT COUNT(*)::int AS n FROM local_ai_queue')).n,0);
  const columns=await db.all("SELECT column_name FROM information_schema.columns WHERE table_name='local_ai_queue'");assert(!columns.some(c=>/prompt|content|cv|message/.test(c.column_name)));
 }));
 test('backup and isolated-restore scripts refuse unsafe defaults and do not start application workers',()=>{
@@ -48,7 +48,7 @@ test('Gmail refuses partial grants and enforces channel count without exposing p
 test('provider cancellation aborts the running request and retains its lease until safe expiry',async()=>{
  let cancelled=false,started;const called=new Promise(resolve=>started=resolve),trace=[];const db={get:async(sql,args)=>{if(sql.startsWith('INSERT INTO local_ai_slots'))return {token:args[2]};if(sql.startsWith('SELECT cancel_requested'))return {cancel_requested:cancelled};if(sql.includes('local_ai_windows'))return {amount:1};},run:async(sql)=>trace.push(sql)};
  // Attach a controlled fetch rather than a real provider request.
- const source=fs.readFileSync(path.join(root,'utils/ai-local.js'),'utf8'),box={module:{exports:{}},require:id=>id==='./db'?db:id==='./local-ai-queue'?{first:async()=>null,globalAllowance:async()=>{}}:require(id),process:{env:{LOCAL_AI_BASE_URL:'https://local.example/v1',LOCAL_AI_API_KEY:'synthetic-key'}},console:{log(){},warn(){}},URL,Date,AbortController,setTimeout,clearTimeout,setInterval,clearInterval,fetch:async(url,opts)=>{started();return new Promise((resolve,reject)=>opts.signal.addEventListener('abort',()=>reject(Error('abort'))));}};vm.runInNewContext(source,box);
+ const source=fs.readFileSync(path.join(root,'utils/ai/local.js'),'utf8'),box={module:{exports:{}},require:id=>id==='../db'?db:id==='./local-queue'?{first:async()=>null,globalAllowance:async()=>{}}:require(id),process:{env:{LOCAL_AI_BASE_URL:'https://local.example/v1',LOCAL_AI_API_KEY:'synthetic-key'}},console:{log(){},warn(){}},URL,Date,AbortController,setTimeout,clearTimeout,setInterval,clearInterval,fetch:async(url,opts)=>{started();return new Promise((resolve,reject)=>opts.signal.addEventListener('abort',()=>reject(Error('abort'))));}};vm.runInNewContext(source,box);
  const pending=box.module.exports.callLocalAI('Synthetic facts',100,null,Date.now()+6000,'owner');const rejected=assert.rejects(pending,e=>e.code==='AI_CANCELLED');await called;cancelled=true;await rejected;assert(!trace.some(sql=>sql.startsWith('DELETE FROM local_ai_slots')));
 });
 test('disconnected WhatsApp records do not consume active connection slots',()=>{

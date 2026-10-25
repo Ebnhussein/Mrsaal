@@ -1,8 +1,8 @@
 'use strict';
 // Platform-owned providers. Never reads users' saved provider credentials.
 const {createHash}=require('crypto');
-const health=require('./ai-health');
-const adapters=require('./ai-providers');
+const health=require('./health');
+const adapters=require('./providers');
 const discovered=new Map();
 const keyNames={groq:'GROQ_API_KEY',gemini:'GEMINI_API_KEY',openrouter:'OPENROUTER_API_KEY',local:'LOCAL_AI_API_KEY'};
 const enabled=()=>!!process.env.MRSAAL_AI_MODEL_CHAIN?.trim();
@@ -48,14 +48,14 @@ async function callPlatformAI(prompt,maxTokens,validate,operationDeadline,userId
    if(provider==='local'){
     // CPU fallback must not re-process a huge cloud prompt for over a minute.
     if(prompt.length>5500)throw Object.assign(new Error('Local prompt too long'),{code:'AI_PROMPT_TOO_LONG'});
-    text=await require('./ai-local').callLocalAI(prompt,Math.min(maxTokens,1200),validate,attemptDeadline,userId);
+    text=await require('./local').callLocalAI(prompt,Math.min(maxTokens,1200),validate,attemptDeadline,userId);
    }else{
     model=await resolveModel(provider,key,model,attemptDeadline);
     const unavailable=health.available(provider,key,model);if(unavailable){failures.push({provider,model:safe(model),code:unavailable.code});continue;}
     const remaining=attemptDeadline-Date.now();if(remaining<=0)throw Object.assign(new Error('timeout'),{code:'TIMEOUT'});
     console.log('Mrsaal AI trying:',provider,safe(model));
     text=await adapters.generate(provider,key,model,prompt,Math.min(maxTokens,1600),remaining,{json:!!validate,fast:true});
-    if(validate)text=require('./ai-local').cleanEnvelope(text);
+    if(validate)text=require('./local').cleanEnvelope(text);
     if(typeof text!=='string'||!text.trim())throw Object.assign(new Error('empty'),{code:'EMPTY'});
     if(validate&&!validate(text))throw Object.assign(new Error('invalid format'),{code:'FORMAT'});
    }

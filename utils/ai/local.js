@@ -1,5 +1,5 @@
 'use strict';
-const {get,run}=require('./db');
+const {get,run}=require('../db');
 const {randomUUID,createHash}=require('crypto');
 function configured(){return !!process.env.LOCAL_AI_BASE_URL?.trim();}
 function error(code,message,status=503){return Object.assign(new Error(message),{code,status});}
@@ -12,7 +12,7 @@ function settings(){
  return {url:base.href.replace(/\/$/,'')+'/chat/completions',scope:createHash('sha256').update(base.href.replace(/\/$/,'')).digest('hex'),model:process.env.LOCAL_AI_MODEL?.trim()||'local-ai',key:process.env.LOCAL_AI_API_KEY.trim(),concurrent:integer('LOCAL_AI_MAX_CONCURRENT',1,1,8),rate:integer('LOCAL_AI_REQUESTS_PER_MINUTE',3,1,30),tokens:integer('LOCAL_AI_MAX_OUTPUT_TOKENS',1600,128,8000),chars:integer('LOCAL_AI_MAX_PROMPT_CHARS',50000,1000,100000),jsonMode:process.env.LOCAL_AI_JSON_MODE!=='off'};
 }
 async function acquire(config,ttl,userId,deadline){
- const queue=require('./local-ai-queue');
+ const queue=require('./local-queue');
  const claim=async()=>{for(let slot=1;slot<=config.concurrent;slot++){
   const token=randomUUID();const row=await get(`INSERT INTO local_ai_slots(scope,slot,token,expires_at,user_id,cancel_requested) VALUES($1,$2,$3,NOW()+($4::integer*INTERVAL '1 second'),$5,false) ON CONFLICT(scope,slot) DO UPDATE SET token=EXCLUDED.token,expires_at=EXCLUDED.expires_at,user_id=EXCLUDED.user_id,cancel_requested=false WHERE local_ai_slots.expires_at<NOW() RETURNING token`,[config.scope,slot,token,Math.max(1,Math.ceil((deadline-Date.now())/1000)+15),userId]);
   if(row)return {slot,token};
@@ -42,7 +42,7 @@ async function callLocalAI(prompt,maxTokens=1200,validate=null,deadline=Date.now
  try{
   if(userId){const allowed=await get(`INSERT INTO local_ai_windows(user_id,minute,amount) VALUES($1,date_trunc('minute',NOW()),1) ON CONFLICT(user_id) DO UPDATE SET minute=EXCLUDED.minute,amount=CASE WHEN local_ai_windows.minute<>EXCLUDED.minute THEN 1 ELSE local_ai_windows.amount+1 END WHERE local_ai_windows.minute<>EXCLUDED.minute OR local_ai_windows.amount<$2 RETURNING amount`,[userId,config.rate]);if(!allowed)throw error('AI_UNAVAILABLE','طلبت الكتابة أكثر من مرة خلال دقيقة. استنى للدقيقة التالية.',429);}
   if(Date.now()>=deadline||controller.signal.aborted)throw error('TIMEOUT','انتهت مهلة الكتابة.');
-  if(userId)await require('./local-ai-queue').globalAllowance(config.scope,userId);
+  if(userId)await require('./local-queue').globalAllowance(config.scope,userId);
   started=true;
   console.log('AI trying: local / '+config.model.replace(/[^a-zA-Z0-9_/:.\-]/g,'').slice(0,100));
   const response=await fetch(config.url,{method:'POST',redirect:'error',signal:controller.signal,headers:{Authorization:'Bearer '+config.key,'Content-Type':'application/json'},body:JSON.stringify({model:config.model,messages:[{role:'system',content:'استخدم الحقائق المقدمة فقط والتزم بالتنسيق المطلوب. أرجع الإجابة النهائية فقط دون شرح التفكير.'+(validate?' الرد يجب أن يكون كائن JSON واحدًا صالحًا فقط، بكل الحقول المطلوبة في الطلب، بدون مقدمات أو Markdown أو تعليقات.':'')},{role:'user',content:prompt}],max_tokens:requestedTokens,temperature:0,...(validate&&config.jsonMode?{response_format:validate.schema&&process.env.LOCAL_AI_JSON_MODE!=='object'?{type:'json_schema',json_schema:{name:'mrsaal_response',strict:true,schema:validate.schema}}:{type:'json_object'}}:{}),stream:false})});
