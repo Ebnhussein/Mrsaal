@@ -5,7 +5,7 @@ const {all,get,run}=require('./db');
 const {generateEmail,generateWhatsAppMessage}=require('./ai');
 const {sendEmail}=require('./gmail');
 const {resolveAccount}=require('./gmail-accounts');
-const {sendWhatsAppMessage}=require('./whatsapp');
+const {sendWhatsAppMessage}=require('./whatsapp/baileys');
 const {syncReplies}=require('./reply-tracker');
 const BASE_URL=(process.env.BASE_URL||'https://mrsaal.ebnhussein.co').replace(/\/$/,'');
 let busy=false,syncBusy=false;

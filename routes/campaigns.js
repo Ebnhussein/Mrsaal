@@ -23,7 +23,7 @@ router.post('/',wrap(async(req,res)=>{
   const account=needsEmail?await require('../utils/gmail-accounts').resolveAccount(userId,req.body.senderAccountId):null;
   const campaigns=[];
   for(const [selected,rows]of groups){
-   const id=randomUUID();await client.query(`INSERT INTO campaigns(id,user_id,channel,sender_account_id,cv_id,delay_seconds) VALUES($1,$2,$3,$4,$5,$6)`,[id,userId,selected,selected==='email'?account?.gmail_account_id||null:null,cv.id,require('../utils/whatsapp-safety').delayFor(selected,req.body.delaySeconds)]);
+   const id=randomUUID();await client.query(`INSERT INTO campaigns(id,user_id,channel,sender_account_id,cv_id,delay_seconds) VALUES($1,$2,$3,$4,$5,$6)`,[id,userId,selected,selected==='email'?account?.gmail_account_id||null:null,cv.id,require('../utils/whatsapp/safety').delayFor(selected,req.body.delaySeconds)]);
    for(const co of rows){const reason=require('../utils/delivery-channel').skipReason(co,selected);const draft=(await client.query('SELECT subject,body FROM message_drafts WHERE user_id=$1 AND company_id=$2 AND channel=$3',[userId,co.id,selected])).rows[0];await client.query('INSERT INTO campaign_items(id,campaign_id,company_id,company_name,recipient,subject,body,status,reason) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)',[randomUUID(),id,co.id,co.name,selected==='email'?co.email:co.phone,draft?.subject||'',draft?.body||'',reason?'skipped':'draft',reason||null]);}
    campaigns.push({id,channel:selected,count:rows.length});
   }

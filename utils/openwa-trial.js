@@ -1,6 +1,6 @@
 'use strict';
 const {createHash}=require('crypto');
-const db=require('./db'),provider=require('./openwa-client'),{buildWhatsAppContent}=require('./whatsapp-content');
+const db=require('./db'),provider=require('./openwa-client'),{buildWhatsAppContent}=require('./whatsapp/content');
 let schema;
 async function ensureSchema(){return schema ||= db.run(`CREATE TABLE IF NOT EXISTS openwa_trial_attempts(
  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,request_key TEXT NOT NULL,payload_hash TEXT NOT NULL,

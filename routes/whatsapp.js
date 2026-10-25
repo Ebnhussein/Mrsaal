@@ -2,7 +2,7 @@
 const router=require('express').Router();
 const {requireAuth}=require('../middleware/auth');
 const wrap=require('../middleware/async-handler');
-const wa=require('../utils/whatsapp-service'),beta=require('../utils/mrsaalwa');
+const wa=require('../utils/whatsapp/service'),beta=require('../utils/mrsaalwa');
 router.use(requireAuth);
 router.use((req,res,next)=>{res.set('Cache-Control','no-store');next();});
 router.get('/status',wrap(async(req,res)=>{await beta.prepareDefault(req.session.userId);res.json(await wa.status(req.session.userId));}));

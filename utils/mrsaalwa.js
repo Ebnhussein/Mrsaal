@@ -2,7 +2,7 @@
 const {createHash,randomUUID}=require('crypto');
 const {get,all,run,pool}=require('./db');
 const {config,createGateway,fail}=require('./mrsaalwa-gateway');
-const {buildWhatsAppContent}=require('./whatsapp-content');
+const {buildWhatsAppContent}=require('./whatsapp/content');
 let schema,timer,syncing=false;
 const enabled=()=>process.env.MRSAALWA_ENABLED==='true';
 const gateway=()=>createGateway(config());
@@ -38,7 +38,7 @@ async function select(id,provider,initialise=false){
  if(!['baileys','mrsaalwa'].includes(provider))throw fail('MRSAALWA_INPUT',400);
  return locked(id,async c=>{const p=await profile(id);
   if(initialise){
-   if(p.provider_chosen||p.provider==='mrsaalwa'||require('./whatsapp').status(id).status!=='disconnected'||await busy(id))return {ok:true};
+   if(p.provider_chosen||p.provider==='mrsaalwa'||require('./whatsapp/baileys').status(id).status!=='disconnected'||await busy(id))return {ok:true};
    const table=await get("SELECT to_regclass('public.whatsapp_auth') AS name");
    if(table?.name&&await get("SELECT user_id FROM whatsapp_auth WHERE user_id=$1 AND key_id='creds' LIMIT 1",[id]))return {ok:true};
   }
@@ -46,7 +46,7 @@ async function select(id,provider,initialise=false){
   if(provider==='mrsaalwa')await assertAllowed(id);
   if(await busy(id))throw fail('MRSAALWA_BUSY',409);
   if(p.provider==='mrsaalwa'&&p.session_id)throw fail('MRSAALWA_DISCONNECT_FIRST',409);
-  if(p.provider==='baileys'&&require('./whatsapp').status(id).status!=='disconnected')throw fail('MRSAALWA_DISCONNECT_FIRST',409);
+  if(p.provider==='baileys'&&require('./whatsapp/baileys').status(id).status!=='disconnected')throw fail('MRSAALWA_DISCONNECT_FIRST',409);
   await c.query('INSERT INTO whatsapp_preferences(user_id,provider,provider_chosen) VALUES($1,$2,true) ON CONFLICT(user_id) DO UPDATE SET provider=EXCLUDED.provider,provider_chosen=true',[id,provider]);
   await event(id,'provider_changed',provider);return {ok:true};
  });
@@ -124,7 +124,7 @@ async function sync(){
   const g=gateway();for(const l of rows){try{
    await run('UPDATE email_log SET whatsapp_synced_at=NOW() WHERE id=$1 AND user_id=$2',[l.id,l.user_id]);const own=await g.messages(l.whatsapp_session_id,{messageId:l.message_id,limit:'1'});const m=own.find(x=>x.waMessageId===l.message_id&&x.direction==='outgoing');
    if(m?.status==='failed'){await run("UPDATE email_log SET status='failed',reason=$3 WHERE id=$1 AND user_id=$2",[l.id,l.user_id,'MrsaalWA أبلغ عن فشل التسليم. راجع المحادثة قبل إعادة الإرسال.']);await event(l.user_id,'delivery_failed');continue;}
-   if(m&&['delivered','read'].includes(m.status))await require('./whatsapp-tracking').receipt(l.user_id,{id:l.message_id,fromMe:true},{read:m.status==='read'});
+   if(m&&['delivered','read'].includes(m.status))await require('./whatsapp/tracking').receipt(l.user_id,{id:l.message_id,fromMe:true},{read:m.status==='read'});
    const chat=m?.chatId||l.thread_id;if(!chat||!/@(?:c\.us|lid)$/.test(chat))continue;
    const incoming=await g.messages(l.whatsapp_session_id,{chatId:chat,direction:'incoming',since:String(Number(l.sent_at)*1000)});
    const reply=incoming.filter(x=>x.direction==='incoming'&&x.chatId===chat&&seconds(x.timestamp)>=Number(l.sent_at)).sort((a,b)=>Number(b.timestamp)-Number(a.timestamp))[0];

@@ -11,7 +11,7 @@ const {resolveAccount}=require('../utils/gmail-accounts');
 const wrap=require('../middleware/async-handler');
 async function rememberSender(logId,userId,account){if(account)await run('UPDATE email_log SET sender_account_id=$1,sender_email=$2 WHERE id=$3 AND user_id=$4',[account.gmail_account_id,account.email,logId,userId]);}
 const { syncReplies } = require('../utils/reply-tracker');
-const { sendWhatsAppMessage, requireConnected } = require('../utils/whatsapp-service');
+const { sendWhatsAppMessage, requireConnected } = require('../utils/whatsapp/service');
 
 const BASE_URL = (process.env.BASE_URL || 'https://mrsaal.ebnhussein.co').replace(/\/$/,'');
 

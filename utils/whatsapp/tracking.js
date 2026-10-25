@@ -1,4 +1,4 @@
-const {get,run}=require('./db');
+const {get,run}=require('../db');
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function ensureTrackingSchema(){
   await run(`ALTER TABLE email_log ADD COLUMN IF NOT EXISTS whatsapp_delivered_at BIGINT;
