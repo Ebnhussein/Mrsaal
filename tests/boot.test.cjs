@@ -9,7 +9,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 let db,socket,child,logs='';
 test('server boots against Postgres and serves the public site, auth gate and request guard',{timeout:120000},async()=>{
  const [pgPort,port]=[await freePort(),await freePort()];
- db=new PGlite();await db.waitReady;socket=new PGLiteSocketServer({db,port:pgPort,host:'127.0.0.1'});await socket.start();
+ db=new PGlite();await db.waitReady;socket=new PGLiteSocketServer({db,port:pgPort,host:'127.0.0.1',maxConnections:50});await socket.start();
  const base='http://127.0.0.1:'+port;
  child=spawn(process.execPath,['server.js'],{cwd:path.join(__dirname,'..'),env:{...process.env,PORT:String(port),PGHOST:'127.0.0.1',PGPORT:String(pgPort),PGUSER:'postgres',PGPASSWORD:'x',PGDATABASE:'postgres',SESSION_SECRET:'boot-test-secret-0123456789',NODE_ENV:'test',BASE_URL:base},stdio:['ignore','pipe','pipe']});
  child.stdout.on('data',d=>{logs+=d;});child.stderr.on('data',d=>{logs+=d;});
@@ -27,5 +27,11 @@ test('server boots against Postgres and serves the public site, auth gate and re
  r=await get('/api/companies',{method:'POST',headers:{Origin:'https://evil.example','Content-Type':'application/json'},body:'{}'});expect(r,403);
  r=await get('/auth/logout',{headers:{'Sec-Fetch-Site':'cross-site'}});expect(r,302);
  r=await get('/no-such-page');expect(r,404);
+ // Graceful shutdown: SIGTERM stops the workers, closes the pool and exits with code 0.
+ // Windows has no SIGTERM delivery (the process is killed outright), so this only runs where signals exist.
+ if(process.platform!=='win32'){
+  const code=await new Promise(resolve=>{const timer=setTimeout(()=>resolve('timeout'),20000);child.once('exit',c=>{clearTimeout(timer);resolve(c);});child.kill('SIGTERM');});
+  assert.equal(code,0,'server did not exit cleanly on SIGTERM ('+code+')\n'+logs.slice(-1500));
+ }
 });
 test.after(async()=>{if(child&&child.exitCode===null){child.kill('SIGTERM');await sleep(300);if(child.exitCode===null)child.kill('SIGKILL');}try{await socket?.stop();}catch{}try{await db?.close();}catch{}});

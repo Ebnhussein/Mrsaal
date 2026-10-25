@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 3000;
 
 let ready = false;
 let closing = false;
+let services = null;
 
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
@@ -44,24 +45,67 @@ app.use(['/api','/auth','/track'], (req,res,next)=>{
   next();
 });
 
+// Heavy modules load after the port is open so /health answers while the app initialises.
+// Every dependency is listed here once; the steps below keep their original order.
+function loadServices() {
+  return {
+    db: require('./utils/db'),
+    migrate: require('./utils/migrate'),
+    connectionsSchema: require('./utils/connections-schema'),
+    replyTracker: require('./utils/reply-tracker'),
+    helpdesk: require('./utils/helpdesk'),
+    websiteSchema: require('./utils/website-schema'),
+    scheduler: require('./utils/scheduler'),
+    notifications: require('./utils/notifications'),
+    launchSchema: require('./utils/launch-schema'),
+    accessControl: require('./utils/access-control'),
+    mrsaalwa: require('./utils/mrsaalwa'),
+    whatsapp: require('./utils/whatsapp'),
+    campaignWorker: require('./utils/campaign-worker'),
+    middleware: {
+      mutationRate: require('./middleware/mutation-rate'),
+      adminSession: require('./middleware/admin-session'),
+      apiErrors: require('./middleware/api-errors')
+    },
+    routes: {
+      admin: require('./routes/admin'),
+      site: require('./routes/site'),
+      notifications: require('./routes/notifications'),
+      tickets: require('./routes/tickets'),
+      supabaseAuth: require('./routes/supabase-auth'),
+      auth: require('./routes/auth'),
+      launch: require('./routes/launch'),
+      campaigns: require('./routes/campaigns'),
+      companies: require('./routes/companies'),
+      cv: require('./routes/cv'),
+      writing: require('./routes/writing'),
+      support: require('./routes/support'),
+      aiQueue: require('./routes/ai-queue'),
+      email: require('./routes/email'),
+      settings: require('./routes/settings'),
+      accounts: require('./routes/accounts'),
+      providers: require('./routes/providers'),
+      whatsapp: require('./routes/whatsapp'),
+      openwaTrial: require('./routes/openwa-trial'),
+      tracking: require('./routes/tracking')
+    }
+  };
+}
+
 async function lazyInit() {
   try {
-    const { initDB, pool } = require('./utils/db');
+    services = loadServices();
+    const { db, routes, middleware } = services;
+    const { initDB, pool } = db;
     await initDB();
-    await require('./utils/migrate').migrate(pool);
-    await require('./utils/connections-schema').ensureConnectionsSchema();
-    await require('./utils/replyTracker').ensureReplySchema();
-    await require('./utils/helpdesk').ensureHelpdesk();
-    await require('./utils/website-schema').ensureWebsiteSchema();
-
-    const {
-      ensureSchedulerSchema,
-      startScheduler
-    } = require('./utils/scheduler');
-
-    await ensureSchedulerSchema();
-    await require('./utils/notifications').ensureNotifications();
-    await require('./utils/launch-schema').ensureLaunchSchema();
+    await services.migrate.migrate(pool);
+    await services.connectionsSchema.ensureConnectionsSchema();
+    await services.replyTracker.ensureReplySchema();
+    await services.helpdesk.ensureHelpdesk();
+    await services.websiteSchema.ensureWebsiteSchema();
+    await services.scheduler.ensureSchedulerSchema();
+    await services.notifications.ensureNotifications();
+    await services.launchSchema.ensureLaunchSchema();
 
     const pgSession = require('connect-pg-simple')(session);
 
@@ -86,35 +130,35 @@ async function lazyInit() {
       }
     }));
 
-    app.use(require('./middleware/mutation-rate'));
-    app.use(require('./middleware/admin-session'));
-    app.use(require('./utils/access-control').gate);
-    app.use(require('./utils/helpdesk').monitor);
-    app.use('/api/admin', require('./routes/admin'));
-    app.use(require('./routes/site'));
-    app.use('/api/notifications', require('./routes/notifications'));
-    app.use('/api/tickets', require('./routes/tickets'));
-    app.use('/auth', require('./routes/supabase-auth'));
-    app.use('/auth', require('./routes/auth'));
-    app.use('/api/launch', require('./routes/launch'));
-    app.use('/api/campaigns', require('./routes/campaigns'));
-    app.use('/api/companies', require('./routes/companies'));
-    app.use('/api/cv', require('./routes/cv'));
+    app.use(middleware.mutationRate);
+    app.use(middleware.adminSession);
+    app.use(services.accessControl.gate);
+    app.use(services.helpdesk.monitor);
+    app.use('/api/admin', routes.admin);
+    app.use(routes.site);
+    app.use('/api/notifications', routes.notifications);
+    app.use('/api/tickets', routes.tickets);
+    app.use('/auth', routes.supabaseAuth);
+    app.use('/auth', routes.auth);
+    app.use('/api/launch', routes.launch);
+    app.use('/api/campaigns', routes.campaigns);
+    app.use('/api/companies', routes.companies);
+    app.use('/api/cv', routes.cv);
 
     // إعدادات أسلوب الكتابة والتحليل والمعاينة
-    app.use('/api/writing', require('./routes/writing'));
+    app.use('/api/writing', routes.writing);
 
     // مساعد مرسال — يحتاج routes/support.js وباقي ملفات المساعد
-    app.use('/api/support', require('./routes/support'));
-    app.use('/api/ai-queue', require('./routes/ai-queue'));
+    app.use('/api/support', routes.support);
+    app.use('/api/ai-queue', routes.aiQueue);
 
-    app.use('/api/email', require('./routes/email'));
-    app.use('/api/settings', require('./routes/settings'));
-    app.use('/api/accounts', require('./routes/accounts'));
-    app.use('/api/providers', require('./routes/providers'));
-    app.use('/api/whatsapp', require('./routes/whatsapp'));
-    app.use('/api/whatsapp-trial', require('./routes/openwa-trial'));
-    app.use('/track', require('./routes/tracking'));
+    app.use('/api/email', routes.email);
+    app.use('/api/settings', routes.settings);
+    app.use('/api/accounts', routes.accounts);
+    app.use('/api/providers', routes.providers);
+    app.use('/api/whatsapp', routes.whatsapp);
+    app.use('/api/whatsapp-trial', routes.openwaTrial);
+    app.use('/track', routes.tracking);
 
     app.use('/api', (req, res) => {
       res.status(404).json({
@@ -126,15 +170,15 @@ async function lazyInit() {
       res.status(404).type('text/plain').send('Not found');
     });
 
-    app.use(require('./middleware/api-errors').handler);
+    app.use(middleware.apiErrors.handler);
 
-    await require('./utils/mrsaalwa').ensureSchema();
-    await require('./utils/whatsapp').restoreSessions();
-    require('./utils/mrsaalwa').start();
+    await services.mrsaalwa.ensureSchema();
+    await services.whatsapp.restoreSessions();
+    services.mrsaalwa.start();
 
-    startScheduler();
-    require('./utils/notifications').startNotifications();
-    require('./utils/campaign-worker').start();
+    services.scheduler.startScheduler();
+    services.notifications.startNotifications();
+    services.campaignWorker.start();
     ready = true;
 
     console.log('All systems initialised.');
@@ -150,17 +194,18 @@ async function close() {
   closing = true;
   ready = false;
 
-  require('./utils/scheduler').stopScheduler();
-  require('./utils/campaign-worker').stop();
-  require('./utils/notifications').stopNotifications();
+  // Before initialisation finishes there is nothing running to stop.
+  services?.scheduler.stopScheduler();
+  services?.campaignWorker.stop();
+  services?.notifications.stopNotifications();
   server.close();
 
   const timer = setTimeout(() => process.exit(0), 10000);
   timer.unref();
 
-  require('./utils/mrsaalwa').stop();
-  await require('./utils/whatsapp').shutdown();
-  await require('./utils/db').pool.end();
+  services?.mrsaalwa.stop();
+  await services?.whatsapp.shutdown();
+  await services?.db.pool.end();
 
   process.exit(0);
 }
