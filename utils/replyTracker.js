@@ -58,6 +58,8 @@ async function performSync(userId){
   if(blocked.has(key))throw blocked.get(key);
   if(!clients.has(key))clients.set(key,resolveAccount(log.user_id,log.sender_account_id).then(account=>({account,gmail:google.gmail({version:'v1',auth:buildAuthClient(account)})})));
   const {gmail,account}=await clients.get(key);
+  // Send-only accounts never granted gmail.readonly: nothing to check, and that is not a failure.
+  if(account.scope&&!String(account.scope).split(/\s+/).includes('https://www.googleapis.com/auth/gmail.readonly'))continue;
   const result=await gmail.users.threads.get({userId:'me',id:log.thread_id,format:'full'},{timeout:12000});
   const replies=(result.data.messages||[]).filter(m=>m.id!==log.message_id&&!m.labelIds?.includes('SENT')&&Number(m.internalDate)>=Number(log.sent_at)*1000).filter(m=>{
    const from=m.payload?.headers?.find(h=>h.name.toLowerCase()==='from')?.value||'';

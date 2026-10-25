@@ -3,7 +3,7 @@ const {get,run,pool}=require('./db');
 const {seal,unseal}=require('./connection-secrets');
 const {randomUUID}=require('crypto');
 async function saveAccount(userId,info,tokens){
- const granted=String(tokens.scope||'').split(/\s+/);for(const scope of ['https://www.googleapis.com/auth/gmail.send','https://www.googleapis.com/auth/gmail.readonly'])if(!granted.includes(scope))throw new Error('وافق على صلاحيات الإرسال ومتابعة الردود قبل ربط Gmail.');
+ const granted=String(tokens.scope||'').split(/\s+/);if(!granted.includes('https://www.googleapis.com/auth/gmail.send'))throw new Error('وافق على صلاحية الإرسال قبل ربط Gmail.');
  const client=await pool.connect();try{await client.query('BEGIN');const user=(await client.query('SELECT * FROM users WHERE id=$1 FOR UPDATE',[userId])).rows[0];if(!user)throw new Error('الحساب غير موجود');
  const existing=(await client.query('SELECT * FROM gmail_accounts WHERE user_id=$1 AND google_id=$2',[userId,info.id])).rows[0];
  if(!existing?.connected){const count=Number((await client.query('SELECT COUNT(*) AS n FROM gmail_accounts WHERE user_id=$1 AND connected=true',[userId])).rows[0].n);const cap=require('./resource-limits').limits(user).gmail;if(count>=cap)require('./resource-limits').exceeded('وصلت لحد حسابات Gmail المتصلة ('+cap+'). افصل حسابًا قديمًا أولًا.');}
@@ -24,4 +24,7 @@ async function persistTokens(account,tokens){
  const row=await get('SELECT credentials FROM gmail_accounts WHERE id=$1 AND user_id=$2 AND connected=true',[account.gmail_account_id,account.user_id]);
  if(row)await run('UPDATE gmail_accounts SET credentials=$1 WHERE id=$2 AND user_id=$3',[seal({...unseal(row.credentials),...tokens}),account.gmail_account_id,account.user_id]);
 }
-module.exports={saveAccount,resolveAccount,persistTokens};
+// Reply tracking needs gmail.readonly, which is optional; legacy accounts linked with both scopes keep working.
+// Rows without a stored scope predate the optional scope, when both were required.
+function canReadReplies(account){return !account?.scope||String(account.scope).split(/\s+/).includes('https://www.googleapis.com/auth/gmail.readonly');}
+module.exports={saveAccount,resolveAccount,persistTokens,canReadReplies};
