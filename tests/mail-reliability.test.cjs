@@ -21,7 +21,7 @@ test('editing CV text atomically retains uploaded PDF and filename',async()=>{
  const api=load('utils/user-records.js',{'./db':{pool:{connect:async()=>client}}});await api.replaceLatest('cv_profiles','owner',{content:'edited',filename:'manual',pdf_data:null},{preservePDF:true});
  const insert=queries.find(x=>x.sql.startsWith('INSERT'));assert.equal(insert.args[2],'edited');assert.equal(insert.args[3],'cv.pdf');assert.equal(insert.args[4],bytes);assert(queries[1].sql.includes('FOR UPDATE'));assert.equal(queries.at(-1).sql,'COMMIT');
 });
-const replies=load('utils/replyTracker.js',{googleapis:{google:{}},'./db':{},'./gmail':{},'./gmail-accounts':{}});
+const replies=load('utils/reply-tracker.js',{googleapis:{google:{}},'./db':{},'./gmail':{},'./gmail-accounts':{}});
 test('reply extraction decodes actual MIME body and removes Arabic quotation/entities/bidi',async()=>{
  const original='تمام\n\n\u202bفي الأربعاء، 7 أكتوبر 2026 تمت كتابة ما يلي بواسطة &lt;a@gmail.com&gt;:\u202c\nرسالة قديمة';
  const result=await replies.extractReply({id:'m',snippet:'wrong snippet',payload:{mimeType:'multipart/alternative',parts:[{mimeType:'text/plain',body:{data:Buffer.from(original).toString('base64url')}}]}},{});assert.equal(result,'تمام');
@@ -30,7 +30,7 @@ test('reply extraction decodes actual MIME body and removes Arabic quotation/ent
 });
 test('reply synchronization is owner-scoped, checks full thread, updates latest reply and has overlap guard',async()=>{
  const writes=[];let query,params,requested;
- const api=load('utils/replyTracker.js',{googleapis:{google:{gmail:()=>({users:{threads:{get:async args=>{requested=args;return {data:{messages:[{id:'original',labelIds:['SENT'],internalDate:'2000'},{id:'reply',internalDate:'3000',payload:{mimeType:'text/plain',headers:[{name:'From',value:'other@example.com'}],body:{data:Buffer.from('Thanks').toString('base64url')}}}]}};}}}})}},'./db':{all:async(sql,args)=>{query=sql;params=args;return [{id:'log',user_id:'owner',thread_id:'thread',sent_at:2,message_id:'original',sender_account_id:'pinned',replied:1}];},run:async(sql,args)=>writes.push({sql,args})},'./gmail':{buildAuthClient:()=>({})},'./gmail-accounts':{resolveAccount:async(owner,id)=>{assert.equal(owner,'owner');assert.equal(id,'pinned');return {email:'sender@gmail.com'};}}});
+ const api=load('utils/reply-tracker.js',{googleapis:{google:{gmail:()=>({users:{threads:{get:async args=>{requested=args;return {data:{messages:[{id:'original',labelIds:['SENT'],internalDate:'2000'},{id:'reply',internalDate:'3000',payload:{mimeType:'text/plain',headers:[{name:'From',value:'other@example.com'}],body:{data:Buffer.from('Thanks').toString('base64url')}}}]}};}}}})}},'./db':{all:async(sql,args)=>{query=sql;params=args;return [{id:'log',user_id:'owner',thread_id:'thread',sent_at:2,message_id:'original',sender_account_id:'pinned',replied:1}];},run:async(sql,args)=>writes.push({sql,args})},'./gmail':{buildAuthClient:()=>({})},'./gmail-accounts':{resolveAccount:async(owner,id)=>{assert.equal(owner,'owner');assert.equal(id,'pinned');return {email:'sender@gmail.com'};}}});
  const a=api.syncReplies('owner');assert.equal(a,api.syncReplies('owner'));const result=await a;assert(query.includes('AND user_id=$1'));assert(!query.includes('replied=0'));assert.equal(params[0],'owner');assert.equal(requested.format,'full');assert.equal(result.updated,1);assert.equal(writes.find(w=>w.sql.includes('reply_text')).args[0],'Thanks');
 });
 test('admin login landing redirects to admin; linking accounts stays in tool',async()=>{

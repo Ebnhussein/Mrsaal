@@ -5,7 +5,7 @@ const {buildWhatsAppContent}=require('./whatsapp-content');
 const { all, get, run } = require('./db');
 const QRCode = require('qrcode');
 const pino = require('pino');
-const {ensureTrackingSchema,attachTracking}=require('./whatsappTracking');
+const {ensureTrackingSchema,attachTracking}=require('./whatsapp-tracking');
 const sessions = new Map();
 let libraryPromise;
 let schemaPromise;

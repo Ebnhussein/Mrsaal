@@ -124,7 +124,7 @@ async function sync(){
   const g=gateway();for(const l of rows){try{
    await run('UPDATE email_log SET whatsapp_synced_at=NOW() WHERE id=$1 AND user_id=$2',[l.id,l.user_id]);const own=await g.messages(l.whatsapp_session_id,{messageId:l.message_id,limit:'1'});const m=own.find(x=>x.waMessageId===l.message_id&&x.direction==='outgoing');
    if(m?.status==='failed'){await run("UPDATE email_log SET status='failed',reason=$3 WHERE id=$1 AND user_id=$2",[l.id,l.user_id,'MrsaalWA أبلغ عن فشل التسليم. راجع المحادثة قبل إعادة الإرسال.']);await event(l.user_id,'delivery_failed');continue;}
-   if(m&&['delivered','read'].includes(m.status))await require('./whatsappTracking').receipt(l.user_id,{id:l.message_id,fromMe:true},{read:m.status==='read'});
+   if(m&&['delivered','read'].includes(m.status))await require('./whatsapp-tracking').receipt(l.user_id,{id:l.message_id,fromMe:true},{read:m.status==='read'});
    const chat=m?.chatId||l.thread_id;if(!chat||!/@(?:c\.us|lid)$/.test(chat))continue;
    const incoming=await g.messages(l.whatsapp_session_id,{chatId:chat,direction:'incoming',since:String(Number(l.sent_at)*1000)});
    const reply=incoming.filter(x=>x.direction==='incoming'&&x.chatId===chat&&seconds(x.timestamp)>=Number(l.sent_at)).sort((a,b)=>Number(b.timestamp)-Number(a.timestamp))[0];

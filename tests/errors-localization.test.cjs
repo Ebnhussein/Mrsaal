@@ -52,7 +52,7 @@ test('browser language travels with fetch, JSON and multipart but never external
  assert(arabic.test(window.MrsaalErrors.network(true)));document.documentElement.lang='en';assert(!arabic.test(window.MrsaalErrors.network(true)));
 });
 test('reply failures back off and log safe reasons without repeated provider calls for every thread',async()=>{
- const filename=require.resolve('../utils/replyTracker'),logs=[],writes=[];let requests=0;
+ const filename=require.resolve('../utils/reply-tracker'),logs=[],writes=[];let requests=0;
  const oauthError=Object.assign(new Error('private token must never be logged'),{response:{status:400,data:{error:'invalid_grant'}}});
  const deps={googleapis:{google:{gmail:()=>({users:{threads:{get:async()=>{requests++;throw oauthError;}}}})}},'./db':{all:async()=>Array.from({length:20},(_,i)=>({id:'log'+i,user_id:'owner',thread_id:'thread'+i,sender_account_id:'account'})),run:async(sql,args)=>writes.push({sql,args})},'./gmail':{buildAuthClient:()=>({})},'./gmail-accounts':{resolveAccount:async()=>({email:'sender@example.test'})}};
  const box={module:{exports:{}},Buffer,console:{warn:(...args)=>logs.push(args)},require:id=>Object.hasOwn(deps,id)?deps[id]:require(path.resolve(path.dirname(filename),id))};
