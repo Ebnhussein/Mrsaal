@@ -1,8 +1,8 @@
 'use strict';
 const {createHash,randomUUID}=require('crypto');
-const {get,all,run,pool}=require('./db');
+const {get,all,run,pool}=require('../db');
 const {config,createGateway,fail}=require('./mrsaalwa-gateway');
-const {buildWhatsAppContent}=require('./whatsapp/content');
+const {buildWhatsAppContent}=require('./content');
 let schema,timer,syncing=false;
 const enabled=()=>process.env.MRSAALWA_ENABLED==='true';
 const gateway=()=>createGateway(config());
@@ -21,14 +21,14 @@ function ensureSchema(){return schema||=(async()=>{await run(`
  ALTER TABLE email_log ADD COLUMN IF NOT EXISTS whatsapp_session_id TEXT;
  `);})().catch(e=>{schema=null;throw e;});}
 async function profile(id){await ensureSchema();return await get('SELECT * FROM whatsapp_preferences WHERE user_id=$1',[id])||{user_id:id,provider:'baileys',beta_allowed:false,session_id:null};}
-async function allowed(id){const p=await profile(id);return enabled()&&!p.beta_blocked&&(process.env.MRSAALWA_PUBLIC_BETA!=='false'||p.beta_allowed||await require('./helpdesk').isAdmin(id));}
+async function allowed(id){const p=await profile(id);return enabled()&&!p.beta_blocked&&(process.env.MRSAALWA_PUBLIC_BETA!=='false'||p.beta_allowed||await require('../helpdesk').isAdmin(id));}
 // Initialise the UI default only when no saved connection or active work can be displaced.
 async function prepareDefault(id){
  const p=await profile(id);
  if(p.provider==='mrsaalwa'||p.provider_chosen||!await allowed(id))return p;
  await select(id,'mrsaalwa',true);return profile(id);
 }
-async function assertAllowed(id){if(!await allowed(id))throw fail('MRSAALWA_DISABLED',403);await require('./access-control').checkToolAccess(id);}
+async function assertAllowed(id){if(!await allowed(id))throw fail('MRSAALWA_DISABLED',403);await require('../access-control').checkToolAccess(id);}
 async function locked(id,task){await ensureSchema();const c=await pool.connect();try{await c.query('BEGIN');const r=await c.query('SELECT id FROM users WHERE id=$1 FOR NO KEY UPDATE NOWAIT',[id]);if(!r.rows.length)throw fail('MRSAALWA_DISABLED',403);const result=await task(c);await c.query('COMMIT');return result;}catch(e){await c.query('ROLLBACK');if(e.code==='55P03')throw fail('MRSAALWA_BUSY',409);throw e;}finally{c.release();}}
 async function event(id,type,code=null){await run('INSERT INTO mrsaalwa_events(id,user_id,event,code) VALUES($1,$2,$3,$4)',[randomUUID(),id,type,code]);await run("DELETE FROM mrsaalwa_events WHERE created_at<NOW()-INTERVAL '14 days'");}
 async function busy(id){return !!await get(`SELECT id FROM delivery_attempts WHERE user_id=$1 AND status IN ('processing','uncertain')
@@ -38,7 +38,7 @@ async function select(id,provider,initialise=false){
  if(!['baileys','mrsaalwa'].includes(provider))throw fail('MRSAALWA_INPUT',400);
  return locked(id,async c=>{const p=await profile(id);
   if(initialise){
-   if(p.provider_chosen||p.provider==='mrsaalwa'||require('./whatsapp/baileys').status(id).status!=='disconnected'||await busy(id))return {ok:true};
+   if(p.provider_chosen||p.provider==='mrsaalwa'||require('./baileys').status(id).status!=='disconnected'||await busy(id))return {ok:true};
    const table=await get("SELECT to_regclass('public.whatsapp_auth') AS name");
    if(table?.name&&await get("SELECT user_id FROM whatsapp_auth WHERE user_id=$1 AND key_id='creds' LIMIT 1",[id]))return {ok:true};
   }
@@ -46,7 +46,7 @@ async function select(id,provider,initialise=false){
   if(provider==='mrsaalwa')await assertAllowed(id);
   if(await busy(id))throw fail('MRSAALWA_BUSY',409);
   if(p.provider==='mrsaalwa'&&p.session_id)throw fail('MRSAALWA_DISCONNECT_FIRST',409);
-  if(p.provider==='baileys'&&require('./whatsapp/baileys').status(id).status!=='disconnected')throw fail('MRSAALWA_DISCONNECT_FIRST',409);
+  if(p.provider==='baileys'&&require('./baileys').status(id).status!=='disconnected')throw fail('MRSAALWA_DISCONNECT_FIRST',409);
   await c.query('INSERT INTO whatsapp_preferences(user_id,provider,provider_chosen) VALUES($1,$2,true) ON CONFLICT(user_id) DO UPDATE SET provider=EXCLUDED.provider,provider_chosen=true',[id,provider]);
   await event(id,'provider_changed',provider);return {ok:true};
  });
@@ -56,7 +56,7 @@ async function status(id,includeQR=true){
  try{const g=gateway();let s=await g.session(p.session_id),qr=null;
   if(includeQR&&s.status==='qr_ready'){try{qr=await g.qr(p.session_id);}catch(e){if(e.code!=='MRSAALWA_REJECTED')throw e;const next=await g.session(p.session_id);if(!['authenticating','initializing','ready'].includes(next.status))throw e;s=next;}}
   const state={ready:'connected',qr_ready:'qr',created:'disconnected',initializing:'connecting',authenticating:'connecting',action_required:'disconnected',failed:'disconnected',disconnected:'disconnected'}[s.status]||'disconnected';
-  if(p.last_status!==state){await event(id,'connection',state);if(p.last_status==='connected'&&state==='disconnected')require('./notifications').whatsappDisconnected(id,{});}
+  if(p.last_status!==state){await event(id,'connection',state);if(p.last_status==='connected'&&state==='disconnected')require('../notifications').whatsappDisconnected(id,{});}
   await run('UPDATE whatsapp_preferences SET last_status=$2,last_error=NULL,last_seen=NOW() WHERE user_id=$1 AND session_id=$3',[id,state,p.session_id]);
   return {provider:'mrsaalwa',status:state,phone:s.phone||null,hasSession:true,qr};
  }catch(e){await run('UPDATE whatsapp_preferences SET last_error=$2,last_seen=NOW() WHERE user_id=$1',[id,e.code||'MRSAALWA_RESPONSE']);throw e;}
@@ -124,7 +124,7 @@ async function sync(){
   const g=gateway();for(const l of rows){try{
    await run('UPDATE email_log SET whatsapp_synced_at=NOW() WHERE id=$1 AND user_id=$2',[l.id,l.user_id]);const own=await g.messages(l.whatsapp_session_id,{messageId:l.message_id,limit:'1'});const m=own.find(x=>x.waMessageId===l.message_id&&x.direction==='outgoing');
    if(m?.status==='failed'){await run("UPDATE email_log SET status='failed',reason=$3 WHERE id=$1 AND user_id=$2",[l.id,l.user_id,'MrsaalWA أبلغ عن فشل التسليم. راجع المحادثة قبل إعادة الإرسال.']);await event(l.user_id,'delivery_failed');continue;}
-   if(m&&['delivered','read'].includes(m.status))await require('./whatsapp/tracking').receipt(l.user_id,{id:l.message_id,fromMe:true},{read:m.status==='read'});
+   if(m&&['delivered','read'].includes(m.status))await require('./tracking').receipt(l.user_id,{id:l.message_id,fromMe:true},{read:m.status==='read'});
    const chat=m?.chatId||l.thread_id;if(!chat||!/@(?:c\.us|lid)$/.test(chat))continue;
    const incoming=await g.messages(l.whatsapp_session_id,{chatId:chat,direction:'incoming',since:String(Number(l.sent_at)*1000)});
    const reply=incoming.filter(x=>x.direction==='incoming'&&x.chatId===chat&&seconds(x.timestamp)>=Number(l.sent_at)).sort((a,b)=>Number(b.timestamp)-Number(a.timestamp))[0];

@@ -1,7 +1,7 @@
 'use strict';
 // A selected transport never silently falls back to another WhatsApp account.
 const legacy=require('./baileys');
-const beta=()=>require('../mrsaalwa');
+const beta=()=>require('./mrsaalwa');
 async function selected(id){return (await beta().profile(id)).provider==='mrsaalwa';}
 module.exports={
  async status(id){return await selected(id)?beta().status(id):{...legacy.status(id),...legacy.capacity(),provider:'baileys'};},

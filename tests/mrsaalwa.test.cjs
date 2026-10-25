@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),{PGlite}=require('@electric-sql/pglite');
-const provider=require('../utils/mrsaalwa-gateway');
+const provider=require('../utils/whatsapp/mrsaalwa-gateway');
 const sid='11111111-2222-4333-8444-555555555555',sid2='22222222-2222-4333-8444-555555555555';
 const response=(data,status=200)=>({ok:status>=200&&status<300,status,text:async()=>JSON.stringify(data)});
 function load(file,deps,extra={}){const box={module:{exports:{}},require:id=>{if(!(id in deps))throw new Error('Missing dependency '+id);return deps[id];},process:{env:{}},console,Buffer,setInterval,clearInterval,...extra};vm.runInNewContext(fs.readFileSync(require.resolve(file),'utf8'),box);return box.module.exports;}
@@ -23,8 +23,8 @@ async function fixture(){
  const query=(s,a)=>pg.query(s,a),db={get:async(s,a)=>(await query(s,a)).rows[0]||null,all:async(s,a)=>(await query(s,a)).rows,run:(s,a)=>a?query(s,a):pg.exec(s),pool:{connect:async()=>({query,release(){}})}};
  const calls=[],sessions=[],env={MRSAALWA_PUBLIC_BETA:'false',MRSAALWA_ENABLED:'true',MRSAALWA_MAX_SESSIONS:'2'};let legacyStatus='disconnected',startFails=false;
  const g={list:async()=>sessions,create:async name=>{const s={id:calls.filter(c=>c[0]==='create').length?sid2:sid,name,status:'created',engineLoaded:false};sessions.push(s);calls.push(['create',s.id]);return s;},session:async id=>{calls.push(['session',id]);const s=sessions.find(x=>x.id===id);if(!s)throw provider.fail('MRSAALWA_SESSION');return s;},start:async id=>{calls.push(['start',id]);if(startFails)throw provider.fail('MRSAALWA_TIMEOUT');Object.assign(sessions.find(x=>x.id===id),{status:'qr_ready',engineLoaded:true});},qr:async()=> 'data:image/png;base64,dGVzdA==',pair:async(id,p)=>{calls.push(['pair',id,p]);return 'ABCD1234';},logout:async id=>calls.push(['logout',id]),remove:async id=>{calls.push(['remove',id]);sessions.splice(sessions.findIndex(x=>x.id===id),1);},send:async(id,phone,content)=>{calls.push(['send',id,phone,content]);return {messageId:'true_'+phone+'@c.us_MSG',threadId:phone+'@c.us'};},messages:async()=>[]};
- const deps={crypto:require('crypto'),'./db':db,'./mrsaalwa-gateway':{...provider,config:()=>({}),createGateway:()=>g},'./whatsapp/content':require('../utils/whatsapp/content'),'./helpdesk':{isAdmin:async()=>false},'./access-control':{checkToolAccess:async()=>{}},'./whatsapp/baileys':{status:()=>({status:legacyStatus})},'./notifications':{whatsappDisconnected(){}},'./whatsapp/tracking':{receipt:async(...args)=>calls.push(['receipt',...args])}};
- const beta=load('../utils/mrsaalwa',deps,{process:{env}});await beta.ensureSchema();
+ const deps={crypto:require('crypto'),'../db':db,'./mrsaalwa-gateway':{...provider,config:()=>({}),createGateway:()=>g},'./content':require('../utils/whatsapp/content'),'../helpdesk':{isAdmin:async()=>false},'../access-control':{checkToolAccess:async()=>{}},'./baileys':{status:()=>({status:legacyStatus})},'../notifications':{whatsappDisconnected(){}},'./tracking':{receipt:async(...args)=>calls.push(['receipt',...args])}};
+ const beta=load('../utils/whatsapp/mrsaalwa',deps,{process:{env}});await beta.ensureSchema();
  return {pg,db,beta,g,calls,sessions,env,setLegacy:s=>legacyStatus=s,setStartFailure:v=>startFails=v,grant:async id=>{await query('INSERT INTO whatsapp_preferences(user_id,beta_allowed) VALUES($1,true) ON CONFLICT(user_id) DO UPDATE SET beta_allowed=true',[id]);},close:()=>pg.close()};
 }
 test('beta is opt-in; each user gets a distinct server-owned session and QR or phone code',async()=>{
@@ -50,7 +50,7 @@ test('send validates attachment before relay, uses only owned session, and revoc
  }finally{await f.close();}
 });
 test('selected MrsaalWA cannot silently fall back to Baileys when disabled or unreachable',async()=>{
- let legacySends=0;const deps={'./baileys':{sendWhatsAppMessage:async()=>legacySends++},'../mrsaalwa':{profile:async()=>({provider:'mrsaalwa'}),locked:async(id,fn)=>fn(),send:async()=>{throw provider.fail('MRSAALWA_DISABLED',403);}}};
+ let legacySends=0;const deps={'./baileys':{sendWhatsAppMessage:async()=>legacySends++},'./mrsaalwa':{profile:async()=>({provider:'mrsaalwa'}),locked:async(id,fn)=>fn(),send:async()=>{throw provider.fail('MRSAALWA_DISABLED',403);}}};
  const service=load('../utils/whatsapp/service',deps);await assert.rejects(service.sendWhatsAppMessage('owner','201012345678','Hi'),e=>e.code==='MRSAALWA_DISABLED');assert.equal(legacySends,0);
 });
 test('tracking imports only owned sent-message receipts and replies; unrelated user data is untouched',async()=>{
@@ -61,12 +61,12 @@ test('tracking imports only owned sent-message receipts and replies; unrelated u
  }finally{await f.close();}
 });
 test('provider changes between readiness and dispatch fail before sending on either account',async()=>{
- let sends=0;const deps={'./baileys':{sendWhatsAppMessage:async()=>sends++},'./policy':require('../utils/whatsapp/policy'),'../mrsaalwa':{profile:async()=>({provider:'mrsaalwa'}),locked:async(id,fn)=>fn(),send:async()=>sends++}};
+ let sends=0;const deps={'./baileys':{sendWhatsAppMessage:async()=>sends++},'./policy':require('../utils/whatsapp/policy'),'./mrsaalwa':{profile:async()=>({provider:'mrsaalwa'}),locked:async(id,fn)=>fn(),send:async()=>sends++}};
  const service=load('../utils/whatsapp/service',deps);await assert.rejects(service.sendWhatsAppMessage('owner','201012345678','Hi',null,'baileys'),e=>e.code==='WA_CONNECTION_CHANGED'&&e.beforeSend);assert.equal(sends,0);
 });
 test('WhatsApp mutation routes require a signed request and recent auth and never accept a client session ID',async()=>{
  const layers=[],routes={},router={use:(...f)=>layers.push(...f),get:(p,...f)=>routes['GET '+p]=f.at(-1),post:(p,...f)=>routes['POST '+p]=f.at(-1)};let captured;
- const deps={express:{Router:()=>router},'../middleware/auth':{requireAuth:(req,res,next)=>req.session?.userId?next():res.status(401).json({})},'../middleware/async-handler':f=>f,'../middleware/recent-auth':require('../middleware/recent-auth'),'../utils/helpdesk':{quota:()=>true},'../utils/whatsapp/service':{connect:async(id,opts)=>{captured={id,opts};return {ok:true};}},'../utils/mrsaalwa':{}};
+ const deps={express:{Router:()=>router},'../middleware/auth':{requireAuth:(req,res,next)=>req.session?.userId?next():res.status(401).json({})},'../middleware/async-handler':f=>f,'../middleware/recent-auth':require('../middleware/recent-auth'),'../utils/helpdesk':{quota:()=>true},'../utils/whatsapp/service':{connect:async(id,opts)=>{captured={id,opts};return {ok:true};}},'../utils/whatsapp/mrsaalwa':{}};
  load('../routes/whatsapp',deps);const res={statusCode:200,status(s){this.statusCode=s;return this;},json(v){this.body=v;return this;},set(){}};let passed=0;
  layers[0]({session:{}},res,()=>passed++);assert.equal(res.statusCode,401);assert.equal(passed,0);
  layers[2]({get:()=>null,is:()=>true},res,()=>passed++);assert.equal(res.statusCode,403);assert.equal(passed,0);
