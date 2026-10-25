@@ -21,7 +21,9 @@ test('CV bytes and company quotas are enforced transactionally, preserve attachm
 }));
 test('Google entry and API mutation counters survive reload and never store raw IP contact data',async()=>database(async(db)=>{
  const registration=load('utils/registration.js',{'./db':db},{SESSION_SECRET:'test-only-secret'});for(let i=0;i<30;i++)await registration.googleLimit('203.0.113.4');await assert.rejects(registration.googleLimit('203.0.113.4'),e=>e.code==='AUTH_RATE_LIMIT');const row=await db.get('SELECT key FROM registration_limits');assert.match(row.key,/^[a-f0-9]{64}$/);const rate=load('middleware/mutation-rate.js',{'../utils/db':db});
- for(let i=0;i<120;i++){let next=false;await rate({session:{userId:'owner'},path:'/api/cv',method:'POST'},res(),()=>next=true);assert(next);}
+ const seconds=Number((await db.get("SELECT EXTRACT(SECOND FROM NOW()) AS s")).s);if(seconds>57)await new Promise(r=>setTimeout(r,(61-seconds)*1000));
+ await db.run("INSERT INTO api_mutation_limits(user_id,minute,amount) VALUES('owner',date_trunc('minute',NOW()),119)");
+ {let next=false;await rate({session:{userId:'owner'},path:'/api/cv',method:'POST'},res(),()=>next=true);assert(next,'the 120th request in a minute is still allowed');}
  const response=res();await rate({session:{userId:'owner'},path:'/api/cv',method:'POST'},response,()=>assert.fail('over limit'));assert.equal(response.statusCode,429);
 }));
 test('local queue caps waiting, hides other accounts, supports cancellation, and enforces global daily admission',async()=>database(async(db)=>{
