@@ -28,11 +28,11 @@ router.post('/generate',wrap(async(req,res)=>{
  const company=await get('SELECT * FROM companies WHERE id=$1 AND user_id=$2',[req.body.companyId,id]);if(!company)throw new Error('اختار شركة من حسابك أولاً.');
  const channel=chooseChannel(company,req.body.channel);const reason=skipReason(company,channel);
  if(reason)return res.json({skipped:true,status:'skipped',channel,reason});
- const cv=await require('../utils/cv-store').active(id,req.body.cvId||null);if(!cv?.content?.trim())throw new Error('ضيف السي في الأول.');
+ const cv=await require('../utils/cv/store').active(id,req.body.cvId||null);if(!cv?.content?.trim())throw new Error('ضيف السي في الأول.');
  const t=await template(id);
  const actions={shorten:'اختصر مع الحفاظ على المعنى',simplify:'استخدم كلمات أبسط وجملاً مباشرة',casual:'قلل الرسمية مع الحفاظ على الاحترام',custom:'طبّق ملاحظة المستخدم على المسودة فقط'};
  let revision=null;if(req.body.action){if(!actions[req.body.action])throw new Error('تعديل غير معروف');if(typeof req.body.body!=='string'||!req.body.body.trim()||req.body.body.length>14000)throw new Error('المسودة غير صالحة');revision={action:actions[req.body.action],note:String(req.body.note||'').slice(0,1000),draft:{subject:String(req.body.subject||'').slice(0,240),body:req.body.body}};}
  await require('../utils/delivery/edit-safety').begin(id,company.id,channel);
- const result=await aiJob(id,async()=>generate({cv:cv.content,cvSummary:require('../utils/cv-summary').approved(cv),company,instructions:t?.instructions,subjectTemplate:t?.subject_template,revision,...await settings(id)},channel));await require('../utils/delivery/drafts').save(id,company.id,channel,result.subject||'',result.body);res.json({channel,...result});
+ const result=await aiJob(id,async()=>generate({cv:cv.content,cvSummary:require('../utils/cv/summary').approved(cv),company,instructions:t?.instructions,subjectTemplate:t?.subject_template,revision,...await settings(id)},channel));await require('../utils/delivery/drafts').save(id,company.id,channel,result.subject||'',result.body);res.json({channel,...result});
 }));
 module.exports=router;

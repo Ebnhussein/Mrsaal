@@ -11,7 +11,7 @@ function client(){return provider.createClient(provider.config());}
 async function send(userId,{key,body,includeCV,acknowledge}){
  if(acknowledge!==true||typeof body!=='string'||!body.trim()||body.length>1000||typeof key!=='string'||!/^[a-zA-Z0-9_-]{16,100}$/.test(key)||typeof includeCV!=='boolean')throw provider.fail('OPENWA_INPUT',400);
  const settings=provider.config();let attachment=null;
- if(includeCV){const cv=await require('../cv-store').active(userId);if(!cv?.pdf_data)throw provider.fail('OPENWA_CV',400);if(cv.pdf_data.length>10*1024*1024)throw provider.fail('OPENWA_PDF_LIMIT',400);const content=buildWhatsAppContent(body,{data:cv.pdf_data,filename:cv.filename,mimeType:'application/pdf'});attachment={data:content.document,fileName:content.fileName};}
+ if(includeCV){const cv=await require('../cv/store').active(userId);if(!cv?.pdf_data)throw provider.fail('OPENWA_CV',400);if(cv.pdf_data.length>10*1024*1024)throw provider.fail('OPENWA_PDF_LIMIT',400);const content=buildWhatsAppContent(body,{data:cv.pdf_data,filename:cv.filename,mimeType:'application/pdf'});attachment={data:content.document,fileName:content.fileName};}
  const formatted=buildWhatsAppContent(body).text;
  const hash=createHash('sha256').update(JSON.stringify([settings.session,settings.recipient,formatted,attachment?.fileName||null])).update(attachment?.data||'').digest('hex');
  await ensureSchema();const connection=await db.pool.connect();let previous;

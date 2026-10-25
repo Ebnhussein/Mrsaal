@@ -10,13 +10,13 @@ const { replaceLatest } = require('../utils/user-records');
 const upload = multer({storage:multer.memoryStorage(),limits:{fileSize:20*1024*1024}});
 router.use(requireAuth);
 router.get('/summary',asyncHandler(async(req,res)=>{
- const cv=await require('../utils/cv-store').active(req.session.userId,req.query.cvId||null);if(!cv)return res.status(404).json({error:'السيرة غير موجودة'});
- const summary=require('../utils/cv-summary');const saved=summary.approved(cv);
+ const cv=await require('../utils/cv/store').active(req.session.userId,req.query.cvId||null);if(!cv)return res.status(404).json({error:'السيرة غير موجودة'});
+ const summary=require('../utils/cv/summary');const saved=summary.approved(cv);
  res.json({cvId:cv.id,sourceHash:summary.hash(cv.content),text:saved||summary.propose(cv.content),approved:!!saved,maxChars:summary.MAX_CHARS,sourceCharacters:cv.content?.length||0});
 }));
 router.post('/summary',asyncHandler(async(req,res)=>{
- const summary=require('../utils/cv-summary');const text=summary.validate(req.body.text,req.body.approved);
- const cv=await require('../utils/cv-store').active(req.session.userId,req.body.cvId);if(!cv||!req.body.cvId)return res.status(404).json({error:'السيرة غير موجودة'});
+ const summary=require('../utils/cv/summary');const text=summary.validate(req.body.text,req.body.approved);
+ const cv=await require('../utils/cv/store').active(req.session.userId,req.body.cvId);if(!cv||!req.body.cvId)return res.status(404).json({error:'السيرة غير موجودة'});
  if(req.body.sourceHash!==summary.hash(cv.content))return res.status(409).json({error:'السيرة تغيرت. افتح الملخص من جديد.'});
  const result=await run('UPDATE cv_profiles SET ai_summary=$1,ai_summary_source_hash=$2,ai_summary_approved_at=NOW() WHERE id=$3 AND user_id=$4 AND content=$5',[text,summary.hash(cv.content),cv.id,req.session.userId,cv.content]);
  if(!result.rowCount)return res.status(409).json({error:'السيرة تغيرت. افتح الملخص من جديد.'});res.json({ok:true});
@@ -40,13 +40,13 @@ router.delete('/:id',asyncHandler(async(req,res)=>{
  }catch(error){await client.query('ROLLBACK');throw error;}finally{client.release();}
 }));
 router.get('/pdf',asyncHandler(async(req,res)=>{
- const cv=await require('../utils/cv-store').active(req.session.userId);
+ const cv=await require('../utils/cv/store').active(req.session.userId);
  if(!cv?.pdf_data)return res.status(404).json({error:'لا يوجد PDF محفوظ. أعد رفع السيرة بصيغة PDF.'});
  res.set({'Content-Type':'application/pdf','Content-Disposition':'attachment; filename="CV.pdf"','Cache-Control':'private, no-store'});
  res.send(cv.pdf_data);
 }));
 router.get('/', asyncHandler(async(req,res)=>{
- const cv=await require('../utils/cv-store').active(req.session.userId);res.json(cv?{id:cv.id,content:cv.content,filename:cv.filename,name:cv.name,created_at:cv.created_at,has_attachment:!!cv.pdf_data}:null);
+ const cv=await require('../utils/cv/store').active(req.session.userId);res.json(cv?{id:cv.id,content:cv.content,filename:cv.filename,name:cv.name,created_at:cv.created_at,has_attachment:!!cv.pdf_data}:null);
 }));
 router.post('/upload',upload.single('cv'),asyncHandler(async(req,res)=>{
  if(!req.file)return res.status(400).json({error:'لا يوجد ملف'});
@@ -55,13 +55,13 @@ router.post('/upload',upload.single('cv'),asyncHandler(async(req,res)=>{
  try{text=isPDF?(await pdf(req.file.buffer)).text:textFile(req.file.buffer);}
  catch{return res.status(400).json({error:'فشل قراءة ملف PDF. تأكد من سلامة الملف.'});}
  if(!text?.trim())return res.status(400).json({error:'الملف لا يحتوي على نص مقروء. ارفع PDF نصيًا أو أضف النص يدويًا. السيرة السابقة لم تتغير.'});
- const id=await require('../utils/cv-store').save(req.session.userId,{content:text,filename:req.file.originalname,pdf_data:isPDF?req.file.buffer:null});
+ const id=await require('../utils/cv/store').save(req.session.userId,{content:text,filename:req.file.originalname,pdf_data:isPDF?req.file.buffer:null});
  res.json({id,content:text,filename:req.file.originalname,has_attachment:isPDF});
 }));
 router.post('/text',asyncHandler(async(req,res)=>{
  const {content,name}=req.body;
  if(typeof content!=='string'||!content.trim())return res.status(400).json({error:'المحتوى فارغ'});
- const id=await require('../utils/cv-store').save(req.session.userId,{content:content.trim(),filename:typeof name==='string'?name:'manual',pdf_data:null},true);
+ const id=await require('../utils/cv/store').save(req.session.userId,{content:content.trim(),filename:typeof name==='string'?name:'manual',pdf_data:null},true);
  res.json({id,content:content.trim()});
 }));
 router.get('/template',asyncHandler(async(req,res)=>{

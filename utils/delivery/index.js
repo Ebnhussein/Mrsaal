@@ -14,7 +14,7 @@ async function deliver(userId,{companyId,channel,subject='',body,senderAccountId
  await require('../access-control').checkToolAccess(userId);if(channel==='whatsapp')await require('../whatsapp/safety').assertWithinDailyCap(userId);credit=await require('../usage-limits').reserve(userId,'send');
  const user=await get('SELECT * FROM users WHERE id=$1',[userId]);
  const account=channel==='email'?await require('../gmail/accounts').resolveAccount(userId,senderAccountId):null;
- const cv=await require('../cv-store').active(userId,cvId);if(cvId&&!cv)throw new Error('السيرة المحددة لم تعد متاحة');
+ const cv=await require('../cv/store').active(userId,cvId);if(cvId&&!cv)throw new Error('السيرة المحددة لم تعد متاحة');
  const attachment=cv?.pdf_data?{data:cv.pdf_data,filename:cv.filename||'CV.pdf',mimeType:'application/pdf'}:null;
  const waConnection=channel==='whatsapp'?await require('../whatsapp/service').requireConnected(userId):null;
  const to=channel==='email'?company.email:company.phone;
