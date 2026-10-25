@@ -38,6 +38,7 @@ function renderExact(page,legacy,{posts=[],post=null}={},language='ar'){
   html=html.replace(/(<a\b[^>]*data-language-toggle[^>]*href=")[^"]*("[^>]*>)/,(_,a,b)=>a+'/'+other+'/blog/'+slug+b);
  }
  const suffix=post?'blog/'+encodeURIComponent(post.slug):page==='home'?'':page;
+ html=require('./seo-tags').seoTags({html,lang,page,post,suffix});
  html=html.replace('</head>',`<link rel="alternate" hreflang="ar" href="https://mrsaal.ebnhussein.co/ar/${suffix}"><link rel="alternate" hreflang="en" href="https://mrsaal.ebnhussein.co/en/${suffix}"></head>`);
  html=html.replace(/(\/assets\/stitch-exact\/interactions\.js)\?v=[^"\s<>]+/g,'$1?v=locale-20261015');
  html=html.replace('</head>','<script src="/assets/theme-init.js?v=locale-20261015"></script></head>');
