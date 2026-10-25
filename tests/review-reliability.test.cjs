@@ -29,7 +29,7 @@ test('report cleanup keeps scheduled/processing/uncertain logs and job drafts wi
 });
 test('AI personal fallback and review share the original deadline',async()=>{
  const deadlines=[];const draft={subject:'Hello',body:'Honest draft',notes:[],needsUserInput:false};
- const ai=load('utils/ai/index.js',{'./gemini-direct':{callGemini:async(...args)=>{deadlines.push(args[5]);throw Error('busy');}},'./providers':{callUserAI:async(...args)=>{deadlines.push(args[4]);return JSON.stringify(draft);}},'./writing-profile':require('../utils/ai/writing-profile'),'../db':{get:async()=>({ai_personal_fallback:true})},'../usage-limits':{reserve:async()=>1,commit:async()=>{},release:async()=>{}},'./leases':{acquire:async()=>1,release:async()=>{}}},{AI_SECOND_PASS:'true',AI_TOTAL_TIMEOUT_MS:'30000'});
+ const ai=load('utils/ai/index.js',{'./gemini-direct':{callGemini:async(...args)=>{deadlines.push(args[5]);throw Error('busy');}},'./providers':{callUserAI:async(...args)=>{deadlines.push(args[4]);return JSON.stringify(draft);}},'./writing-profile':require('../utils/ai/writing-profile'),'../db':{get:async()=>({ai_personal_fallback:true})},'../usage/limits':{reserve:async()=>1,commit:async()=>{},release:async()=>{}},'./leases':{acquire:async()=>1,release:async()=>{}}},{AI_SECOND_PASS:'true',AI_TOTAL_TIMEOUT_MS:'30000'});
  await ai.generateEmail({userId:'owner',cv:'Developer',company:{name:'Company'}});assert(deadlines.length>=3);assert(deadlines.every(d=>d===deadlines[0]));assert(deadlines[0]>Date.now());assert(deadlines[0]<=Date.now()+30000);
 });
 test('legacy daily quota cooldown keeps QUOTA and provider reset time; cached failure is explained',async()=>{

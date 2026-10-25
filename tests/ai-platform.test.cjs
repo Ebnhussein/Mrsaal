@@ -42,7 +42,7 @@ test('automatic Gemini selection excludes image, live and preview models and pre
 test('platform chain respects existing one-credit operation and explicit personal source selection',async()=>{
  for(const source of ['mrsaal','personal']){
   const events=[],env={MRSAAL_AI_MODEL_CHAIN:plan,LOCAL_AI_BASE_URL:'https://local.test'};
-  const deps={'./gemini-direct':{},'./writing-profile':require('../utils/ai/writing-profile'),'./platform':{callPlatformAI:async()=>{events.push('platform');return 'OK';}},'./providers':{callUserAI:async()=>{events.push('personal');return 'OK';}},'../db':{get:async()=>({ai_source:source})},'../usage-limits':{reserve:async(u,k)=>{events.push(k);return 'credit';},commit:async()=>events.push('commit'),release:async()=>events.push('refund')},'./leases':{acquire:async()=>1,release:async()=>events.push('released')}};
+  const deps={'./gemini-direct':{},'./writing-profile':require('../utils/ai/writing-profile'),'./platform':{callPlatformAI:async()=>{events.push('platform');return 'OK';}},'./providers':{callUserAI:async()=>{events.push('personal');return 'OK';}},'../db':{get:async()=>({ai_source:source})},'../usage/limits':{reserve:async(u,k)=>{events.push(k);return 'credit';},commit:async()=>events.push('commit'),release:async()=>events.push('refund')},'./leases':{acquire:async()=>1,release:async()=>events.push('released')}};
   const box={module:{exports:{}},process:{env},console,require:id=>deps[id]};vm.runInNewContext(fs.readFileSync(require.resolve('../utils/ai/index'),'utf8'),box);
   assert.equal(await box.module.exports.callGemini('facts',1200,null,null,null,'owner'),'OK');assert.deepEqual(events,source==='mrsaal'?['ai','platform','commit','released']:['personal_ai','personal','commit','released']);
  }

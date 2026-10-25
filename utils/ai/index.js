@@ -14,7 +14,7 @@ async function runOperation(userId,kind,fn){
  const timeout=Number(process.env.AI_TOTAL_TIMEOUT_MS);
  const deadline=Date.now()+(Number.isFinite(timeout)&&timeout>=modelTimeout&&timeout<=90000?timeout:45000);
  if(!userId)return fn({deadline});
- const {get}=require('../db'),usage=require('../usage-limits'),leases=require('./leases');
+ const {get}=require('../db'),usage=require('../usage/limits'),leases=require('./leases');
  const lease=await leases.acquire(userId);let credit,operation;
  try{const prefs=await get('SELECT ai_source,ai_personal_fallback FROM users WHERE id=$1',[userId]);
  operation={deadline,source:prefs?.ai_source==='personal'?'personal':'mrsaal',fallback:prefs?.ai_personal_fallback===true};

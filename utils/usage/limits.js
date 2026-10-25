@@ -1,5 +1,5 @@
 'use strict';
-const {get,pool}=require('./db');const {randomUUID}=require('crypto');const {PLANS}=require('./plan-catalog');
+const {get,pool}=require('../db');const {randomUUID}=require('crypto');const {PLANS}=require('./plans');
 function limitError(){const e=new Error('وصلت لحد الاستخدام المتاح. راجع الرصيد في الإعدادات أو تواصل مع الدعم.');e.status=429;return e;}
 async function consume(userId,kind){
  if(!['send','ai'].includes(kind))throw new Error('Unknown usage kind');

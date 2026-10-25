@@ -11,7 +11,7 @@ async function deliver(userId,{companyId,channel,subject='',body,senderAccountId
  try{
  const reason=require('./channel').skipReason(company,channel);
  if(reason){const result={ok:true,status:'skipped',skipped:true,channel,reason};await run('UPDATE delivery_attempts SET status=$1,result=$2 WHERE id=$3',['skipped',JSON.stringify(result),attempt.id]);return result;}
- await require('../access-control').checkToolAccess(userId);if(channel==='whatsapp')await require('../whatsapp/safety').assertWithinDailyCap(userId);credit=await require('../usage-limits').reserve(userId,'send');
+ await require('../access-control').checkToolAccess(userId);if(channel==='whatsapp')await require('../whatsapp/safety').assertWithinDailyCap(userId);credit=await require('../usage/limits').reserve(userId,'send');
  const user=await get('SELECT * FROM users WHERE id=$1',[userId]);
  const account=channel==='email'?await require('../gmail/accounts').resolveAccount(userId,senderAccountId):null;
  const cv=await require('../cv/store').active(userId,cvId);if(cvId&&!cv)throw new Error('السيرة المحددة لم تعد متاحة');
@@ -22,7 +22,7 @@ async function deliver(userId,{companyId,channel,subject='',body,senderAccountId
  await run('UPDATE delivery_attempts SET log_id=$1 WHERE id=$2',[logId,attempt.id]);
  enteredProvider=true;
  const sent=channel==='email'?await require('../gmail/client').sendEmail({user,account,to,subject,body,attachment,trackingPixelUrl:(process.env.BASE_URL||'https://mrsaal.ebnhussein.co').replace(/\/$/,'')+'/track/open/'+logId+'.gif'}):await require('../whatsapp/service').sendWhatsAppMessage(userId,to,body,attachment,waConnection?.provider);
- delivered=true;await require('../usage-limits').commit(userId,credit);
+ delivered=true;await require('../usage/limits').commit(userId,credit);
  if(channel==='whatsapp'&&sent.provider==='mrsaalwa')await run('UPDATE email_log SET whatsapp_provider=$1,whatsapp_session_id=$2 WHERE id=$3 AND user_id=$4',[sent.provider,sent.sessionId,logId,userId]);
  await run("UPDATE email_log SET status='sent',sent_at=EXTRACT(EPOCH FROM NOW())::BIGINT,message_id=$1,thread_id=$2 WHERE id=$3 AND user_id=$4",[sent.messageId,sent.threadId,logId,userId]);
  await run("UPDATE companies SET status='sent' WHERE id=$1 AND user_id=$2",[companyId,userId]);
@@ -31,7 +31,7 @@ async function deliver(userId,{companyId,channel,subject='',body,senderAccountId
  if(channel==='email')e=require('../gmail/errors').gmailError(e);
  // A timeout or lost provider acknowledgement may already represent a delivered message.
  const uncertain=delivered||e.deliveryUncertain===true||enteredProvider&&e.beforeSend!==true&&!Number.isInteger(Number(e.response?.status||e.statusCode||e.status))||enteredProvider&&e.beforeSend!==true&&Number(e.response?.status||e.statusCode||e.status)>=500;
- if(credit){try{if(uncertain)await require('../usage-limits').commit(userId,credit);else await require('../usage-limits').release(userId,credit);}catch{console.warn('Usage reservation retained for reconciliation',attempt.id);}}
+ if(credit){try{if(uncertain)await require('../usage/limits').commit(userId,credit);else await require('../usage/limits').release(userId,credit);}catch{console.warn('Usage reservation retained for reconciliation',attempt.id);}}
  const status=uncertain?'uncertain':'failed',message=uncertain?'قد تكون الرسالة وصلت. راجع Gmail أو واتساب قبل إعادة الإرسال.':e.message;
  const result={ok:false,status,channel,logId,error:message,code:uncertain?'DELIVERY_UNCERTAIN':e.code};
  try{await run('UPDATE email_log SET status=$1,reason=$2 WHERE id=$3 AND user_id=$4',[status,message,logId,userId]);await run('UPDATE delivery_attempts SET status=$1,result=$2 WHERE id=$3',[status,JSON.stringify(result),attempt.id]);}catch{console.warn('Delivery persistence failed; request remains blocked',attempt.id);}
