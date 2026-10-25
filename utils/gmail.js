@@ -9,14 +9,16 @@ function getOAuthClient() {
   );
 }
 
-function getAuthUrl(state,mode='link') {
+// Linking asks for send only; gmail.readonly (reply tracking) is added later on request via incremental authorization.
+function getAuthUrl(state,mode='link',{replies=false}={}) {
   const oauth2Client = getOAuthClient();
   return oauth2Client.generateAuthUrl({
     access_type: 'offline',
+    include_granted_scopes: true,
     prompt: 'consent select_account',
     state,
     scope: [
-      ...(mode==='link'?['https://www.googleapis.com/auth/gmail.send','https://www.googleapis.com/auth/gmail.readonly']:[]),
+      ...(mode==='link'?['https://www.googleapis.com/auth/gmail.send',...(replies?['https://www.googleapis.com/auth/gmail.readonly']:[])]:[]),
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile'
     ]
@@ -93,8 +95,8 @@ async function sendEmailRequest({ user, account = null, logId = null, to, subjec
   const gmail = google.gmail({ version: 'v1', auth });
 
   // Get sender profile
-  const profile = await gmail.users.getProfile({ userId: 'me' });
-  const from = profile.data.emailAddress;
+  // users.getProfile needs a read scope, which send-only accounts do not have; the linked address is already known.
+  const from = account.email || (await gmail.users.getProfile({ userId: 'me' })).data.emailAddress;
 
   const raw = buildMimeMessage({ from, to, subject, body, trackingPixelUrl, attachment });
 
