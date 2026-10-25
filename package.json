@@ -15,7 +15,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@google/genai": "^2.28.0",
+    "@google/genai": "^2.30.0",
     "@whiskeysockets/baileys": "6.7.24",
     "connect-pg-simple": "^9.0.1",
     "dotenv": "^16.3.1",
@@ -33,7 +33,7 @@
     "xlsx": "file:vendor/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite": "^0.5.11",
     "@eslint/js": "^10.0.1",
     "eslint": "^10.13.0",
     "globals": "^17.13.0",
