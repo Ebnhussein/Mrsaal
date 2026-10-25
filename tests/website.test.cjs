@@ -18,7 +18,7 @@ test('maintenance presents the designed 503 page before login, keeps admin acces
  const h=harness();let paused=true,staff=false;
  load('routes/site.js',{express:{Router:()=>h.r},'../utils/db':{all:async()=>[],get:async sql=>sql.includes('website_settings')?{tool_paused:paused}:{}},'../middleware/async-handler':f=>f,'../utils/site-template':{render,escapeHTML:v=>String(v)},'../utils/helpdesk':{isAdmin:async()=>staff},'../utils/access-control':{checkToolAccess:async()=>{}}});
  const app=h.handlers.find(x=>x.route==='/app').h[0];
- for(const session of [{},{userId:'user'}]){const res=response();await app({session},res);assert.equal(res.statusCode,503);assert(res.file.endsWith('/public/maintenance.html'));assert.equal(res.headers['Cache-Control'],'no-store');assert.equal(res.headers['Retry-After'],'300');}
- staff=true;let res=response();await app({session:{userId:'admin'}},res);assert.equal(res.statusCode,200);assert(res.file.endsWith('/public/index.html'));
+ for(const session of [{},{userId:'user'}]){const res=response();await app({session},res);assert.equal(res.statusCode,503);assert(res.file.replace(/\\/g,'/').endsWith('/public/maintenance.html'));assert.equal(res.headers['Cache-Control'],'no-store');assert.equal(res.headers['Retry-After'],'300');}
+ staff=true;let res=response();await app({session:{userId:'admin'}},res);assert.equal(res.statusCode,200);assert(res.file.replace(/\\/g,'/').endsWith('/public/index.html'));
  paused=false;staff=false;res=response();await app({session:{}},res);assert.equal(res.location,'/ar/login');
 });

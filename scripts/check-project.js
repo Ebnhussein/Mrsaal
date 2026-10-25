@@ -3,7 +3,7 @@ const fs=require('fs'),path=require('path'),vm=require('vm'),Module=require('mod
 function checkProject(root=path.resolve(__dirname,'..')){
  const errors=[];let count=0;
  function visit(dir){for(const item of fs.readdirSync(dir,{withFileTypes:true})){if(['node_modules','.git'].includes(item.name))continue;const file=path.join(dir,item.name);if(item.isDirectory())visit(file);else if(/\.(?:js|cjs)$/.test(item.name)){
-  count++;const source=fs.readFileSync(file,'utf8').replace(/^#!.*\n/,'');
+  count++;const source=fs.readFileSync(file,'utf8').replace(/^#!.*(?:\r?\n|$)/,'');
   try{new vm.Script(Module.wrap(source),{filename:file});}catch(e){errors.push(path.relative(root,file)+': '+e.message);}
   if(path.relative(root,file).startsWith('tests'+path.sep))continue;
   for(const match of source.matchAll(/require\(\s*['"](\.[^'"]+)['"]\s*\)/g)){
