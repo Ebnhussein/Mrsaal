@@ -49,6 +49,7 @@ const messages={
  WA_LOOKUP_FAILED:["تعذر التحقق من رقم واتساب قبل الإرسال. لم تُرسل الرسالة؛ حاول لاحقًا.", "Could not check the WhatsApp number before sending. Nothing was sent. Try later."],
  WA_NUMBER_INVALID:["الرقم غير مسجل على واتساب.", "The number is not registered on WhatsApp."],
  WA_PREPARE_FAILED:["تعذر تجهيز رسالة واتساب قبل الإرسال. لم تُرسل الرسالة؛ حاول لاحقًا.", "Could not prepare the WhatsApp message. Nothing was sent. Try later."],
+ WA_DAILY_CAP:["وصلت للحد اليومي الآمن لواتساب لحماية رقمك من الحظر. كمّل بكرة أو استخدم Gmail.", "You reached the safe daily WhatsApp limit that protects your number from bans. Continue tomorrow or use Gmail."],
  WA_SEND_UNCERTAIN:["قد تكون رسالة واتساب وصلت. راجع المحادثة والتقارير قبل إرسالها تاني.", "The WhatsApp message may have arrived. Check the chat and Reports before sending again."],
 
  AUTH:['مفتاح منصة الذكاء الاصطناعي مرفوض. راجعه من الإعدادات.','The AI provider rejected the API key. Check it in Settings.'],
