@@ -18,6 +18,7 @@ router.get('/google/callback',wrap(async(req,res)=>{
   await saveAccount(flow.userId,info,tokens);return res.redirect('/?linked=gmail'+(flow.replies&&!require('../utils/gmail-accounts').canReadReplies(tokens)?'&replies=denied':''));
  }
  let user=await get('SELECT * FROM users WHERE google_id=$1',[info.id]);
+ if(!user&&await get('SELECT id FROM users WHERE lower(email)=lower($1) AND supabase_id IS NOT NULL AND google_id IS NULL',[info.email]))return res.redirect('/?error=auth_email_exists');
  if(!user){const id=uuidv4();await run('INSERT INTO users(id,google_id,email,name,access_token,refresh_token,token_expiry,registration_required,email_verified_at) VALUES($1,$2,$3,$4,$5,$6,$7,true,NOW())',[id,info.id,info.email,info.name,null,null,null]);user=await get('SELECT * FROM users WHERE id=$1',[id]);}
  else await run('UPDATE users SET email=$1,name=COALESCE(name,$2),email_verified_at=COALESCE(email_verified_at,NOW()),access_token=$3,refresh_token=COALESCE($4,refresh_token),token_expiry=$5 WHERE id=$6',[info.email,info.name,null,null,null,user.id]);
 
