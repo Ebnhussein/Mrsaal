@@ -1,5 +1,5 @@
 'use strict';
-const {pool}=require('./db');
+const {pool}=require('../db');
 const keys=['name','email','phone','field','location'];
 function fail(code,status=400,field){return Object.assign(new Error(code),{code,status,field});}
 function validate(input){

@@ -22,7 +22,7 @@ router.post('/', requireAuth, asyncHandler(async (req, res) => {
   if ([name,email,phone,field,location].some(v=>v!=null&&typeof v!=='string') || (name||'').length>200 || (email||'').length>254 || (phone||'').length>40 || (field||'').length>200 || (location||'').length>200) return res.status(400).json({error:'راجع نوع البيانات وطول الحقول.'});
   if (!name?.trim()) return res.status(400).json({ error: 'اسم الشركة مطلوب' });
   if (!email && !phone) return res.status(400).json({ error: 'الإيميل أو رقم الموبايل مطلوب' });
-  const result=await require('../utils/company-store').add(req.session.userId,[{name:name.trim(),email:(email||'').trim().toLowerCase(),phone:(phone||'').trim(),field:(field||'').trim(),location:(location||'').trim()}]);
+  const result=await require('../utils/companies/store').add(req.session.userId,[{name:name.trim(),email:(email||'').trim().toLowerCase(),phone:(phone||'').trim(),field:(field||'').trim(),location:(location||'').trim()}]);
   res.json({ok:true,id:result.ids[0]||null,duplicate:result.added===0});
 }));
 
@@ -49,14 +49,14 @@ router.post('/import/commit', requireAuth, upload.single('file'), asyncHandler(a
       const data={name:String(row[ni]||'').trim(),email:ei>=0?String(row[ei]||'').trim().toLowerCase():'',phone:pi>=0?String(row[pi]||'').trim().replace(/\s/g,''):'',field:fi>=0?String(row[fi]||'').trim():'',location:li>=0?String(row[li]||'').trim():''};
       if(!data.name||(!data.email&&!data.phone)||(data.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))||data.name.length>200||data.email.length>254||data.phone.length>40||data.field.length>200||data.location.length>200){invalid++;continue;}incoming.push(data);
     }
-    const result=await require('../utils/company-store').add(req.session.userId,incoming);res.json({added:result.added,skipped:result.skipped+invalid});
+    const result=await require('../utils/companies/store').add(req.session.userId,incoming);res.json({added:result.added,skipped:result.skipped+invalid});
   } catch (err) {
     if(err.status&&err.status<500)return res.status(err.status).json({error:err.message});
     throw err;
   }
 }));
 
-router.patch('/:id/details', requireAuth, asyncHandler(async (req,res)=>{const company=await require('../utils/company-edit').update(req.session.userId,req.params.id,req.body,req.body.expected);res.json({ok:true,company});}));
+router.patch('/:id/details', requireAuth, asyncHandler(async (req,res)=>{const company=await require('../utils/companies/edit').update(req.session.userId,req.params.id,req.body,req.body.expected);res.json({ok:true,company});}));
 
 router.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
   const { status, selected, scheduled_at } = req.body;
