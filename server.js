@@ -60,7 +60,7 @@ function loadServices() {
     launchSchema: require('./utils/launch-schema'),
     accessControl: require('./utils/access-control'),
     mrsaalwa: require('./utils/mrsaalwa'),
-    whatsapp: require('./utils/whatsapp'),
+    whatsapp: require('./utils/whatsapp/baileys'),
     campaignWorker: require('./utils/campaign-worker'),
     middleware: {
       mutationRate: require('./middleware/mutation-rate'),

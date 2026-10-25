@@ -4,7 +4,7 @@ const dbPath=require.resolve('../utils/db');
 let used=0;
 const fake={get:async()=>({n:used}),run:async()=>{},all:async()=>[]};
 require.cache[dbPath]=Object.assign(new Module(dbPath),{exports:fake,loaded:true,filename:dbPath});
-const safety=require('../utils/whatsapp-safety');
+const safety=require('../utils/whatsapp/safety');
 const clean=()=>{delete process.env.WHATSAPP_DAILY_CAP;delete process.env.WHATSAPP_MIN_DELAY_SECONDS;};
 test('WhatsApp campaigns are never paced faster than the safe minimum; email keeps the old floor',()=>{
  clean();

@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
-const {formatWhatsAppText,buildWhatsAppContent}=require('../utils/whatsapp-content');
+const {formatWhatsAppText,buildWhatsAppContent}=require('../utils/whatsapp/content');
 test('WhatsApp PDF is a single document message with formatted caption and exact original bytes',()=>{
  const pdf=Buffer.from('%PDF-1.7\noriginal bytes'),text='أهلًا\r\n\r\nأنا مهتم بالتواصل.\r\n\r\nشكرًا.';
  const content=buildWhatsAppContent(text,{data:pdf,filename:'سيرتي.pdf',mimeType:'application/pdf'});

@@ -1,6 +1,6 @@
 'use strict';
 // WhatsApp can ban numbers that send bursts of unsolicited messages. These server-side limits apply on top of plan quotas.
-const {get}=require('./db');
+const {get}=require('../db');
 function setting(name,fallback,minimum,maximum){const value=Number(process.env[name]);return Number.isInteger(value)&&value>=minimum&&value<=maximum?value:fallback;}
 const dailyCap=()=>setting('WHATSAPP_DAILY_CAP',100,1,1000);
 const minDelay=()=>setting('WHATSAPP_MIN_DELAY_SECONDS',45,5,300);

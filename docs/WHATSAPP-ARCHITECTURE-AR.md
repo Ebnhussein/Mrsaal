@@ -1,11 +1,11 @@
 # واتساب: الوضع الحالي وخطة فصل الـ workers
 
 ## الوضع الحالي (من الكود)
-- **Baileys** (`utils/whatsapp.js`): مكتبة غير رسمية. الـ sockets عايشة جوه عملية Node نفسها اللي بتخدم الويب
+- **Baileys** (`utils/whatsapp/baileys.js`): مكتبة غير رسمية. الـ sockets عايشة جوه عملية Node نفسها اللي بتخدم الويب
   (`restoreSessions()` وقت التشغيل)، وحد الجلسات `WHATSAPP_MAX_SESSIONS` (افتراضي 10).
 - **MrsaalWA** (`utils/mrsaalwa.js`): واجهة OpenWA على محرك **whatsapp-web.js** (متصفح Chromium) في حاوية منفصلة،
   والتطبيق بيكلّمها بـ HTTP. حالتها "تحت التجربة" بحد جلسة واحدة (`MRSAALWA_MAX_SESSIONS=1`) على سيرفر 5.8 GiB.
-- `utils/whatsapp-service.js` بيختار المزوّد لكل مستخدم ومفيش fallback تلقائي بينهم.
+- `utils/whatsapp/service.js` بيختار المزوّد لكل مستخدم ومفيش fallback تلقائي بينهم.
 - الـ scheduler والـ campaign worker والإشعارات بتشتغل في نفس عملية الويب، وبتبعت عن طريق `whatsapp-service`.
 
 ## تصحيح مهم

@@ -1,11 +1,11 @@
 const crypto = require('crypto');
-const retryStore=require('./whatsapp-retry-store');
-const policy=require('./whatsapp-policy');
-const {buildWhatsAppContent}=require('./whatsapp-content');
-const { all, get, run } = require('./db');
+const retryStore=require('./retry-store');
+const policy=require('./policy');
+const {buildWhatsAppContent}=require('./content');
+const { all, get, run } = require('../db');
 const QRCode = require('qrcode');
 const pino = require('pino');
-const {ensureTrackingSchema,attachTracking}=require('./whatsapp-tracking');
+const {ensureTrackingSchema,attachTracking}=require('./tracking');
 const sessions = new Map();
 let libraryPromise;
 let schemaPromise;
@@ -18,7 +18,7 @@ function cleanDisconnected(userId,entry){clearTimeout(entry.cleanup);entry.clean
 
 function library() {
   if(libraryPromise)return libraryPromise;
-  require('./safe-signal').install();
+  require('../safe-signal').install();
   return libraryPromise ||= import('@whiskeysockets/baileys').then(mod => {
     const base = typeof mod.default === 'object' ? mod.default : {};
     return {...base, ...mod, default: typeof mod.default === 'function' ? mod.default : base.default};
@@ -135,14 +135,14 @@ async function openSocket(userId,entry) {
       console.info('WhatsApp connection closed:',JSON.stringify({code:entry.lastDisconnectCode,attempt:entry.retries}));
       const terminal=Number.isInteger(code)&&[lib.DisconnectReason.loggedOut,lib.DisconnectReason.badSession,lib.DisconnectReason.connectionReplaced,lib.DisconnectReason.multideviceMismatch].filter(Number.isInteger).includes(code);
       if(terminal || entry.retries>=5) {
-        require('./notifications').whatsappDisconnected(userId,entry);
+        require('../notifications').whatsappDisconnected(userId,entry);
         entry.status='disconnected';cleanDisconnected(userId,entry);entry.error=terminal?'انتهى الاتصال. افصل الربط ثم اربط واتساب من جديد.':'تعذر الاتصال. جرّب الربط من جديد.';
         return;
       }
       entry.status='connecting';entry.retries++;
       const delay=policy.reconnectDelay(entry.retries);entry.nextRetryAt=Date.now()+delay;
       entry.timer=setTimeout(()=>{
-        entry.pending=openSocket(userId,entry).catch(()=>{if(entry.cancelled||stopping)return;entry.status='disconnected';cleanDisconnected(userId,entry);entry.error='تعذر إعادة الاتصال بواتساب';require('./notifications').whatsappDisconnected(userId,entry);});
+        entry.pending=openSocket(userId,entry).catch(()=>{if(entry.cancelled||stopping)return;entry.status='disconnected';cleanDisconnected(userId,entry);entry.error='تعذر إعادة الاتصال بواتساب';require('../notifications').whatsappDisconnected(userId,entry);});
       },delay);entry.timer.unref?.();
     }
   });

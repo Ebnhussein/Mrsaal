@@ -1,6 +1,6 @@
 'use strict';
-const {run,get}=require('./db');
-const {seal,unseal}=require('./connection-secrets');
+const {run,get}=require('../db');
+const {seal,unseal}=require('../connection-secrets');
 let cleanupAt=0;
 async function ensureRetrySchema(){await run(`CREATE TABLE IF NOT EXISTS whatsapp_sent_messages(user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,message_id TEXT NOT NULL,payload TEXT NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),PRIMARY KEY(user_id,message_id));CREATE INDEX IF NOT EXISTS whatsapp_sent_messages_age ON whatsapp_sent_messages(created_at)`);}
 async function saveMessage(userId,message,proto){
