@@ -24,6 +24,9 @@ router.get('/google/callback',wrap(async(req,res)=>{
  await new Promise((resolve,reject)=>req.session.regenerate(e=>e?reject(e):resolve()));req.session.userId=user.id;req.session.authenticatedAt=Date.now();req.session.authMethod='google';await saveSession(req);res.redirect(user.registration_required?'/auth/account?mode=profile':'/');
  }catch(err){console.error('Google connection failed:',err.code||err.name);res.redirect('/?error=auth_failed');}
 }));
-router.get('/logout',(req,res)=>req.session.destroy(()=>res.redirect('/')));
+const logout=(req,res)=>req.session.destroy(()=>res.redirect('/'));
+// Cross-site GETs (img/link/iframe from another origin) must not sign the user out.
+router.get('/logout',(req,res,next)=>{const site=req.get('Sec-Fetch-Site');if(site&&!/^(same-origin|none)$/.test(site))return res.redirect('/');return logout(req,res,next);});
+router.post('/logout',logout);
 router.get('/status',wrap(async(req,res)=>{if(!req.session?.userId)return res.json({loggedIn:false});const user=await get('SELECT id,email,name,contact_phone,registration_required FROM users WHERE id=$1',[req.session.userId]);res.json(user?{loggedIn:true,email:user.email,name:user.name,phone:user.contact_phone,profileRequired:!!user.registration_required}:{loggedIn:false});}));
 module.exports=router;
