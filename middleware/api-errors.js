@@ -29,7 +29,7 @@ function locale(req,res,next){
 function handler(error,req,res,next){
  if(res.headersSent)return next(error);
  let normalized=error;
- if(/\/(?:email|accounts|campaigns)(?:\/|$)/.test(req.path||'')||/^\/auth\/google/.test(req.path||''))normalized=require('../utils/gmail-errors').gmailError(error);
+ if(/\/(?:email|accounts|campaigns)(?:\/|$)/.test(req.path||'')||/^\/auth\/google/.test(req.path||''))normalized=require('../utils/gmail/errors').gmailError(error);
  const info=errors.describe(normalized,req.mrsaalLanguage||errors.language(req));
  console.error('Request failed:',req.requestId,req.method,req.path,JSON.stringify({code:info.code,...errors.diagnostic(normalized)}));
  // The locale interceptor uses this catalog code; no raw error/stack/provider payload is sent.

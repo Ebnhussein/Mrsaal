@@ -46,7 +46,7 @@ function buildAuthClient(user) {
     refresh_token: user.refresh_token,
     expiry_date: Number(user.expiry_date || user.token_expiry) || undefined
   });
-  if(user.gmail_account_id) oauth2Client.on('tokens',tokens=>require('./gmail-accounts').persistTokens(user,tokens).catch(()=>console.error('Gmail token persistence failed')));
+  if(user.gmail_account_id) oauth2Client.on('tokens',tokens=>require('./accounts').persistTokens(user,tokens).catch(()=>console.error('Gmail token persistence failed')));
   return oauth2Client;
 }
 
@@ -89,7 +89,7 @@ function buildMimeMessage({ from, to, subject, body, trackingPixelUrl, attachmen
 }
 
 async function sendEmailRequest({ user, account = null, logId = null, to, subject, body, trackingPixelUrl, attachment }) {
-  const {resolveAccount}=require('./gmail-accounts');
+  const {resolveAccount}=require('./accounts');
   account = account || await resolveAccount(user.id);
   const auth = buildAuthClient(account);
   const gmail = google.gmail({ version: 'v1', auth });
@@ -105,7 +105,7 @@ async function sendEmailRequest({ user, account = null, logId = null, to, subjec
     requestBody: { raw }
   });
 
-  if(logId) await require('./db').run('UPDATE email_log SET sender_account_id=$1,sender_email=$2 WHERE id=$3 AND user_id=$4',[account.gmail_account_id,from,logId,user.id]);
+  if(logId) await require('../db').run('UPDATE email_log SET sender_account_id=$1,sender_email=$2 WHERE id=$3 AND user_id=$4',[account.gmail_account_id,from,logId,user.id]);
   return { 
     senderAccountId: account.gmail_account_id,
     messageId: result.data.id, 
@@ -114,6 +114,6 @@ async function sendEmailRequest({ user, account = null, logId = null, to, subjec
   };
 }
 
-async function sendEmail(args){try{return await sendEmailRequest(args);}catch(error){throw require('./gmail-errors').gmailError(error);}}
+async function sendEmail(args){try{return await sendEmailRequest(args);}catch(error){throw require('./errors').gmailError(error);}}
 
 module.exports = { getAuthUrl, getTokensFromCode, getUserInfo, sendEmail, buildAuthClient, buildMimeMessage };

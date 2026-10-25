@@ -20,7 +20,7 @@ router.post('/',wrap(async(req,res)=>{
   }
   if(!groups.size){const e=new Error('مفيش شركات مناسبة للاختيارات الحالية');e.status=400;e.code=matched&&skipSent?'CAMPAIGN_ALREADY_SENT':'CAMPAIGN_SELECTION_STALE';throw e;}
   const needsEmail=groups.get('email')?.some(co=>planner.valid(co,'email'));
-  const account=needsEmail?await require('../utils/gmail-accounts').resolveAccount(userId,req.body.senderAccountId):null;
+  const account=needsEmail?await require('../utils/gmail/accounts').resolveAccount(userId,req.body.senderAccountId):null;
   const campaigns=[];
   for(const [selected,rows]of groups){
    const id=randomUUID();await client.query(`INSERT INTO campaigns(id,user_id,channel,sender_account_id,cv_id,delay_seconds) VALUES($1,$2,$3,$4,$5,$6)`,[id,userId,selected,selected==='email'?account?.gmail_account_id||null:null,cv.id,require('../utils/whatsapp/safety').delayFor(selected,req.body.delaySeconds)]);

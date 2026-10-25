@@ -52,7 +52,7 @@ function loadServices() {
     db: require('./utils/db'),
     migrate: require('./utils/migrate'),
     connectionsSchema: require('./utils/connections-schema'),
-    replyTracker: require('./utils/reply-tracker'),
+    replyTracker: require('./utils/gmail/reply-tracker'),
     helpdesk: require('./utils/helpdesk'),
     websiteSchema: require('./utils/website-schema'),
     scheduler: require('./utils/scheduler'),

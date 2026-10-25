@@ -13,7 +13,7 @@ async function deliver(userId,{companyId,channel,subject='',body,senderAccountId
  if(reason){const result={ok:true,status:'skipped',skipped:true,channel,reason};await run('UPDATE delivery_attempts SET status=$1,result=$2 WHERE id=$3',['skipped',JSON.stringify(result),attempt.id]);return result;}
  await require('./access-control').checkToolAccess(userId);if(channel==='whatsapp')await require('./whatsapp/safety').assertWithinDailyCap(userId);credit=await require('./usage-limits').reserve(userId,'send');
  const user=await get('SELECT * FROM users WHERE id=$1',[userId]);
- const account=channel==='email'?await require('./gmail-accounts').resolveAccount(userId,senderAccountId):null;
+ const account=channel==='email'?await require('./gmail/accounts').resolveAccount(userId,senderAccountId):null;
  const cv=await require('./cv-store').active(userId,cvId);if(cvId&&!cv)throw new Error('السيرة المحددة لم تعد متاحة');
  const attachment=cv?.pdf_data?{data:cv.pdf_data,filename:cv.filename||'CV.pdf',mimeType:'application/pdf'}:null;
  const waConnection=channel==='whatsapp'?await require('./whatsapp/service').requireConnected(userId):null;
@@ -21,14 +21,14 @@ async function deliver(userId,{companyId,channel,subject='',body,senderAccountId
  await run(`INSERT INTO email_log(id,user_id,company_id,company_name,company_email,subject,body,status,channel,sender_account_id,sender_email) VALUES($1,$2,$3,$4,$5,$6,$7,'processing',$8,$9,$10) ON CONFLICT(id) DO UPDATE SET status='processing',subject=EXCLUDED.subject,body=EXCLUDED.body`,[logId,userId,companyId,company.name,to,subject,body,channel,account?.gmail_account_id||null,account?.email||null]);
  await run('UPDATE delivery_attempts SET log_id=$1 WHERE id=$2',[logId,attempt.id]);
  enteredProvider=true;
- const sent=channel==='email'?await require('./gmail').sendEmail({user,account,to,subject,body,attachment,trackingPixelUrl:(process.env.BASE_URL||'https://mrsaal.ebnhussein.co').replace(/\/$/,'')+'/track/open/'+logId+'.gif'}):await require('./whatsapp/service').sendWhatsAppMessage(userId,to,body,attachment,waConnection?.provider);
+ const sent=channel==='email'?await require('./gmail/client').sendEmail({user,account,to,subject,body,attachment,trackingPixelUrl:(process.env.BASE_URL||'https://mrsaal.ebnhussein.co').replace(/\/$/,'')+'/track/open/'+logId+'.gif'}):await require('./whatsapp/service').sendWhatsAppMessage(userId,to,body,attachment,waConnection?.provider);
  delivered=true;await require('./usage-limits').commit(userId,credit);
  if(channel==='whatsapp'&&sent.provider==='mrsaalwa')await run('UPDATE email_log SET whatsapp_provider=$1,whatsapp_session_id=$2 WHERE id=$3 AND user_id=$4',[sent.provider,sent.sessionId,logId,userId]);
  await run("UPDATE email_log SET status='sent',sent_at=EXTRACT(EPOCH FROM NOW())::BIGINT,message_id=$1,thread_id=$2 WHERE id=$3 AND user_id=$4",[sent.messageId,sent.threadId,logId,userId]);
  await run("UPDATE companies SET status='sent' WHERE id=$1 AND user_id=$2",[companyId,userId]);
  const result={ok:true,status:'sent',channel,logId,messageId:sent.messageId};await run("UPDATE delivery_attempts SET status='sent',result=$1 WHERE id=$2",[JSON.stringify(result),attempt.id]);return result;
  }catch(e){
- if(channel==='email')e=require('./gmail-errors').gmailError(e);
+ if(channel==='email')e=require('./gmail/errors').gmailError(e);
  // A timeout or lost provider acknowledgement may already represent a delivered message.
  const uncertain=delivered||e.deliveryUncertain===true||enteredProvider&&e.beforeSend!==true&&!Number.isInteger(Number(e.response?.status||e.statusCode||e.status))||enteredProvider&&e.beforeSend!==true&&Number(e.response?.status||e.statusCode||e.status)>=500;
  if(credit){try{if(uncertain)await require('./usage-limits').commit(userId,credit);else await require('./usage-limits').release(userId,credit);}catch{console.warn('Usage reservation retained for reconciliation',attempt.id);}}

@@ -1,12 +1,12 @@
 'use strict';
 const {google}=require('googleapis');
-const {all,run}=require('./db');
-const {buildAuthClient}=require('./gmail');
-const {resolveAccount}=require('./gmail-accounts');
+const {all,run}=require('../db');
+const {buildAuthClient}=require('./client');
+const {resolveAccount}=require('./accounts');
 const active=new Map();
 const reported=new Map();
 function reportFailure(key,error){
- const info=require('./public-errors').diagnostic(error),code=error.code||'GMAIL_SYNC_FAILED',now=Date.now();
+ const info=require('../public-errors').diagnostic(error),code=error.code||'GMAIL_SYNC_FAILED',now=Date.now();
  if(now-(reported.get(key+':'+code)||0)>300000){console.warn('Reply sync failed:',JSON.stringify({code,...info}));reported.set(key+':'+code,now);}
  if(reported.size>1000)for(const [k,t]of reported)if(now-t>300000)reported.delete(k);
 }
@@ -72,7 +72,7 @@ async function performSync(userId){
    await run('UPDATE email_log SET replied=1,reply_text=$1,reply_message_id=$2,reply_received_at=$3 WHERE id=$4 AND user_id=$5',[text,latest.id,Math.floor(Number(latest.internalDate)/1000),log.id,log.user_id]);updated++;
   }
   checked++;
- }catch(error){failed++;const normalized=require('./gmail-errors').gmailError(error);failures.add(normalized.code||'GMAIL_SYNC_FAILED');backoff=true;blocked.set(key,normalized);reportFailure(key,normalized);}
+ }catch(error){failed++;const normalized=require('./errors').gmailError(error);failures.add(normalized.code||'GMAIL_SYNC_FAILED');backoff=true;blocked.set(key,normalized);reportFailure(key,normalized);}
  finally{await run(backoff?'UPDATE email_log SET reply_checked_at=EXTRACT(EPOCH FROM NOW())+300 WHERE id=$1 AND user_id=$2':'UPDATE email_log SET reply_checked_at=EXTRACT(EPOCH FROM NOW()) WHERE id=$1 AND user_id=$2',[log.id,log.user_id]).catch(()=>{});}
  }}
  await Promise.all([worker(),worker()]);return {checked,updated,failed,failureCodes:[...failures]};

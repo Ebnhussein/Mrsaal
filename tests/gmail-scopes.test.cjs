@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict');
-const {getAuthUrl,buildMimeMessage}=require('../utils/gmail');
-const {canReadReplies}=require('../utils/gmail-accounts');
+const {getAuthUrl,buildMimeMessage}=require('../utils/gmail/client');
+const {canReadReplies}=require('../utils/gmail/accounts');
 const SEND='https://www.googleapis.com/auth/gmail.send',READ='https://www.googleapis.com/auth/gmail.readonly';
 process.env.GOOGLE_CLIENT_ID='id';process.env.GOOGLE_CLIENT_SECRET='secret';process.env.GOOGLE_REDIRECT_URI='https://example.com/cb';
 const scopes=url=>new URL(url).searchParams.get('scope').split(' ');

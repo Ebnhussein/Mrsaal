@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
-const errors=require('../utils/public-errors'),{gmailError}=require('../utils/gmail-errors');
+const errors=require('../utils/public-errors'),{gmailError}=require('../utils/gmail/errors');
 const arabic=/[\u0600-\u06ff]/;
 function request(lang,path='/api/email/send'){return {path,method:'POST',get:name=>name==='X-Mrsaal-Language'?lang:null};}
 function response(){return {statusCode:200,headers:{},setHeader(k,v){this.headers[k]=v;},vary(){},status(n){this.statusCode=n;return this;},json(v){this.body=v;return this;}};}
@@ -52,9 +52,9 @@ test('browser language travels with fetch, JSON and multipart but never external
  assert(arabic.test(window.MrsaalErrors.network(true)));document.documentElement.lang='en';assert(!arabic.test(window.MrsaalErrors.network(true)));
 });
 test('reply failures back off and log safe reasons without repeated provider calls for every thread',async()=>{
- const filename=require.resolve('../utils/reply-tracker'),logs=[],writes=[];let requests=0;
+ const filename=require.resolve('../utils/gmail/reply-tracker'),logs=[],writes=[];let requests=0;
  const oauthError=Object.assign(new Error('private token must never be logged'),{response:{status:400,data:{error:'invalid_grant'}}});
- const deps={googleapis:{google:{gmail:()=>({users:{threads:{get:async()=>{requests++;throw oauthError;}}}})}},'./db':{all:async()=>Array.from({length:20},(_,i)=>({id:'log'+i,user_id:'owner',thread_id:'thread'+i,sender_account_id:'account'})),run:async(sql,args)=>writes.push({sql,args})},'./gmail':{buildAuthClient:()=>({})},'./gmail-accounts':{resolveAccount:async()=>({email:'sender@example.test'})}};
+ const deps={googleapis:{google:{gmail:()=>({users:{threads:{get:async()=>{requests++;throw oauthError;}}}})}},'../db':{all:async()=>Array.from({length:20},(_,i)=>({id:'log'+i,user_id:'owner',thread_id:'thread'+i,sender_account_id:'account'})),run:async(sql,args)=>writes.push({sql,args})},'./client':{buildAuthClient:()=>({})},'./accounts':{resolveAccount:async()=>({email:'sender@example.test'})}};
  const box={module:{exports:{}},Buffer,console:{warn:(...args)=>logs.push(args)},require:id=>Object.hasOwn(deps,id)?deps[id]:require(path.resolve(path.dirname(filename),id))};
  vm.runInNewContext(fs.readFileSync(filename,'utf8'),box);const result=await box.module.exports.syncReplies('owner');assert.equal(result.failed,20);assert.deepEqual([...result.failureCodes],['GMAIL_RECONNECT']);assert(requests<=2);assert.equal(logs.length,1);assert(!JSON.stringify(logs).includes('private token'));assert(writes.every(w=>w.sql.includes('+300')));
 });
