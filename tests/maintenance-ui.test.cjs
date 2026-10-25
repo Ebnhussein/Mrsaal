@@ -10,6 +10,6 @@ test('maintenance language and appearance controls preserve preferences and use 
 });
 test('standalone emergency installer embeds the exact page assets and never stops WhatsApp or rebuilds images',()=>{
  const script=fs.readFileSync(require.resolve('../ops/mrsaal-maintenance.sh'),'utf8');const matches=[...script.matchAll(/base64\.b64decode\('([^']+)'\)/g)];assert.equal(matches.length,2);
- for(const [i,file]of ['../public/maintenance.html','../public/assets/maintenance.js'].entries())assert.equal(Buffer.from(matches[i][1],'base64').toString(),fs.readFileSync(require.resolve(file),'utf8'));
+ for(const [i,file]of ['../public/maintenance.html','../public/assets/maintenance.js'].entries())assert.equal(Buffer.from(matches[i][1],'base64').toString(),fs.readFileSync(require.resolve(file),'utf8').replace(/\r\n/g,'\n'));
  assert(!script.includes('docker stop'));assert(!script.includes('docker build'));assert(!script.includes('docker compose down'));assert(script.includes('site.js.original'));assert(script.includes("UPDATE website_settings SET tool_paused=$1"));
 });
