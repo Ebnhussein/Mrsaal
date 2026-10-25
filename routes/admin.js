@@ -1,5 +1,5 @@
 'use strict';
-const router=require('express').Router();const {randomUUID}=require('crypto');const {all,get,run,pool}=require('../utils/db');const {isAdmin,adminEmail,quota}=require('../utils/helpdesk');const wrap=require('../middleware/async-handler');
+const router=require('express').Router();const {randomUUID}=require('crypto');const {all,get,run,pool}=require('../utils/db');const {isAdmin,adminEmail,quota}=require('../utils/support/helpdesk');const wrap=require('../middleware/async-handler');
 function fail(message,status=400){const e=new Error(message);e.status=status;throw e;}
 function text(value,max,required=true){if(typeof value!=='string'||value.length>max||(required&&!value.trim()))fail('النص مفقود أو أطول من المسموح');return value.trim();}
 router.use(wrap(async(req,res,next)=>{res.set('Cache-Control','no-store');if(!req.session?.userId)fail('سجّل الدخول',401);if(!await isAdmin(req.session.userId))fail('للإدارة فقط',403);if(req.method!=='GET'){

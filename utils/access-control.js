@@ -1,5 +1,5 @@
 'use strict';
-const {get}=require('./db');const {adminEmail}=require('./helpdesk');
+const {get}=require('./db');const {adminEmail}=require('./support/helpdesk');
 async function checkToolAccess(id,allowIncomplete=false){
  const user=await get('SELECT email,suspended_at,suspension_reason,registration_required FROM users WHERE id=$1',[id]);
  if(!user){const e=new Error('انتهت الجلسة. سجّل الدخول مرة أخرى.');e.status=401;throw e;}

@@ -1,5 +1,5 @@
 'use strict';
-const router=require('express').Router(),wrap=require('../middleware/async-handler'),{requireAuth}=require('../middleware/auth'),recent=require('../middleware/recent-auth'),{get}=require('../utils/db'),{adminEmail,quota}=require('../utils/helpdesk'),trial=require('../utils/whatsapp/openwa-trial');
+const router=require('express').Router(),wrap=require('../middleware/async-handler'),{requireAuth}=require('../middleware/auth'),recent=require('../middleware/recent-auth'),{get}=require('../utils/db'),{adminEmail,quota}=require('../utils/support/helpdesk'),trial=require('../utils/whatsapp/openwa-trial');
 const eligible=async req=>{const user=await get('SELECT email FROM users WHERE id=$1',[req.session.userId]);return !!user&&adminEmail(user.email)&&trial.enabledFor(user.email);};
 router.use(requireAuth);router.use((req,res,next)=>{res.set('Cache-Control','no-store');next();});
 router.get('/config',wrap(async(req,res)=>res.json({enabled:await eligible(req)})));

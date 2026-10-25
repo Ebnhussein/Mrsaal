@@ -21,7 +21,7 @@ function ensureSchema(){return schema||=(async()=>{await run(`
  ALTER TABLE email_log ADD COLUMN IF NOT EXISTS whatsapp_session_id TEXT;
  `);})().catch(e=>{schema=null;throw e;});}
 async function profile(id){await ensureSchema();return await get('SELECT * FROM whatsapp_preferences WHERE user_id=$1',[id])||{user_id:id,provider:'baileys',beta_allowed:false,session_id:null};}
-async function allowed(id){const p=await profile(id);return enabled()&&!p.beta_blocked&&(process.env.MRSAALWA_PUBLIC_BETA!=='false'||p.beta_allowed||await require('../helpdesk').isAdmin(id));}
+async function allowed(id){const p=await profile(id);return enabled()&&!p.beta_blocked&&(process.env.MRSAALWA_PUBLIC_BETA!=='false'||p.beta_allowed||await require('../support/helpdesk').isAdmin(id));}
 // Initialise the UI default only when no saved connection or active work can be displaced.
 async function prepareDefault(id){
  const p=await profile(id);

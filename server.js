@@ -53,7 +53,7 @@ function loadServices() {
     migrate: require('./utils/migrate'),
     connectionsSchema: require('./utils/connections-schema'),
     replyTracker: require('./utils/gmail/reply-tracker'),
-    helpdesk: require('./utils/helpdesk'),
+    helpdesk: require('./utils/support/helpdesk'),
     websiteSchema: require('./utils/website-schema'),
     scheduler: require('./utils/delivery/scheduler'),
     notifications: require('./utils/notifications'),

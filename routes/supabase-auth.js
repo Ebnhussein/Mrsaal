@@ -1,5 +1,5 @@
 'use strict';
-const router=require('express').Router(),wrap=require('../middleware/async-handler'),sb=require('../utils/supabase-auth');const {get,run}=require('../utils/db'),{seal,unseal}=require('../utils/connection-secrets'),{quota}=require('../utils/helpdesk'),registration=require('../utils/registration');
+const router=require('express').Router(),wrap=require('../middleware/async-handler'),sb=require('../utils/supabase-auth');const {get,run}=require('../utils/db'),{seal,unseal}=require('../utils/connection-secrets'),{quota}=require('../utils/support/helpdesk'),registration=require('../utils/registration');
 const save=req=>new Promise((resolve,reject)=>req.session.save(e=>e?reject(e):resolve()));
 router.get('/email-config',(req,res)=>{res.set('Cache-Control','no-store');res.json({enabled:sb.configured(),captchaSiteKey:process.env.TURNSTILE_SITE_KEY||null,pendingEmail:req.session.pendingSignup?.until>Date.now()?req.session.pendingSignup.email:null,retryAfter:Math.max(0,Math.ceil(((req.session.pendingSignup?.sentAt||0)+60000-Date.now())/1000))});});
 router.get('/account',(req,res)=>{res.set({'Cache-Control':'no-store','X-Robots-Tag':'noindex'});res.sendFile(require('path').join(__dirname,'../public/account.html'));});

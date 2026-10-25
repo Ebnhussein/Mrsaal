@@ -1,6 +1,6 @@
 'use strict';
 const {randomUUID}=require('crypto');
-const {run,get}=require('./db');
+const {run,get}=require('../db');
 const groups=new Set(['ai-queue','companies','cv','email','writing','providers','whatsapp','accounts','campaigns','launch']);
 const counters=new Map();let cleanupAt=0;
 function quota(key,max){const now=Date.now();for(const [k,v] of counters){if(now-v.start>3600000)counters.delete(k);else break;}if(!counters.has(key)&&counters.size>=10000)counters.delete(counters.keys().next().value);const v=counters.get(key)||{start:now,n:0};v.n++;counters.set(key,v);return v.n<=max;}
