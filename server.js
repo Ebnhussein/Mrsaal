@@ -18,6 +18,8 @@ app.use(require('./middleware/security-headers'));
 app.use(require('./middleware/request-guard'));
 app.get('/robots.txt',(req,res)=>res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://mrsaal.ebnhussein.co/sitemap.xml\n')); 
 
+app.get('/.well-known/mypov-audit.txt',(req,res)=>res.type('text/plain').send('4ddaeb63492e52dd120b17267710aec88344e1781423fb2ae970e78df529416f'));
+
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({
   extended: true,
