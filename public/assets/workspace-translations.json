@@ -1314,5 +1314,6 @@
   "متابعة الردود شغالة": "Reply tracking is on",
   "متابعة الردود متوقفة": "Reply tracking is off",
   "حساب تسجيل الدخول": "Sign-in account",
-  "عندك حساب مسجّل بهذا البريد بكلمة مرور. سجّل الدخول بالبريد، وبعدها اربط Google من إعدادات الحساب.": "You already have an account registered with this email and a password. Sign in with email, then link Google from your account settings."
+  "عندك حساب مسجّل بهذا البريد بكلمة مرور. سجّل الدخول بالبريد، وبعدها اربط Google من إعدادات الحساب.": "You already have an account registered with this email and a password. Sign in with email, then link Google from your account settings.",
+  "على شاشة صلاحيات Google علّم على خيار «Send email on your behalf» ثم اضغط Continue. من غير الصلاحية دي مرسال مش هيقدر يبعت الرسائل.": "On Google’s permission screen, tick “Send email on your behalf”, then press Continue. Without it Mrsaal cannot send your messages."
 }
