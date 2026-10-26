@@ -23,7 +23,7 @@ router.get('/google/callback',wrap(async(req,res)=>{
  else await run('UPDATE users SET email=$1,name=COALESCE(name,$2),email_verified_at=COALESCE(email_verified_at,NOW()),access_token=$3,refresh_token=COALESCE($4,refresh_token),token_expiry=$5 WHERE id=$6',[info.email,info.name,null,null,null,user.id]);
 
  await new Promise((resolve,reject)=>req.session.regenerate(e=>e?reject(e):resolve()));req.session.userId=user.id;req.session.authenticatedAt=Date.now();req.session.authMethod='google';await saveSession(req);res.redirect(user.registration_required?'/auth/account?mode=profile':'/');
- }catch(err){const reason=require('../utils/auth/link-failure').linkFailureReason(err);console.error('Google connection failed:',reason);res.redirect('/?error=auth_failed&reason='+reason);}
+ }catch(err){const reason=require('../utils/auth/link-failure').linkFailureReason(err);console.error('Google connection failed:',reason);res.redirect((flow&&flow.mode==='link'?'/app':'/')+'?error=auth_failed&reason='+reason);}
 }));
 const logout=(req,res)=>req.session.destroy(()=>res.redirect('/'));
 // Cross-site GETs (img/link/iframe from another origin) must not sign the user out.
