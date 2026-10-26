@@ -1,5 +1,5 @@
 'use strict';
-const router=require('express').Router();const path=require('path');const {all,get}=require('../utils/db');const wrap=require('../middleware/async-handler');const {render,escapeHTML}=require('../utils/site-template');const {isAdmin}=require('../utils/helpdesk');const {checkToolAccess}=require('../utils/access-control');
+const router=require('express').Router();const path=require('path');const {all,get}=require('../utils/db');const wrap=require('../middleware/async-handler');const {render,escapeHTML}=require('../utils/site-template');const {isAdmin}=require('../utils/support/helpdesk');const {checkToolAccess}=require('../utils/auth/access-control');
 const {guides,mergeGuides}=require('../utils/website-guides');
 const uiLang=req=>require('../utils/public-errors').language(req);
 const publicDir=path.join(__dirname,'../public');

@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
-const profile=require('../utils/writing-profile');
-function engine(responses,secondPass=false){const prompts=[];const box={process:{env:{AI_SECOND_PASS:String(secondPass)}},module:{exports:{}},require:id=>id==='./ai-legacy'?{callGemini:async(p,t,k,m,valid)=>{prompts.push(p);const r=responses.shift();if(r instanceof Error)throw r;const txt=JSON.stringify(r);if(!valid(txt))throw new Error('invalid');return txt;}}:profile};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../utils/ai.js'),'utf8'),box);return {ai:box.module.exports,prompts};}
+const profile=require('../utils/ai/writing-profile');
+function engine(responses,secondPass=false){const prompts=[];const box={process:{env:{AI_SECOND_PASS:String(secondPass)}},module:{exports:{}},require:id=>id==='./gemini-direct'?{callGemini:async(p,t,k,m,valid)=>{prompts.push(p);const r=responses.shift();if(r instanceof Error)throw r;const txt=JSON.stringify(r);if(!valid(txt))throw new Error('invalid');return txt;}}:profile};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../utils/ai/index.js'),'utf8'),box);return {ai:box.module.exports,prompts};}
 const draft={subject:'تواصل',body:'أهلًا، حابب أعرف لو عندكم فرص مناسبة.'};
 const reviewed={...draft,notes:['راجع المسمى المطلوب.'],needsUserInput:false};
 const args={cv:'أنا مطور React.',company:{name:'ألف',field:'برمجيات'},instructions:profile.encode(profile.defaults())};

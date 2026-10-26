@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
-const {withRecovery,retryAfter,hardQuota}=require('../utils/ai-retry');
+const {withRecovery,retryAfter,hardQuota}=require('../utils/ai/retry');
 test('temporary AI failure retries once, then succeeds; daily quota and auth never retried',async()=>{
  let calls=0;assert.equal(await withRecovery(async()=>{if(++calls===1)throw {code:'TEMPORARY',retryAfterMs:0};return 'OK';},Date.now()+10000),'OK');assert.equal(calls,2);
  for(const code of ['AUTH','QUOTA','CREDITS']){calls=0;await assert.rejects(withRecovery(async()=>{calls++;throw Object.assign(new Error('fail'),{code});},Date.now()+10000));assert.equal(calls,1);}
@@ -8,7 +8,7 @@ test('temporary AI failure retries once, then succeeds; daily quota and auth nev
 test('provider reset time is respected, not shortened into a rapid retry',async()=>{
  let calls=0;await assert.rejects(withRecovery(async()=>{calls++;throw Object.assign(new Error('limit'),{code:'RATE_LIMIT',retryAfterMs:60000});},Date.now()+75000));assert.equal(calls,1);assert.equal(retryAfter({get:()=> '60'}),60000);assert(hardQuota({error:{message:'Daily quota reached'}}));assert(!hardQuota({error:{message:'Too many requests per minute'}}));
 });
-function support(response,fail=false){const context={module:{exports:{}},Map,Set,console:{warn(){}},require:id=>id==='./support-knowledge'?require('../utils/support-knowledge'):{callGemini:async(prompt)=>{context.prompt=prompt;if(fail)throw new Error('temporary');return JSON.stringify(response);}}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../utils/support.js'),'utf8'),context);return {api:context.module.exports,context};}
+function support(response,fail=false){const context={module:{exports:{}},Map,Set,console:{warn(){}},require:id=>id==='./knowledge'?require('../utils/support/knowledge'):{callGemini:async(prompt)=>{context.prompt=prompt;if(fail)throw new Error('temporary');return JSON.stringify(response);}}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../utils/support/index.js'),'utf8'),context);return {api:context.module.exports,context};}
 test('assistant returns generated product answer and uses bounded conversation, rather than copying FAQ',async()=>{
  const {api,context}=support({version:2,scope:'help',text:'افتح إعدادات السيرة، ثم جرّب الملف المحفوظ على جهازك. هل ظهر اسم الملف؟',topics:['cv']});const result=await api.respond('رفع السي في',{history:[{role:'user',content:'أنا على الموبايل'}]});assert.equal(result.mode,'ai');assert(result.text.includes('هل ظهر'));assert.equal(result.articles[0].text,'');assert(context.prompt.includes('أنا على الموبايل'));assert(!context.prompt.includes('السيرة الشخصية الخاصة'));
 });

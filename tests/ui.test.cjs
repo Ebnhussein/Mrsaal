@@ -1,5 +1,5 @@
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
-const {defaults}=require('../utils/writing-profile');
+const {defaults}=require('../utils/ai/writing-profile');
 test('style saved, explicit approval, revision and reference do not send',async()=>{
  const elements=new Map();const el=id=>{if(!elements.has(id))elements.set(id,{value:'',textContent:'',hidden:false,disabled:false,setAttribute(){},focus(){},replaceChildren(){},add(){}});return elements.get(id);};
  let stored={profile:defaults(),subject:'فرصة',saved:true},sent=0;

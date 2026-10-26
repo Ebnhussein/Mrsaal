@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),{PGlite}=require('@electric-sql/pglite');
-function load(db){const box={module:{exports:{}},require:id=>{assert.equal(id,'./db');return db;}};vm.runInNewContext(fs.readFileSync(require.resolve('../utils/company-edit'),'utf8'),box);return box.module.exports;}
+function load(db){const box={module:{exports:{}},require:id=>{assert.equal(id,'../db');return db;}};vm.runInNewContext(fs.readFileSync(require.resolve('../utils/companies/edit'),'utf8'),box);return box.module.exports;}
 const details={name:'Company',email:'jobs@example.test',phone:'+201012345678',field:'Software',location:'Cairo'};
 test('company details validate international contact data without accepting arbitrary fields',()=>{
  const api=load({});assert.equal(api.validate(details).phone,'201012345678');assert.equal(api.validate({...details,email:' JOBS@EXAMPLE.TEST '}).email,'jobs@example.test');assert.equal(api.validate({...details,email:''}).phone,'201012345678');

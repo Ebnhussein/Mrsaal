@@ -1,6 +1,6 @@
 'use strict';
 const router=require('express').Router();const {randomUUID}=require('crypto');
-const {get,all,run,pool}=require('../utils/db');const {requireAuth}=require('../middleware/auth');const wrap=require('../middleware/async-handler');const {isAdmin,quota}=require('../utils/helpdesk');
+const {get,all,run,pool}=require('../utils/db');const {requireAuth}=require('../middleware/auth');const wrap=require('../middleware/async-handler');const {isAdmin,quota}=require('../utils/support/helpdesk');
 const categories=new Set(['general','upload','ai','gmail','whatsapp','display']);const statuses=new Set(['open','in_progress','waiting_user','resolved']);
 function fail(message,status=400){const e=new Error(message);e.status=status;throw e;}
 function value(x,min,max){if(typeof x!=='string'||x.trim().length<min||x.length>max)fail(`النص مطلوب، من ${min} إلى ${max} حرف.`);return x.trim();}

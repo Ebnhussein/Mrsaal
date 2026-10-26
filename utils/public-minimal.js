@@ -1,5 +1,5 @@
  'use strict';
-const {PLANS}=require('./plan-catalog');
+const {PLANS}=require('./usage/plans');
 function plansContent(lang){
  const en=lang==='en';const description=en?{start:'For a focused application list.',step:'For regular applications and follow-up.',launch:'For larger lists and more CV versions.'}:{start:'لتقديمك على فرص مختارة.',step:'لتقديم منتظم ومتابعة أوسع.',launch:'لقوائم أكبر ونسخ تقديم متعددة.'};
  const included=en?[

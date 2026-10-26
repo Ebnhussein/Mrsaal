@@ -1,21 +1,21 @@
-const {checkToolAccess}=require('../utils/access-control');
+const {checkToolAccess}=require('../utils/auth/access-control');
 // routes/email.js
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { requireAuth } = require('../middleware/auth');
 const { get, all, run } = require('../utils/db');
-const { generateEmail, generateWhatsAppMessage } = require('../utils/ai');
-const { sendEmail } = require('../utils/gmail');
-const {resolveAccount}=require('../utils/gmail-accounts');
+const { generateEmail, generateWhatsAppMessage } = require('../utils/ai/index');
+const { sendEmail } = require('../utils/gmail/client');
+const {resolveAccount}=require('../utils/gmail/accounts');
 const wrap=require('../middleware/async-handler');
 async function rememberSender(logId,userId,account){if(account)await run('UPDATE email_log SET sender_account_id=$1,sender_email=$2 WHERE id=$3 AND user_id=$4',[account.gmail_account_id,account.email,logId,userId]);}
-const { syncReplies } = require('../utils/reply-tracker');
+const { syncReplies } = require('../utils/gmail/reply-tracker');
 const { sendWhatsAppMessage, requireConnected } = require('../utils/whatsapp/service');
 
 const BASE_URL = (process.env.BASE_URL || 'https://mrsaal.ebnhussein.co').replace(/\/$/,'');
 
-const {hasEmail,hasPhone,chooseChannel,skipReason,destination}=require('../utils/delivery-channel');
+const {hasEmail,hasPhone,chooseChannel,skipReason,destination}=require('../utils/delivery/channel');
 async function recordSkip(userId,company,channel,reason){
  await run(`INSERT INTO email_log (id,user_id,company_id,company_name,company_email,status,reason,channel) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
  [uuidv4(),userId,company.id,company.name,destination(company,channel)||'', 'skipped',reason,channel]);
@@ -35,7 +35,7 @@ router.post('/generate', requireAuth, wrap(async (req, res) => {
   try {
     if (channel==='email') {
       const email = await generateEmail({
-        userId:req.session.userId, cv: cv.content, cvSummary:require('../utils/cv-summary').approved(cv), company,
+        userId:req.session.userId, cv: cv.content, cvSummary:require('../utils/cv/summary').approved(cv), company,
         instructions: tpl?.instructions,
         subjectTemplate: tpl?.subject_template,
         apiKey: userSettings?.gemini_key || null,
@@ -45,7 +45,7 @@ router.post('/generate', requireAuth, wrap(async (req, res) => {
     }
     if (channel==='whatsapp') {
       const message = await generateWhatsAppMessage({
-        userId:req.session.userId, cv: cv.content, cvSummary:require('../utils/cv-summary').approved(cv), company,
+        userId:req.session.userId, cv: cv.content, cvSummary:require('../utils/cv/summary').approved(cv), company,
         instructions: tpl?.instructions,
         apiKey: userSettings?.gemini_key || null,
         modelName: userSettings?.gemini_model || null
@@ -60,7 +60,7 @@ router.post('/generate', requireAuth, wrap(async (req, res) => {
 
 router.post('/send', requireAuth, wrap(async (req, res) => {
   const { companyId, subject, body } = req.body;
-  const scheduledAt = require('../utils/schedule-time').parse(req.body.scheduledAt);
+  const scheduledAt = require('../utils/delivery/schedule-time').parse(req.body.scheduledAt);
   const company = await get('SELECT * FROM companies WHERE id=$1 AND user_id=$2', [companyId, req.session.userId]);
   if (!company) return res.status(404).json({ error: 'الشركة غير موجودة' });
   const channel=chooseChannel(company,req.body.channel);
@@ -78,9 +78,9 @@ router.post('/send', requireAuth, wrap(async (req, res) => {
   if (scheduledAt && channel==='whatsapp') await requireConnected(req.session.userId);
 
   const account=channel==='email'?await resolveAccount(req.session.userId,req.body.senderAccountId||null):null;
-  if(scheduledAt)return res.json(await require('../utils/schedule-send').schedule(req.session.userId,{company,channel,account,cv,body,subject:subject||'',scheduledAt,idempotencyKey:req.body.idempotencyKey}));
+  if(scheduledAt)return res.json(await require('../utils/delivery/schedule-send').schedule(req.session.userId,{company,channel,account,cv,body,subject:subject||'',scheduledAt,idempotencyKey:req.body.idempotencyKey}));
 
-  const result=await require('../utils/delivery').deliver(req.session.userId,{companyId,channel,subject:subject||'',body,senderAccountId:req.body.senderAccountId||null,idempotencyKey:req.body.idempotencyKey});
+  const result=await require('../utils/delivery/index').deliver(req.session.userId,{companyId,channel,subject:subject||'',body,senderAccountId:req.body.senderAccountId||null,idempotencyKey:req.body.idempotencyKey});
   return res.status(result.ok?200:409).json(result);
 }));
 

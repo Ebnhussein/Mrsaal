@@ -2,7 +2,7 @@
 const router=require('express').Router();
 const {requireAuth}=require('../middleware/auth');
 const {get}=require('../utils/db');
-const {respond,answer,docs}=require('../utils/support');
+const {respond,answer,docs}=require('../utils/support/index');
 router.use(requireAuth);
 const windows=new Map(),busy=new Set(),conversations=new Map();const HOUR=3600000;
 function reserve(id){const now=Date.now();for(const [key,row] of windows)if(now-row.start>=HOUR)windows.delete(key);if(windows.size>=10000&&!windows.has(id))return false;let row=windows.get(id)||{start:now,count:0};if(row.count>=30)return false;row.count++;windows.set(id,row);return true;}

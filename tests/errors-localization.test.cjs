@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
-const errors=require('../utils/public-errors'),{gmailError}=require('../utils/gmail-errors');
+const errors=require('../utils/public-errors'),{gmailError}=require('../utils/gmail/errors');
 const arabic=/[\u0600-\u06ff]/;
 function request(lang,path='/api/email/send'){return {path,method:'POST',get:name=>name==='X-Mrsaal-Language'?lang:null};}
 function response(){return {statusCode:200,headers:{},setHeader(k,v){this.headers[k]=v;},vary(){},status(n){this.statusCode=n;return this;},json(v){this.body=v;return this;}};}
@@ -29,7 +29,7 @@ test('provider failure chain preserves sanitized model reasons in both languages
  const en=errors.describe(e,'en'),ar=errors.describe(e,'ar');assert.match(en.error,/quota is exhausted/);assert.match(en.error,/cut off/);assert(!en.error.includes('sk-secret'));assert(!arabic.test(en.error));assert(arabic.test(ar.error));
  const req=request('en'),res=response();require('../middleware/api-errors').locale(req,res,()=>{});res.status(503).json({...en});assert.match(res.body.error,/quota is exhausted/);
 });
-function ai(env,call){const file=require.resolve('../utils/ai'),box={module:{exports:{}},process:{env},console,require:id=>id==='./writing-profile'?require('../utils/writing-profile'):id==='./ai-legacy'?{callGemini:call}:id==='./ai-local'?{callLocalAI:call}:require(path.resolve(path.dirname(file),id))};vm.runInNewContext(fs.readFileSync(file,'utf8'),box);return box.module.exports;}
+function ai(env,call){const file=require.resolve('../utils/ai/index'),box={module:{exports:{}},process:{env},console,require:id=>id==='./writing-profile'?require('../utils/ai/writing-profile'):id==='./gemini-direct'?{callGemini:call}:id==='./local'?{callLocalAI:call}:require(path.resolve(path.dirname(file),id))};vm.runInNewContext(fs.readFileSync(file,'utf8'),box);return box.module.exports;}
 test('unapproved long CV fails before upstream generation; approved facts replace full CV',async()=>{
  const calls=[],engine=ai({LOCAL_AI_BASE_URL:'https://model.test/v1'},async prompt=>{calls.push(prompt);return JSON.stringify({subject:'Application',body:'I am interested in a suitable opportunity.'});});
  const args={cv:'FULL_PRIVATE_CV '.repeat(600),company:{name:'Company'}};
@@ -39,8 +39,8 @@ test('unapproved long CV fails before upstream generation; approved facts replac
 test('personal AI keeps full factual source, and local drafts do not run a second review request',async()=>{
  const calls=[],env={LOCAL_AI_BASE_URL:'https://model.test/v1',AI_SECOND_PASS:'true'};const engine=ai(env,async p=>{calls.push(p);return JSON.stringify({subject:'Application',body:'Reviewed message'});});
  await engine.generateEmail({cv:'Approved short facts',company:{name:'Company'}});assert.equal(calls.length,1);
- const p=require('../utils/writing-profile').defaults();p.instructions='a'.repeat(4000);p.examples=['b'.repeat(3000),'c'.repeat(3000)];p.whatsapp.template='UNRELATED '.repeat(500);
- const compact=engine.compactContext(engine.context({cv:'FACT',company:{},instructions:require('../utils/writing-profile').encode(p)},'email'));
+ const p=require('../utils/ai/writing-profile').defaults();p.instructions='a'.repeat(4000);p.examples=['b'.repeat(3000),'c'.repeat(3000)];p.whatsapp.template='UNRELATED '.repeat(500);
+ const compact=engine.compactContext(engine.context({cv:'FACT',company:{},instructions:require('../utils/ai/writing-profile').encode(p)},'email'));
  assert.equal(compact.facts.cv,'FACT');assert(compact.style.instructions.length<=500);assert.equal(compact.style.examples.length,1);assert(!JSON.stringify(compact).includes('UNRELATED'));
 });
 test('browser language travels with fetch, JSON and multipart but never external providers',async()=>{
@@ -52,9 +52,9 @@ test('browser language travels with fetch, JSON and multipart but never external
  assert(arabic.test(window.MrsaalErrors.network(true)));document.documentElement.lang='en';assert(!arabic.test(window.MrsaalErrors.network(true)));
 });
 test('reply failures back off and log safe reasons without repeated provider calls for every thread',async()=>{
- const filename=require.resolve('../utils/reply-tracker'),logs=[],writes=[];let requests=0;
+ const filename=require.resolve('../utils/gmail/reply-tracker'),logs=[],writes=[];let requests=0;
  const oauthError=Object.assign(new Error('private token must never be logged'),{response:{status:400,data:{error:'invalid_grant'}}});
- const deps={googleapis:{google:{gmail:()=>({users:{threads:{get:async()=>{requests++;throw oauthError;}}}})}},'./db':{all:async()=>Array.from({length:20},(_,i)=>({id:'log'+i,user_id:'owner',thread_id:'thread'+i,sender_account_id:'account'})),run:async(sql,args)=>writes.push({sql,args})},'./gmail':{buildAuthClient:()=>({})},'./gmail-accounts':{resolveAccount:async()=>({email:'sender@example.test'})}};
+ const deps={googleapis:{google:{gmail:()=>({users:{threads:{get:async()=>{requests++;throw oauthError;}}}})}},'../db':{all:async()=>Array.from({length:20},(_,i)=>({id:'log'+i,user_id:'owner',thread_id:'thread'+i,sender_account_id:'account'})),run:async(sql,args)=>writes.push({sql,args})},'./client':{buildAuthClient:()=>({})},'./accounts':{resolveAccount:async()=>({email:'sender@example.test'})}};
  const box={module:{exports:{}},Buffer,console:{warn:(...args)=>logs.push(args)},require:id=>Object.hasOwn(deps,id)?deps[id]:require(path.resolve(path.dirname(filename),id))};
  vm.runInNewContext(fs.readFileSync(filename,'utf8'),box);const result=await box.module.exports.syncReplies('owner');assert.equal(result.failed,20);assert.deepEqual([...result.failureCodes],['GMAIL_RECONNECT']);assert(requests<=2);assert.equal(logs.length,1);assert(!JSON.stringify(logs).includes('private token'));assert(writes.every(w=>w.sql.includes('+300')));
 });

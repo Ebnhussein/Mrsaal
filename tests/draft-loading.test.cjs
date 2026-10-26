@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const {withOutputRecovery,compactPrompt}=require('../utils/ai-retry');
+const {withOutputRecovery,compactPrompt}=require('../utils/ai/retry');
 function view(){
  class Node{constructor(tag,text){this.tag=tag;this.textContent=text||'';this.children=[];this.attrs={};this.dataset={};this.disabled=false;this.classList={add(){},remove(){}};}append(...nodes){this.children.push(...nodes);}replaceChildren(...nodes){this.children=nodes;}setAttribute(k,v){this.attrs[k]=v;}getAttribute(k){return this.attrs[k];}querySelector(selector){if(selector==='p')return this.paragraph;return this.children.find(n=>n.className==='draft-generation-status');}}
  const src=fs.readFileSync(require.resolve('../public/assets/launch.js'),'utf8');const fragment=src.slice(src.indexOf(' async function writeDraft('),src.indexOf(' async function review('));const box={el:(tag,text)=>new Node(tag,text),tr:(a)=>a};vm.createContext(box);vm.runInContext(fragment+';this.writeDraft=writeDraft;',box);
