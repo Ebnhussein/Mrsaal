@@ -40,5 +40,5 @@ test('scheduler revalidates after waiting for the user lock and creates no rows 
  assert(statements.includes('ROLLBACK'));assert(!statements.some(s=>s.startsWith('INSERT')));
 });
 test('expired schedule error is clear and retains its machine code in both languages',()=>{
- const errors=require('../utils/public-errors');for(const lang of ['ar','en']){const e=errors.describe({code:'SCHEDULE_TIME_PAST',status:400},lang);assert.equal(e.code,'SCHEDULE_TIME_PAST');assert.match(e.error,lang==='en'?/scheduled time has passed/:/موعد الجدولة عدى/);}
+ const errors=require('../utils/website/public-errors');for(const lang of ['ar','en']){const e=errors.describe({code:'SCHEDULE_TIME_PAST',status:400},lang);assert.equal(e.code,'SCHEDULE_TIME_PAST');assert.match(e.error,lang==='en'?/scheduled time has passed/:/موعد الجدولة عدى/);}
 });

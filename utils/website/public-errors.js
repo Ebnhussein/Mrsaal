@@ -1,5 +1,5 @@
 'use strict';
-const translations=require('./error-translations.json');
+const translations=require('../error-translations.json');
 const reverse=new Map(Object.entries(translations).map(([ar,en])=>[en,ar]));
 const messages={
  CAMPAIGN_ALREADY_SENT:['خيار تخطي الرسائل المُرسلة مفعّل، وكل الشركات المختارة أُرسل لها على الوسائل المتاحة. اقفله لو تقصد تجهيز رسائل جديدة.','Skip previously sent messages is enabled, and the selected companies have already been contacted on their available channels. Turn it off to prepare new messages.'],

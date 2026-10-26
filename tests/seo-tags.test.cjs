@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict');
-const {renderExact}=require('../utils/stitch-render');
-const {seoTags}=require('../utils/seo-tags');
+const {renderExact}=require('../utils/website/stitch-render');
+const {seoTags}=require('../utils/website/seo-tags');
 const count=(html,pattern)=>(html.match(pattern)||[]).length;
 for(const lang of ['ar','en'])for(const page of ['home','product','plans','help','about','contact']){
  test(`public ${lang}/${page} has description, canonical and social tags once`,()=>{

@@ -54,7 +54,7 @@ function loadServices() {
     connectionsSchema: require('./utils/connections-schema'),
     replyTracker: require('./utils/gmail/reply-tracker'),
     helpdesk: require('./utils/support/helpdesk'),
-    websiteSchema: require('./utils/website-schema'),
+    websiteSchema: require('./utils/website/schema'),
     scheduler: require('./utils/delivery/scheduler'),
     notifications: require('./utils/notifications'),
     launchSchema: require('./utils/launch-schema'),

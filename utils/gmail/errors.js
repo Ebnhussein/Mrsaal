@@ -17,7 +17,7 @@ function gmailError(error){
  else if(error?.response&&status===403)code='GMAIL_PERMISSIONS';
  else if(['ECONNRESET','ETIMEDOUT','ENOTFOUND','EAI_AGAIN'].includes(error?.code))code='GMAIL_NETWORK';
  if(!code)return error;
- const texts=require('../public-errors').messages[code];
+ const texts=require('../website/public-errors').messages[code];
  const e=Object.assign(new Error(texts[0]),{code,status:code==='GMAIL_API_DISABLED'||code==='GMAIL_CONFIG'||code==='GMAIL_NETWORK'?503:code==='GMAIL_LIMIT'?429:code==='GMAIL_RECONNECT'?409:status||400});
  // Preserve the provider status for delivery certainty and sanitized diagnostics only.
  if(error.response)e.response=error.response;

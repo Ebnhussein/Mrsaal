@@ -154,6 +154,6 @@ test('phone pairing can relink a QR-ready session with stale phone metadata, but
  }finally{await f.close();}
 });
 test('pairing preparation, cooldown and number replacement have separate bilingual causes',()=>{
- const catalog=require('../utils/public-errors');
+ const catalog=require('../utils/website/public-errors');
  for(const lang of ['ar','en']){const values=['MRSAALWA_PAIR_WAIT','MRSAALWA_PAIR_COOLDOWN','MRSAALWA_PAIR_DIFFERENT_NUMBER'].map(code=>catalog.describe({code,status:409},lang).error);assert.equal(new Set(values).size,3);for(const value of values)assert(!value.includes('undefined'));}
 });

@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const {render}=require('../utils/site-template');
+const {render}=require('../utils/website/site-template');
 async function harness(page='login',lang='ar'){
  const html=render(lang,page),nodes={};
  for(const m of html.matchAll(/<([a-z][a-z0-9]*)\b([^>]*\bid="([^"]+)"[^>]*)>/g)){

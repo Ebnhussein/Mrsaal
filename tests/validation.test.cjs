@@ -41,6 +41,6 @@ test('custom business checks update on input and native validation messages use 
  const name=f.field('name');name.required=true;let prevented=false;f.listeners.get('invalid')({target:name,preventDefault(){prevented=true;}});assert(prevented);assert.equal(name.hint.textContent,'الخانة دي مطلوبة.');assert(name.focused);
 });
 test('all render paths load shared validation, and primary website contact is covered in both languages',()=>{
- const {render}=require('../utils/site-template');for(const lang of ['ar','en'])for(const page of ['home','contact','login','signup','help','plans','admin']){const html=render(lang,page);assert(html.includes('/assets/validation.js'),lang+':'+page);assert(html.includes('/assets/validation.css'),lang+':'+page);}
+ const {render}=require('../utils/website/site-template');for(const lang of ['ar','en'])for(const page of ['home','contact','login','signup','help','plans','admin']){const html=render(lang,page);assert(html.includes('/assets/validation.js'),lang+':'+page);assert(html.includes('/assets/validation.css'),lang+':'+page);}
  for(const path of ['../public/index.html','../public/account.html'])assert(fs.readFileSync(require.resolve(path),'utf8').includes('/assets/validation.js'));
 });

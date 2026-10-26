@@ -23,7 +23,7 @@ router.post('/chat',async(req,res)=>{
   const result=await respond(q.trim(),{previousTopics:req.body.previousTopics,history,language:req.body.language==='en'?'en':'ar'},{userId:id,apiKey:u?.gemini_key,modelName:u?.gemini_model});
   conversations.set(id,{time:Date.now(),messages:[...history,{role:'user',content:q.trim()},{role:'assistant',content:result.text}].slice(-6)});res.json(result);
  }
- catch(error){const info=require('../utils/public-errors').describe(error,req.mrsaalLanguage,503);res.status(info.status).json({error:info.error,code:info.code});}
+ catch(error){const info=require('../utils/website/public-errors').describe(error,req.mrsaalLanguage,503);res.status(info.status).json({error:info.error,code:info.code});}
  finally{busy.delete(id);}
 });
 module.exports=router;

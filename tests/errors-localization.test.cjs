@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
-const errors=require('../utils/public-errors'),{gmailError}=require('../utils/gmail/errors');
+const errors=require('../utils/website/public-errors'),{gmailError}=require('../utils/gmail/errors');
 const arabic=/[\u0600-\u06ff]/;
 function request(lang,path='/api/email/send'){return {path,method:'POST',get:name=>name==='X-Mrsaal-Language'?lang:null};}
 function response(){return {statusCode:200,headers:{},setHeader(k,v){this.headers[k]=v;},vary(){},status(n){this.statusCode=n;return this;},json(v){this.body=v;return this;}};}
@@ -20,7 +20,7 @@ test('JSON interception localizes errors in protected dialogs and includes a cor
 });
 test('unexpected exceptions never expose stack, SQL, keys or provider payloads',()=>{
  const source=fs.readFileSync(require.resolve('../middleware/api-errors'),'utf8'),logs=[];
- const box={module:{exports:{}},require:id=>id==='crypto'?require('crypto'):id==='../utils/public-errors'?errors:{gmailError},console:{error:(...a)=>logs.push(a)}};vm.runInNewContext(source,box);
+ const box={module:{exports:{}},require:id=>id==='crypto'?require('crypto'):id==='../utils/website/public-errors'?errors:{gmailError},console:{error:(...a)=>logs.push(a)}};vm.runInNewContext(source,box);
  const req=request('en'),res=response();box.module.exports.locale(req,res,()=>{});box.module.exports.handler(new Error('password=secret SELECT * FROM users; sk-private'),req,res,()=>{});
  assert.equal(res.statusCode,500);assert.equal(res.body.code,'INTERNAL');assert(!JSON.stringify(res.body).includes('secret'));assert(!JSON.stringify(logs).includes('sk-private'));assert(!arabic.test(res.body.error));
 });

@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const {homeStory}=require('../utils/home-story');
+const {homeStory}=require('../utils/website/home-story');
 test('FAQ selection changes only its answer, stays on the page and supports repeated choices',()=>{
  const buttons=Array.from({length:3},(_,i)=>({dataset:{faqQuestion:String(i)},attrs:{},setAttribute(k,v){this.attrs[k]=v;},addEventListener(type,cb){this.click=cb;}}));
  const answers=buttons.map(b=>({dataset:{faqAnswer:b.dataset.faqQuestion},hidden:false}));
@@ -24,7 +24,7 @@ test('Arabic and English FAQ render matching answer targets and local help links
  }
 });
 test('Plans and Help share the homepage selector, preserve all answers and load shared assets',()=>{
- const {render}=require('../utils/site-template');
+ const {render}=require('../utils/website/site-template');
  for(const lang of ['ar','en'])for(const [page,count] of [['plans',4],['help',5]]){
   const html=render(lang,page);
   assert.equal((html.match(/data-faq-question=/g)||[]).length,count);
@@ -37,7 +37,7 @@ test('Plans and Help share the homepage selector, preserve all answers and load 
  }
 });
 test('Public pages use exactly the homepage desktop and mobile footer, including article and legal pages',()=>{
- const {render}=require('../utils/site-template');
+ const {render}=require('../utils/website/site-template');
  for(const lang of ['ar','en']){
   const home=render(lang,'home');
   const footer=home.match(/<footer class="sx-public-footer [\s\S]*?<\/footer>/)[0];

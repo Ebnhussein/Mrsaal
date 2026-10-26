@@ -1,7 +1,7 @@
 'use strict';
-const router=require('express').Router();const path=require('path');const {all,get}=require('../utils/db');const wrap=require('../middleware/async-handler');const {render,escapeHTML}=require('../utils/site-template');const {isAdmin}=require('../utils/support/helpdesk');const {checkToolAccess}=require('../utils/auth/access-control');
-const {guides,mergeGuides}=require('../utils/website-guides');
-const uiLang=req=>require('../utils/public-errors').language(req);
+const router=require('express').Router();const path=require('path');const {all,get}=require('../utils/db');const wrap=require('../middleware/async-handler');const {render,escapeHTML}=require('../utils/website/site-template');const {isAdmin}=require('../utils/support/helpdesk');const {checkToolAccess}=require('../utils/auth/access-control');
+const {guides,mergeGuides}=require('../utils/website/guides');
+const uiLang=req=>require('../utils/website/public-errors').language(req);
 const publicDir=path.join(__dirname,'../public');
 router.get('/',wrap(async(req,res)=>{const q=new URLSearchParams();for(const k of ['error','linked'])if(typeof req.query[k]==='string')q.set(k,req.query[k].slice(0,80));res.redirect((req.session?.userId?(q.has('linked')?'/app':await isAdmin(req.session.userId)?'/admin':'/app'):q.has('error')?'/'+uiLang(req)+'/login':'/'+uiLang(req)+'/')+(q.size?'?'+q:' ' ).trim());}));
 router.get('/app',wrap(async(req,res)=>{
@@ -10,7 +10,7 @@ router.get('/app',wrap(async(req,res)=>{
  if(maintenance?.tool_paused&&(!req.session?.userId||!await isAdmin(req.session.userId))){res.set('Retry-After','300');return res.status(503).sendFile(path.join(publicDir,'maintenance.html'));}
  if(!req.session?.userId)return res.redirect('/'+uiLang(req)+'/login');
  const profile=await get('SELECT registration_required FROM users WHERE id=$1',[req.session.userId]);if(profile?.registration_required)return res.redirect('/auth/account?mode=profile');
- try{await checkToolAccess(req.session.userId);}catch(e){return res.status(e.status||403).send(render(uiLang(req),'suspended',{custom:'<section class="m-section"><h1>'+(uiLang(req)==='en'?'The tool is currently unavailable':'الأداة غير متاحة حاليًا')+'</h1><p>'+escapeHTML(require('../utils/public-errors').known(e.message,uiLang(req))||(uiLang(req)==='en'?'Contact support to review your account access.':e.message))+'</p><button class="m-button" id="blocked-support">'+(uiLang(req)==='en'?'Contact support':'تواصل مع الدعم')+'</button><a class="m-button" href="/auth/logout">'+(uiLang(req)==='en'?'Sign out':'خروج')+'</a><script src="/assets/workspace-locale.js?v=locale-20261015" defer></script><script src="/assets/tickets.js?v=locale-20261015" defer></script><script src="/assets/blocked-support.js" defer></script></section>'}));}
+ try{await checkToolAccess(req.session.userId);}catch(e){return res.status(e.status||403).send(render(uiLang(req),'suspended',{custom:'<section class="m-section"><h1>'+(uiLang(req)==='en'?'The tool is currently unavailable':'الأداة غير متاحة حاليًا')+'</h1><p>'+escapeHTML(require('../utils/website/public-errors').known(e.message,uiLang(req))||(uiLang(req)==='en'?'Contact support to review your account access.':e.message))+'</p><button class="m-button" id="blocked-support">'+(uiLang(req)==='en'?'Contact support':'تواصل مع الدعم')+'</button><a class="m-button" href="/auth/logout">'+(uiLang(req)==='en'?'Sign out':'خروج')+'</a><script src="/assets/workspace-locale.js?v=locale-20261015" defer></script><script src="/assets/tickets.js?v=locale-20261015" defer></script><script src="/assets/blocked-support.js" defer></script></section>'}));}
  res.sendFile(path.join(publicDir,'index.html'));
 }));
 router.get('/admin',wrap(async(req,res)=>{
