@@ -117,9 +117,9 @@ npm test
 server.js        التشغيل والتجميع فقط: بيفتح المنفذ، ثم بيحمّل الخدمات ويربط الـ routes (دالة loadServices)
 routes/          طبقة HTTP: استقبال الطلب والتحقق من الصلاحية والرد
 middleware/      حماية وجلسات وأخطاء (مشتركة بين الـ routes)
-utils/          المنطق والبيانات مقسّم بالنطاقات: ai/ auth/ companies/ cv/ delivery/ gmail/ support/ usage/ whatsapp/
-                وبجانبها الطبقة المشتركة (db.js وconnection-secrets.js وmigrate.js وملفات الـ schema) وملفات الموقع العام
-                (site-template وstitch-render و public-* ...) التي لسه مسطّحة
+utils/          المنطق والبيانات مقسّم بالنطاقات: ai/ auth/ companies/ cv/ delivery/ gmail/ support/ usage/ website/ whatsapp/
+                (website/ فيه الموقع العام وصفحات stitch-pages) وبجانبها الطبقة المشتركة المسطّحة:
+                db.js وconnection-secrets.js وmigrate.js وnotifications.js وملفات الـ schema
 migrations/      تغييرات قاعدة البيانات المرقمة (انظر migrations/README.md)
 public/          الواجهة: صفحات وملفات JS/CSS تُخدَّم كما هي
 ops/ scripts/    النسخ الاحتياطي والفحص والصيانة

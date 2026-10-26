@@ -1,6 +1,6 @@
 'use strict';
 const {randomUUID}=require('crypto');
-const errors=require('../utils/public-errors');
+const errors=require('../utils/website/public-errors');
 function locale(req,res,next){
  req.mrsaalLanguage=errors.language(req);req.requestId=randomUUID();
  res.setHeader('X-Request-ID',req.requestId);res.vary('X-Mrsaal-Language');res.vary('Accept-Language');

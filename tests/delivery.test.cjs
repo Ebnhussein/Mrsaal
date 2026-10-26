@@ -33,6 +33,6 @@ test('WhatsApp readiness errors preserve their typed code before delivery instea
   const error=Object.assign(new Error(code),{code,status:code==='WA_NOT_CONNECTED'?409:503});
   const h=harness([both],error);await assert.rejects(h.post('/send',{companyId:'both',channel:'whatsapp',body:'Saved draft',scheduledAt:new Date(Date.now()+3600000).toISOString()}),e=>e===error&&e.code===code);
   assert.equal(h.sent.length,0);assert.equal(h.writes.length,0);assert.equal(h.accounts,0);
-  const catalog=require('../utils/public-errors');for(const language of ['ar','en']){const result=catalog.describe(error,language);assert.equal(result.code,code);assert.notEqual(result.error,catalog.describe({status:409},language).error);}
+  const catalog=require('../utils/website/public-errors');for(const language of ['ar','en']){const result=catalog.describe(error,language);assert.equal(result.code,code);assert.notEqual(result.error,catalog.describe({status:409},language).error);}
  }
 });

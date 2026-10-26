@@ -6,7 +6,7 @@ const {resolveAccount}=require('./accounts');
 const active=new Map();
 const reported=new Map();
 function reportFailure(key,error){
- const info=require('../public-errors').diagnostic(error),code=error.code||'GMAIL_SYNC_FAILED',now=Date.now();
+ const info=require('../website/public-errors').diagnostic(error),code=error.code||'GMAIL_SYNC_FAILED',now=Date.now();
  if(now-(reported.get(key+':'+code)||0)>300000){console.warn('Reply sync failed:',JSON.stringify({code,...info}));reported.set(key+':'+code,now);}
  if(reported.size>1000)for(const [k,t]of reported)if(now-t>300000)reported.delete(k);
 }

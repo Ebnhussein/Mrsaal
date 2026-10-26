@@ -27,5 +27,5 @@ test('company editing isolates owners, preserves selection/status, detects stale
  }finally{await pg.close();}
 });
 test('company edit errors have explicit Arabic and English descriptions',()=>{
- const catalog=require('../utils/public-errors');for(const code of ['COMPANY_NAME_REQUIRED','COMPANY_DETAILS_INVALID','COMPANY_CONTACT_REQUIRED','COMPANY_EMAIL_INVALID','COMPANY_NOT_FOUND','COMPANY_DETAILS_CHANGED','COMPANY_EDIT_BUSY'])for(const lang of ['ar','en']){const result=catalog.describe({code,status:409},lang);assert.equal(result.code,code);if(lang==='en')assert(!/[\u0600-\u06ff]/.test(result.error));}
+ const catalog=require('../utils/website/public-errors');for(const code of ['COMPANY_NAME_REQUIRED','COMPANY_DETAILS_INVALID','COMPANY_CONTACT_REQUIRED','COMPANY_EMAIL_INVALID','COMPANY_NOT_FOUND','COMPANY_DETAILS_CHANGED','COMPANY_EDIT_BUSY'])for(const lang of ['ar','en']){const result=catalog.describe({code,status:409},lang);assert.equal(result.code,code);if(lang==='en')assert(!/[\u0600-\u06ff]/.test(result.error));}
 });

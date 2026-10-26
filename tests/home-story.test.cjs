@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const {render}=require('../utils/site-template');
+const {render}=require('../utils/website/site-template');
 function harness({reduced=false,mobile=false,short=false}={}){
  const listeners={},queries=[],frames=[];let scroll=0;
  const classes=new Set();const root={classList:{add:c=>classes.add(c),contains:c=>classes.has(c),toggle(c,on){on?classes.add(c):classes.delete(c);}}};

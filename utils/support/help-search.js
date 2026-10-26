@@ -1,6 +1,6 @@
  'use strict';
 const {topics,version}=require('../../public/assets/product-guide');
-const {guides}=require('../website-guides');const fs=require('fs'),path=require('path');
+const {guides}=require('../website/guides');const fs=require('fs'),path=require('path');
 const categories=[['account','الحساب والدخول','Account and sign-in','person'],['files','السي في والشركات','CV and company files','description'],['gmail','Gmail والإيميل','Gmail and email','mail'],['whatsapp','واتساب','WhatsApp','chat'],['ai','الذكاء الاصطناعي','AI providers and writing','auto_awesome'],['sending','الإرسال والحملات','Sending and campaigns','send'],['reports','التقارير والإشعارات','Reports and notifications','notifications'],['support','المساعدة والدعم','Help and support','support_agent']];
 // Issue titles are navigation labels; answers always come from the published product guide.
 const issues=[
@@ -41,7 +41,7 @@ const issues=[
 ];
 function catalogue(lang){const en=lang==='en',used=new Set(issues.map(x=>x[2])),documents=Object.fromEntries(topics.filter(t=>used.has(t.id)).map(t=>[t.id,{title:en?t.title_en:t.title,answer:en?t.answer_en:t.answer}]));
  for(const [id,slug]of [['channel-guide','email-or-whatsapp'],['email-guide','application-email']]){const g=guides.find(x=>x.slug===slug);documents[id]={title:g['title_'+(en?'en':'ar')],answer:g['body_'+(en?'en':'ar')],href:'/'+(en?'en':'ar')+'/blog/'+slug};}
- const html=fs.readFileSync(path.join(__dirname,'..','stitch-pages',...(en?['en']:[]),'help.html'),'utf8'),content=html.match(/class="faq-content[^"]*"[^>]*>([\s\S]*?)<\/div>/)?.[1]||'';
+ const html=fs.readFileSync(path.join(__dirname,'..','website','stitch-pages',...(en?['en']:[]),'help.html'),'utf8'),content=html.match(/class="faq-content[^"]*"[^>]*>([\s\S]*?)<\/div>/)?.[1]||'';
  documents['csv-encoding']={title:en?'CSV UTF-8 encoding':'ترميز CSV UTF-8',answer:content.replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' ').trim()};
  return {version,language:en?'en':'ar',categories:categories.map(([id,ar,eng,icon])=>({id,title:en?eng:ar,icon})),issues:issues.map(([id,category,topic,ar,eng,kwAr,kwEn])=>({id,category,topic,title:en?eng:ar,keywords:en?kwEn:kwAr})),documents};}
 
