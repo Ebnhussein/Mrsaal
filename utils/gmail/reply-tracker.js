@@ -61,11 +61,7 @@ async function performSync(userId){
   // Send-only accounts never granted gmail.readonly: nothing to check, and that is not a failure.
   if(account.scope&&!String(account.scope).split(/\s+/).includes('https://www.googleapis.com/auth/gmail.readonly'))continue;
   const result=await gmail.users.threads.get({userId:'me',id:log.thread_id,format:'full'},{timeout:12000});
-  const replies=(result.data.messages||[]).filter(m=>m.id!==log.message_id&&!m.labelIds?.includes('SENT')&&Number(m.internalDate)>=Number(log.sent_at)*1000).filter(m=>{
-   const from=m.payload?.headers?.find(h=>h.name.toLowerCase()==='from')?.value||'';
-   const addresses=from.match(/[^\s<>"(),;]+@[^\s<>"(),;]+/g)||[];
-   return !addresses.some(x=>x.toLowerCase()===account.email.toLowerCase());
-  }).sort((a,b)=>Number(a.internalDate)-Number(b.internalDate));
+  const replies=repliesIn(result.data.messages,log,account);
   const latest=replies.at(-1);
   if(latest&&latest.id!==log.reply_message_id){
    const text=await extractReply(latest,gmail);
@@ -77,8 +73,20 @@ async function performSync(userId){
  }}
  await Promise.all([worker(),worker()]);return {checked,updated,failed,failureCodes:[...failures]};
 }
+// Replies to a message Mrsaal sent. When the recipient is the sender's own address (a self-addressed test or demo),
+// a reply carries the same From address and the SENT label, so any later message in the thread counts as the reply.
+function repliesIn(messages,log,account){
+ const own=String(account.email||'').toLowerCase();
+ const selfAddressed=String(log.company_email||'').trim().toLowerCase()===own;
+ return (messages||[]).filter(m=>m.id!==log.message_id&&(selfAddressed||!m.labelIds?.includes('SENT'))&&Number(m.internalDate)>=Number(log.sent_at)*1000).filter(m=>{
+  if(selfAddressed)return true;
+  const from=m.payload?.headers?.find(h=>h.name.toLowerCase()==='from')?.value||'';
+  const addresses=from.match(/[^\s<>"(),;]+@[^\s<>"(),;]+/g)||[];
+  return !addresses.some(x=>x.toLowerCase()===own);
+ }).sort((a,b)=>Number(a.internalDate)-Number(b.internalDate));
+}
 function syncReplies(userId=null){
  const key=userId||'*';if(active.has(key))return active.get(key);
  const promise=performSync(userId).finally(()=>active.delete(key));active.set(key,promise);return promise;
 }
-module.exports={syncReplies,ensureReplySchema,cleanReply,extractReply,htmlText};
+module.exports={syncReplies,ensureReplySchema,cleanReply,extractReply,htmlText,repliesIn};
