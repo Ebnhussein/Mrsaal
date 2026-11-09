@@ -3,3 +3,5 @@ data/
 .env
 *.db
 uploads/
+
+/.mrsaal-trial/

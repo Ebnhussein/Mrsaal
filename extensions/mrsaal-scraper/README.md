@@ -6,7 +6,14 @@ countries, with remote, hybrid, on-site and unrestricted work arrangement filter
 Search can span the web or a specified job-site domain. Collection/import is
 separate from job matching and from outreach/application submission.
 
-## Install for testing
+## Isolated local trial (recommended)
+
+Run `npm ci` and `npm run trial:scraper`, then open
+`http://localhost:4174/app`. Download the trial extension ZIP from that page.
+It connects only to the local test account/database, not production. See
+[`ops/scraper-trial/README.md`](../../ops/scraper-trial/README.md) for the full steps.
+
+## Install against a separately deployed backend
 
 Deploy the matching `/api/discovery` backend changes first. In Chrome/Edge,
 open the extensions management page, enable Developer mode, choose **Load

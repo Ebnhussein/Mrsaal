@@ -44,7 +44,7 @@ crawler that continues after closing Chrome or turning off the computer.
 
 - `npm run check`: passed.
 - ESLint: passed with no errors (existing repository warnings remain).
-- `npm test`: 391 tests passed, including real server startup against PostgreSQL.
+- `npm test`: 393 tests passed, including real server startup against PostgreSQL.
 - Browser suite: Maps/JobPosting/table/custom-card fixtures, verification-stop,
   missing-contact/employer behaviour, panel XSS handling and bilingual layout at
   280/360/480 pixels passed.
@@ -58,3 +58,16 @@ smoke test requires deploying this backend and installing the extension.
 Run `node --test tests/discovery.test.cjs tests/scraper-worker.test.cjs` and
 `node tests/browser/scraper-extractor.cjs` for targeted verification. The latter
 accepts `PLAYWRIGHT_CHROMIUM_EXECUTABLE` and a JSON `PLAYWRIGHT_LAUNCH_ARGS` array.
+
+## Isolated trial workspace
+
+`npm run trial:scraper` starts a loopback-only workspace at
+`http://localhost:4174/app`, backed by a separate embedded PostgreSQL database
+and a local test account. It never loads production server/delivery workers or
+production database settings. The page serves a ZIP build whose worker and
+host permissions point only at the trial origin. See `ops/scraper-trial/README.md`.
+The default extension source remains available for a separately deployed backend;
+`scripts/build-scraper-extension.cjs` can target an explicit HTTPS staging origin.
+
+Additional checks cover sandbox HTTP imports/auth/origin protection, absent
+delivery endpoints, database restart, trial-only permissions and ZIP round trip.
