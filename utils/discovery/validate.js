@@ -8,15 +8,16 @@ function jobUrl(value){const result=url(value);if(!result)return '';const u=new 
 function batch(body){
  if(!body||!Array.isArray(body.rows)||body.rows.length<1||body.rows.length>250)fail('اختار من 1 إلى 250 نتيجة في الدفعة.');
  const source={url:url(body.source?.url),adapter:text(body.source?.adapter,30),query:text(body.source?.query,300),country:text(body.source?.country,2)};
- if(!source.url||!['maps','jsonld','table','custom'].includes(source.adapter)||!COUNTRIES.has(source.country))fail('راجع مصدر البيانات ودولة البحث.');
+ if(!source.url||!['maps','jsonld','table','custom','search','job-cards','job-page'].includes(source.adapter)||!COUNTRIES.has(source.country))fail('راجع مصدر البيانات ودولة البحث.');
  const rows=body.rows.map(row=>{
   if(!row||!['company','job'].includes(row.kind))fail('نوع النتيجة غير صحيح.');
-  const out={kind:row.kind,name:text(row.name),companyName:text(row.companyName),email:text(row.email,254).toLowerCase(),phone:text(row.phone,40).replace(/[\s()-]/g,''),field:text(row.field),location:text(row.location),website:url(row.website),sourceUrl:url(row.sourceUrl)||source.url,jobUrl:jobUrl(row.jobUrl),title:text(row.title),description:text(row.description,16000),country:text(row.country,2),workMode:text(row.workMode,10),employmentType:text(row.employmentType,100)};
+  const out={kind:row.kind,name:text(row.name),companyName:text(row.companyName),email:text(row.email,254).toLowerCase(),phone:text(row.phone,40).replace(/[\s()-]/g,''),field:text(row.field),location:text(row.location),website:url(row.website),sourceUrl:url(row.sourceUrl)||source.url,jobUrl:jobUrl(row.jobUrl),title:text(row.title),description:text(row.description,16000),country:text(row.country,2),workMode:text(row.workMode,10),employmentType:text(row.employmentType,100),entryType:row.entryType==='link_only'?'link_only':'details'};
   if((out.country&&!/^[A-Z]{2}$/.test(out.country))||!MODES.has(out.workMode)||(out.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(out.email))||(out.phone&&!/^\+?[\d٠-٩۰-۹]{6,20}$/.test(out.phone)))fail('راجع الدولة وبيانات التواصل في النتائج.');
   if(out.kind==='company'&&!out.name)fail('اسم الشركة مطلوب.');
   if(out.kind==='job'&&(!out.title||!out.jobUrl))fail('عنوان الوظيفة ورابط الإعلان مطلوبان.');
   return out;
  });
- return {source,rows};
+ const requestKey=text(body.requestKey,80);if(requestKey&&!/^[a-zA-Z0-9_-]+$/.test(requestKey))fail('مفتاح حفظ غير صحيح.');
+ return {source,rows,requestKey};
 }
 module.exports={batch,url};

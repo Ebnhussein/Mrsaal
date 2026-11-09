@@ -15,6 +15,15 @@ router.post('/import',wrap(async(req,res)=>{
  const payload=batch(req.body);
  res.json(await require('../utils/discovery/store').importRows(req.session.userId,payload));
 }));
+router.get('/imports',wrap(async(req,res)=>{res.setHeader('Cache-Control','no-store');res.json({imports:await all('SELECT id,result,source,created_at FROM discovery_imports WHERE user_id=$1 ORDER BY created_at DESC,id DESC LIMIT 20',[req.session.userId])});}));
+router.get('/imports/:id',wrap(async(req,res)=>{
+ const receipt=await get('SELECT id,result,source,created_at FROM discovery_imports WHERE id=$1 AND user_id=$2',[req.params.id,req.session.userId]);
+ if(!receipt)return res.status(404).json({error:'إيصال الحفظ غير موجود.'});
+ const companies=await all('SELECT * FROM companies WHERE user_id=$1 AND id=ANY($2::text[])',[req.session.userId,receipt.result.companyIds]);
+ const jobs=await all('SELECT * FROM discovered_jobs WHERE user_id=$1 AND id=ANY($2::text[])',[req.session.userId,receipt.result.jobIds]);
+ res.setHeader('Cache-Control','no-store');res.json({receipt,companies,jobs,verified:companies.length===receipt.result.companyIds.length&&jobs.length===receipt.result.jobIds.length});
+}));
+router.get('/summary',wrap(async(req,res)=>{res.setHeader('Cache-Control','no-store');res.json({companies:Number((await get('SELECT COUNT(*) AS n FROM companies WHERE user_id=$1',[req.session.userId])).n),jobs:Number((await get('SELECT COUNT(*) AS n FROM discovered_jobs WHERE user_id=$1',[req.session.userId])).n)});}));
 router.get('/jobs',wrap(async(req,res)=>{
  const offset=Math.max(0,Math.min(100000,parseInt(req.query.offset)||0));
  const rows=await all('SELECT * FROM discovered_jobs WHERE user_id=$1 ORDER BY created_at DESC,id LIMIT 101 OFFSET $2',[req.session.userId,offset]);

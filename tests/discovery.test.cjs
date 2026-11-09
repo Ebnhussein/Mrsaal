@@ -4,7 +4,7 @@ const validate=require('../utils/discovery/validate');
 const source={url:'https://www.google.com/maps/search/software+cairo',adapter:'maps',country:'EG'};
 const company={kind:'company',name:'Example Company',phone:'+20 10 1234 5678',location:'Cairo',website:'https://example.test/',sourceUrl:'https://www.google.com/maps/place/Example'};
 const job={kind:'job',companyName:'Example Company',title:'Developer',jobUrl:'https://careers.example.test/jobs/1',location:'Cairo',description:'JavaScript experience',workMode:'remote'};
-function load(file,deps){const box={module:{exports:{}},require:id=>Object.hasOwn(deps,id)?deps[id]:require(id),process,console,Buffer,URL};vm.runInNewContext(fs.readFileSync(require.resolve('../'+file),'utf8'),box);return box.module.exports;}
+function load(file,deps){const box={module:{exports:{}},require:id=>Object.hasOwn(deps,id)?deps[id]:require('node:module').createRequire(require.resolve('../'+file))(id),process,console,Buffer,URL};vm.runInNewContext(fs.readFileSync(require.resolve('../'+file),'utf8'),box);return box.module.exports;}
 test('discovery validates bounded rows, URLs and regions without trusting client owner IDs or fabricating contact details',()=>{
  const result=validate.batch({rows:[company,{...job,companyName:''}],source});assert.equal(result.rows[0].phone,'+201012345678');assert.equal(result.rows[0].email,'');assert.equal(result.rows[1].companyName,'');assert.equal(result.rows[1].name,'');assert.equal(validate.batch({rows:[{...job,jobUrl:job.jobUrl+'?utm_source=search&gh_src=campaign'}],source}).rows[0].jobUrl,job.jobUrl);
  for(const bad of [{rows:[],source},{rows:Array(251).fill(company),source},{rows:[{...company,name:''}],source},{rows:[{...company,email:'not-an-email'}],source},{rows:[{...company,website:'javascript:alert(1)'}],source},{rows:[{...job,jobUrl:'https://name:password@example.test/jobs'}],source},{rows:[{...job,title:''}],source},{rows:[company],source:{...source,country:'US'}}])assert.throws(()=>validate.batch(bad),e=>e.code==='DISCOVERY_INPUT');
@@ -35,5 +35,23 @@ test('imports isolate accounts, deduplicate repeat jobs/companies, keep sources 
   const changed=await invoke('POST /import','owner',{expectedUserId:'other',rows:[company],source});assert.equal(changed.statusCode,409);
   const listing=await invoke('GET /jobs','other');assert.equal(listing.body.jobs.length,1);assert(listing.body.jobs.every(r=>r.user_id==='other'));
   assert.equal((await invoke('GET /session','owner')).body.user.id,'owner');
+ }finally{await pg.close();}
+});
+test('save receipts survive retries, isolate owners, include duplicates and upgrade search links to actual posting details',async()=>{
+ const {PGlite}=require('@electric-sql/pglite'),pg=new PGlite();const query=(s,p)=>p?pg.query(s,p):pg.exec(s),db={pool:{connect:async()=>({query,release(){}})},get:async(s,p)=>(await pg.query(s,p)).rows[0],all:async(s,p)=>(await pg.query(s,p)).rows,run:query};
+ try{
+  await pg.exec(fs.readFileSync(require.resolve('../utils/db'),'utf8').match(/await query\(`([\s\S]*?)`\);/)[1]);await load('utils/launch-schema.js',{'./db':db}).ensureLaunchSchema();await pg.exec("INSERT INTO users(id) VALUES('owner'),('other')");
+  const store=load('utils/discovery/store.js',{'../db':db});const payload=validate.batch({requestKey:'request-1',source,rows:[company]});
+  const first=await store.importRows('owner',payload),retry=await store.importRows('owner',payload);assert(first.confirmed);assert.equal(retry.receiptId,first.receiptId);assert(retry.replayed);assert.equal((await db.get('SELECT COUNT(*) AS n FROM companies')).n,1);assert.equal((await db.get('SELECT COUNT(*) AS n FROM discovery_imports')).n,1);
+  await assert.rejects(store.importRows('owner',{...payload,rows:[{...payload.rows[0],name:'Changed'}]}),e=>e.status===409);
+  const duplicate=await store.importRows('owner',{...payload,requestKey:'request-2'});assert.equal(duplicate.companiesAdded,0);assert.equal(duplicate.companyIds.length,1);
+  const handlers={},router={use(){},get(p,...h){handlers[p]=h.at(-1);},post(){}};load('routes/discovery.js',{express:{Router:()=>router},'../middleware/auth':{requireAuth(){}},'../middleware/async-handler':f=>f,'../utils/db':db});
+  async function proof(user,id){const res={statusCode:200,status(n){this.statusCode=n;return this;},json(v){this.body=v;return this;},setHeader(){}};await handlers['/imports/:id']({session:{userId:user},params:{id}},res);return res;}
+  assert.equal((await proof('other',first.receiptId)).statusCode,404);const saved=(await proof('owner',duplicate.receiptId)).body;assert(saved.verified);assert.equal(saved.companies[0].name,company.name);
+  const link=validate.batch({requestKey:'job-link',source:{...source,adapter:'search'},rows:[{...job,companyName:'',entryType:'link_only'}]});await store.importRows('owner',link);assert.equal((await db.get('SELECT status FROM discovered_jobs')).status,'needs_review');
+  const details=await store.importRows('owner',validate.batch({requestKey:'job-details',source:{...source,adapter:'job-page'},rows:[{...job,description:'Actual full job description',entryType:'details'}]}));assert.equal(details.jobsUpdated,1);assert.equal((await db.get('SELECT COUNT(*) AS n FROM discovered_jobs')).n,1);assert.equal((await db.get('SELECT status FROM discovered_jobs')).status,'saved');
+  // A receipt failure rolls back data, rather than returning a success without proof.
+  const failing=load('utils/discovery/store.js',{'../db':{pool:{connect:async()=>({query:(s,p)=>s.startsWith('INSERT INTO discovery_imports')?Promise.reject(new Error('receipt write failed')):query(s,p),release(){}})}}});
+  await assert.rejects(failing.importRows('owner',validate.batch({requestKey:'fail',source,rows:[{...company,name:'Never Saved',phone:'',email:'new@example.test'}]})));assert.equal((await db.get("SELECT COUNT(*) AS n FROM companies WHERE name='Never Saved'")).n,0);
  }finally{await pg.close();}
 });

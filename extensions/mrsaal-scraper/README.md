@@ -47,17 +47,16 @@ are filled or submitted by this prototype. No CV ranking is implemented yet.
 
 Collection is user-started, at most 250 rows, 100 load attempts and two minutes per run. It stops
 on navigation, cancellation, no new data or a detected verification challenge.
-It does not follow arbitrary pagination links or crawl linked websites for email.
+It does not follow arbitrary pagination links or crawl linked websites for email. A separate user-triggered job-detail action can open up to 10 saved posting links after explicit per-site permission, then closes only inactive tabs it created.
 Unknown employers are saved as jobs without inventing a company record.
 
 ## Account and background behaviour
 
-The worker fetches only the fixed Mrsaal API paths through a signed-in Mrsaal
+The worker fetches only fixed Mrsaal API paths through a signed-in Mrsaal
 tab. Session cookies and API tokens are never read or copied into the extension.
 There is no CORS/CSRF exemption. Every import is bound to the authenticated
 server session and to the connected user ID; switching accounts requires
-reconnecting. Import state is kept in `chrome.storage.session`, and repeated
-imports are deduplicated server-side. Importing does not select companies for
+reconnecting. A pending batch/request key is kept in `chrome.storage.local` until a database receipt is independently verified. Interrupted saves can be retried with the same key without scraping or inserting twice. Session state holds the live UI. Importing does not select companies for
 sending and never sends outreach.
 
 Keep the source and Mrsaal tabs open during a run. The panel may be closed,
@@ -88,3 +87,21 @@ and saving have distinct states; reduced-motion preferences disable animation.
 
 Run `node tests/browser/maps-autoload.cjs` for delayed/virtualised nested-pane
 regressions, and the existing panel browser test for live/reduced-motion UI.
+
+## Version 0.3.0
+
+- Site access can be granted from the collection button, in a direct user gesture,
+  for only the selected origin. Optional host declarations do not grant all sites.
+  Granted source sites can be followed across tab changes without repeated icon
+  clicks; a new unknown site may still need one toolbar selection.
+- Find Jobs opens search and collects posting links automatically. These are
+  explicitly marked `needs_review`/link-only. A separate details button asks for
+  the posting-site permissions and attempts real JobPosting/job-page extraction.
+  Confirmed details upgrade the existing saved link rather than duplicate it.
+- Successful saves require a committed import receipt and a second read of its
+  owned records. Pending batches survive extension/browser restarts locally; the
+  retry button uses the original request key and checks the connected account.
+- Optional Snake and tic-tac-toe live behind a collapsed waiting-game disclosure.
+  Games do not send messages, change collection counters or block the collector.
+- The trial page refreshes automatically, shows the latest receipt/batch by
+  default, and uses bounded source links rather than raw URLs in the table.

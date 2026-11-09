@@ -2,7 +2,7 @@
    remote scripts, private APIs or background network requests are read. */
 (() => {
  'use strict';
- const VERSION='0.2.0';
+ const VERSION='0.3.0';
  if(globalThis.MrsaalExtractor?.version===VERSION)return;
  globalThis.MrsaalExtractor?.cancel();
  let cancelled=false,wakeWait=null;
@@ -33,7 +33,7 @@
    const name=clean(link.getAttribute('aria-label')||bodyText(link)||card.querySelector('h2,h3')?.textContent);
    if(!name)continue;
    const lines=bodyText(card).split('\n').map(s=>clean(s)).filter(s=>s&&s!==name&&!/^(?:[\d.]+\s*(?:\(|stars)|\(?\d+\)?$|Website|Directions|Open|Closed|Closes|Opens|No reviews|موقع|الاتجاهات|مفتوح|مغلق)/i.test(s));
-   rows.push({kind:'company',name,...contacts(card,base),field:lines[0]||'',location:clean(lines.slice(1).join(', ')),sourceUrl:safeUrl(link.href,base)});
+   rows.push({kind:'company',name,...contacts(card,base),field:lines[0]||'',location:clean(lines.slice(1).filter(line=>!/["“”👍⭐]|reviews?|خدمة|ممتاز|مشاكل|سهولة|جودة|الموقع الإلكتروني|الموقع|الاتجاهات|حجز|مواعيد|دائمًا|عرض المزيد|Website|Directions|online|appointment/iu.test(line)&&!/(?:\+|0)[\d ()-]{7,}/.test(digits(line))).slice(0,2).join(', ')),sourceUrl:safeUrl(link.href,base)});
   }
   return rows;
  }
@@ -85,11 +85,37 @@
    return {kind,name:kind==='company'?title:'',title:kind==='job'?title:'',...contacts(card,base),sourceUrl:base,jobUrl:kind==='job'?safeUrl(link?.href||'',base):'',description:kind==='job'?clean(bodyText(card),16000):''};
   }).filter(r=>r.kind==='company'?r.name:r.title&&r.jobUrl);
  }
+ function jobLinks(doc,base,search=false){
+  const rows=[],seen=new Set();
+  const anchors=search?[...doc.querySelectorAll('h3')].map(h=>h.closest('a')):[...doc.querySelectorAll('a[href]')].filter(a=>a.querySelector('h2,h3')||a.closest('[data-job-id],.job-card,[data-testid*="job-card"]'));
+  for(const a of anchors){
+   if(!a||!visible(a))continue;let href=safeUrl(a.href,base);
+   if(!href)continue;const u=new URL(href);
+   if(/(^|\.)google\.[a-z.]+$/.test(u.hostname)){href=safeUrl(u.searchParams.get('q')||u.searchParams.get('url')||'',base);if(!href)continue;}
+   if(new URL(href).origin===new URL(base).origin&&search||seen.has(href))continue;
+   const title=clean(a.querySelector('h2,h3')?.textContent||a.textContent);if(!title)continue;
+   let card=a.closest('article,[data-job-id],.job-card,[data-testid*="job-card"]')||a.parentElement;
+   for(let n=0;n<3&&card?.parentElement;n++){if(card.parentElement.querySelectorAll('h3').length>1)break;card=card.parentElement;}
+   const snippet=clean(bodyText(card),2500);
+   if(search&&!/jobs?|careers?|vacanc|وظائف|وظيفة|توظيف|فرص عمل|فرصة عمل|wuzzuf|bayt\.com|linkedin\.com|indeed\.|gulftalent|naukrigulf/i.test(href+' '+title+' '+snippet))continue;
+   seen.add(href);rows.push({kind:'job',title,companyName:'',description:snippet,jobUrl:href,sourceUrl:base,entryType:'link_only'});
+  }
+  return rows;
+ }
+ function jobPage(doc,base){
+  const heading=doc.querySelector('h1');if(!heading||!/(?:jobs?|careers?|vacanc|وظائف|وظيفة)/i.test(new URL(base).pathname)||!doc.querySelector('form,input[type="file"],a[href*="apply"],button[type="submit"]'))return [];
+  if(doc.querySelector('input[type="password"]')&&/sign in|log in|تسجيل الدخول/i.test(heading.textContent))return [];
+  const text=bodyText(doc.querySelector('main')||doc.body).split(/Apply for this job|Submit application|التقديم على الوظيفة/i)[0];
+  return [{kind:'job',title:clean(heading.textContent),companyName:clean(doc.querySelector('[itemprop="hiringOrganization"] [itemprop="name"],[data-company-name]')?.textContent),description:clean(text,12000),jobUrl:base,sourceUrl:base,entryType:'details'}];
+ }
  function extract(doc,base,options={}){
   if(options.selector)return {adapter:'custom',rows:custom(doc,base,options.selector,options.kind||'company')};
   if(/(^|\.)google\.[a-z.]+$/.test(new URL(base).hostname)&&new URL(base).pathname.startsWith('/maps'))return {adapter:'maps',rows:maps(doc,base)};
+  if(/(^|\.)google\.[a-z.]+$/.test(new URL(base).hostname)&&new URL(base).pathname==='/search')return {adapter:'search',rows:jobLinks(doc,base,true)};
   const jobs=structured(doc,base);if(jobs.length)return {adapter:'jsonld',rows:jobs};
-  return {adapter:'table',rows:tables(doc,base)};
+  const page=jobPage(doc,base);if(page.length)return {adapter:'job-page',rows:page};
+  const table=tables(doc,base);if(table.length)return {adapter:'table',rows:table};
+  return {adapter:'job-cards',rows:jobLinks(doc,base)};
  }
  function blocked(doc){return /^(?:Just a moment|Access Denied|Verify you are human|Attention Required)/i.test(doc.title)||[...doc.querySelectorAll('input[name="captcha"],iframe[src*="hcaptcha.com/captcha"],iframe[title*="challenge"]')].some(visible);}
  function key(row,source){
@@ -162,7 +188,7 @@
     if(!automatic){reason='single-page';break;}
     const scroller=findScroller(document,adapter);
     if(scroller&&listEnded(scroller)){reason='end';break;}
-    if(adapter!=='maps'&&(!scroller||scroller.scrollHeight<=scroller.clientHeight+4)){reason='end';break;}
+    if(adapter!=='maps'&&result.rows.length&&(!scroller||scroller.scrollHeight<=scroller.clientHeight+4)){reason='end';break;}
     if(!scroller||scroller.scrollHeight<=scroller.clientHeight+4){
      await report('waiting');
      const outcome=await waitForResults(source,options,unique,scroller,Math.min(4000,maxDuration-(Date.now()-started)));
@@ -190,7 +216,7 @@
    return {rows:[...unique.values()],source:{url:source,adapter:adapter||'custom'},warning,cancelled,reason,passes};
   }finally{overlay?.remove();wakeWait?.('finished');}
  }
- const api={version:VERSION,extract,run,findScroller,cancel(){cancelled=true;wakeWait?.('cancelled');}};
+ const api={version:VERSION,extract,run,findScroller,blocked,cancel(){cancelled=true;wakeWait?.('cancelled');}};
  if(typeof module==='object'&&module.exports)module.exports=api;
  else globalThis.MrsaalExtractor=api;
 })();

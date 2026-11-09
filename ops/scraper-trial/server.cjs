@@ -30,7 +30,7 @@ async function start({port=Number(process.env.MRSAAL_TRIAL_PORT)||4174,dataDir=p
   app.get('/app',(req,res)=>{req.session.userId='scraper-trial-user';res.type('html').send(fs.readFileSync(path.join(__dirname,'index.html'),'utf8'));});
   app.use('/api', (req,res,next)=>{if(req.session.userId!=='scraper-trial-user')return res.status(401).json({error:'افتح صفحة تجربة مرسال أولًا.'});next();});
   app.use('/api/discovery',routes);
-  app.get('/api/companies',async(req,res,next)=>{try{res.json({companies:await db.all('SELECT * FROM companies WHERE user_id=$1 ORDER BY created_at DESC LIMIT 250',['scraper-trial-user'])});}catch(e){next(e);}});
+  app.get('/api/companies',async(req,res,next)=>{try{res.json({companies:await db.all('SELECT * FROM companies WHERE user_id=$1 ORDER BY created_at DESC,id DESC LIMIT 250',['scraper-trial-user'])});}catch(e){next(e);}});
   app.get('/trial.js',(_,res)=>res.type('js').send(fs.readFileSync(path.join(__dirname,'trial.js'),'utf8')));
   app.get('/extension.zip',(_,res)=>{try{const bundle=build({appOrigin:base,out:path.join(dataDir,'extension')});res.download(bundle.zip,'mrsaal-scraper-trial.zip');}catch(e){res.status(500).json({error:e.message});}});
   app.use((_,res)=>res.status(404).json({error:'This sandbox only exposes discovery and saved results.'}));
