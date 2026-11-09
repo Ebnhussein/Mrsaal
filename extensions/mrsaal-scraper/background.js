@@ -16,9 +16,9 @@ async function appCall(path,method='GET',body=null){
  const [result]=await chrome.scripting.executeScript({target:{tabId:tab.id},func:async(origin,path,method,body)=>{
   if(location.origin!==origin)throw new Error('تبويب مرسال تغيّر.');
   const response=await fetch(origin+path,{method,credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json','X-Mrsaal-Request':'1'},...(body?{body:JSON.stringify(body)}:{})});
-  const data=await response.json();return {ok:response.ok,status:response.status,data};
+  let data;try{data=await response.json();}catch{data={error:'خدمة Mrsaal Scraper غير متاحة على السيرفر. انشر تحديث السيرفر أولًا.'};}return {ok:response.ok,status:response.status,data};
  },args:[APP,path,method,body]});
- if(!result?.result?.ok)throw new Error(result?.result?.data?.error||'تعذر الاتصال بمرسال. افتح صفحة التجربة وحدّثها.');
+ if(!result?.result?.ok)throw new Error(result?.result?.data?.error||'تعذر الاتصال بمرسال. افتح الموقع المرتبط بالإضافة وحدّثه.');
  await chrome.storage.session.set({appTabId:tab.id});return result.result.data;
 }
 async function persist(pending){
@@ -27,7 +27,7 @@ async function persist(pending){
  if(account?.id!==pending.expectedUserId)throw new Error('اربط نفس الحساب صاحب الدفعة قبل تأكيد الحفظ.');
  await chrome.storage.session.set({phase:'importing',lastError:'',lastRows:pending.rows,lastSource:pending.source});
  const imported=await appCall('/api/discovery/import','POST',pending);
- if(!imported.receiptId)throw new Error('حدّث سيرفر التجربة؛ نسخة السيرفر لا تدعم تأكيد الحفظ.');
+ if(!imported.receiptId)throw new Error('حدّث سيرفر مرسال؛ نسخة السيرفر لا تدعم تأكيد الحفظ.');
  pending.receiptId=imported.receiptId;await chrome.storage.local.set({pendingImport:pending});
  await chrome.storage.session.set({phase:'verifying'});
  const proof=await appCall('/api/discovery/imports/'+encodeURIComponent(imported.receiptId));

@@ -4,8 +4,8 @@ const {chromium}=require('playwright');
 const dir=path.resolve(__dirname,'../../extensions/mrsaal-scraper');
 const server=http.createServer((req,res)=>{
  const name=new URL(req.url,'http://localhost').pathname.slice(1);
- if(!['panel.html','panel.css','panel.js','extractor.js','games.js'].includes(name)){res.setHeader('Content-Type','text/html');return res.end('<!doctype html><title>Fixture</title><body></body>');}
- res.setHeader('Content-Type',name.endsWith('.css')?'text/css':name.endsWith('.js')?'application/javascript':'text/html');res.end(fs.readFileSync(path.join(dir,name)));
+ if(!['panel.html','panel.css','panel.js','extractor.js','games.js','logo.svg'].includes(name)){res.setHeader('Content-Type','text/html');return res.end('<!doctype html><title>Fixture</title><body></body>');}
+ res.setHeader('Content-Type',name.endsWith('.svg')?'image/svg+xml':name.endsWith('.css')?'text/css':name.endsWith('.js')?'application/javascript':'text/html');res.end(fs.readFileSync(path.join(dir,name)));
 });
 (async()=>{
  let browser;

@@ -4,6 +4,21 @@ const wrap=require('../middleware/async-handler');
 const {get,all}=require('../utils/db');
 const {batch}=require('../utils/discovery/validate');
 router.use(require('../middleware/auth').requireAuth);
+router.use(wrap(async(req,res,next)=>{
+ res.setHeader('Cache-Control','no-store');
+ const user=await get('SELECT id,name,email FROM users WHERE id=$1',[req.session.userId]);
+ if(!user)return res.status(401).json({error:'سجّل الدخول إلى مرسال أولًا.'});
+ if(!require('../utils/discovery/access').allowed(user))return res.status(403).json({error:'تجربة Mrsaal Scraper متاحة حاليًا للحسابات المحددة فقط.',code:'DISCOVERY_PILOT_ONLY'});
+ next();
+}));
+router.get('/extension.zip',wrap(async(req,res)=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const dir=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'mrsaal-official-extension-'));
+ try{
+  const bundle=require('../scripts/build-scraper-extension.cjs').build({appOrigin:'https://mrsaal.ebnhussein.co',out:dir});
+  res.type('application/zip').attachment('mrsaal-scraper.zip').send(fs.readFileSync(bundle.zip));
+ }finally{fs.rmSync(dir,{recursive:true,force:true});fs.rmSync(dir+'.zip',{force:true});}
+}));
 router.get('/session',wrap(async(req,res)=>{
  const user=await get('SELECT id,name,email FROM users WHERE id=$1',[req.session.userId]);
  res.setHeader('Cache-Control','no-store');

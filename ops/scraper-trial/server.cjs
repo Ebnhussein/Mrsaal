@@ -20,7 +20,7 @@ async function start({port=Number(process.env.MRSAAL_TRIAL_PORT)||4174,dataDir=p
   await load('utils/launch-schema.js',{'./db':db}).ensureLaunchSchema();
   await pg.query("INSERT INTO users(id,name,email) VALUES($1,$2,$3) ON CONFLICT(id) DO NOTHING",['scraper-trial-user','حساب تجربة مرسال','trial@mrsaal.test']);
   const store=load('utils/discovery/store.js',{'../db':db});
-  const routes=load('routes/discovery.js',{'../utils/db':db,'../utils/discovery/store':store});
+  const routes=load('routes/discovery.js',{'../utils/db':db,'../utils/discovery/store':store,'../utils/discovery/access':{allowed:()=>true}});
   const app=express(),base='http://localhost:'+port;
   app.disable('x-powered-by');
   app.use((req,res,next)=>{res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('X-Frame-Options','DENY');

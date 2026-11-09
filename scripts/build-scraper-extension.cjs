@@ -12,14 +12,14 @@ function zip(entries){const files=[],directory=[];let offset=0;
 }
 function build({appOrigin='http://localhost:4174',out=path.resolve('.mrsaal-trial/extension')}={}){
  const app=origin(appOrigin),source=path.resolve(__dirname,'../extensions/mrsaal-scraper');
- const manifest=JSON.parse(fs.readFileSync(path.join(source,'manifest.json'),'utf8'));manifest.name='Mrsaal Scraper Trial | تجربة';manifest.host_permissions=[app+'/*'];
+ const manifest=JSON.parse(fs.readFileSync(path.join(source,'manifest.json'),'utf8'));manifest.name='Mrsaal Scraper';manifest.host_permissions=[app+'/*'];
  const entries=[];fs.mkdirSync(out,{recursive:true});
  for(const name of fs.readdirSync(source)){
   if(name==='README.md')continue;
   let data=fs.readFileSync(path.join(source,name));
   if(name==='manifest.json')data=Buffer.from(JSON.stringify(manifest,null,2)+'\n');
   if(name==='background.js')data=Buffer.from(data.toString().replace(/const APP='https:\/\/mrsaal\.ebnhussein\.co';/,'const APP='+JSON.stringify(app)+';'));
-  if(name==='panel.html')data=Buffer.from(data.toString().replace('<body>','<body><p class="notice" style="margin:12px">TRIAL · بيئة تجربة مستقلة — '+app+'</p>'));
+  if(name==='panel.html')data=Buffer.from(data.toString().replace('<body>','<body><p class="notice" style="margin:12px">'+(app==='https://mrsaal.ebnhussein.co'?'OFFICIAL PILOT · تجربة على حسابك الفعلي':'LOCAL TRIAL · بيئة تجربة مستقلة')+' — '+app+'</p>'));
   fs.writeFileSync(path.join(out,name),data);entries.push([name,data]);
  }
  const zipPath=out+'.zip';fs.writeFileSync(zipPath,zip(entries));return {origin:app,directory:out,zip:zipPath};

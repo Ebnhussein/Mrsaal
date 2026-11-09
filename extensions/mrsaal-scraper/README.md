@@ -105,3 +105,12 @@ regressions, and the existing panel browser test for live/reduced-motion UI.
   Games do not send messages, change collection counters or block the collector.
 - The trial page refreshes automatically, shows the latest receipt/batch by
   default, and uses bounded source links rather than raw URLs in the table.
+
+## Official pilot — v0.4.0
+
+The exact extension name is **Mrsaal Scraper**, with the existing Mrsaal logo.
+Run `npm run build:scraper:official` to build for `https://mrsaal.ebnhussein.co`.
+Load `.mrsaal-trial/official-extension` unpacked; the panel marks it OFFICIAL PILOT.
+The server must first deploy the discovery changes. Only configured `ADMIN_EMAILS`
+and `SCRAPER_TRIAL_EMAILS` can connect. See
+`docs/changes/scraper-official-pilot-20261109.md` for the live acceptance steps.

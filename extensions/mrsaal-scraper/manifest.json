@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Mrsaal Scraper | مرسال",
+  "name": "Mrsaal Scraper",
   "description": "Collect companies and job listings from a page you choose and save them to your Mrsaal account.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "minimum_chrome_version": "116",
   "permissions": [
     "activeTab",
@@ -17,7 +17,11 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Mrsaal Scraper"
+    "default_title": "Mrsaal Scraper",
+    "default_icon": {
+      "16": "icon-16.png",
+      "32": "icon-32.png"
+    }
   },
   "side_panel": {
     "default_path": "panel.html"
@@ -28,5 +32,11 @@
   "optional_host_permissions": [
     "https://*/*",
     "http://*/*"
-  ]
+  ],
+  "icons": {
+    "16": "icon-16.png",
+    "32": "icon-32.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  }
 }
