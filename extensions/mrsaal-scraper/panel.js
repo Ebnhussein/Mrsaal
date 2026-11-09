@@ -1,6 +1,6 @@
 'use strict';
 const $=id=>document.getElementById(id);
-let language='ar',account=null;
+let language='ar',account=null,refreshVersion=0;
 const words=(ar,en)=>language==='en'?en:ar;
 function setStatus(text,error=false){$('status').textContent=text;$('status').classList.toggle('error',error);}
 async function send(action,extra={}){const result=await chrome.runtime.sendMessage({action,...extra});if(!result?.ok)throw new Error(result?.error||words('تعذر الاتصال بالإضافة.','Could not contact the extension.'));return result.data;}
@@ -15,10 +15,29 @@ function list(container,rows,saved=false){
   container.append(article);
  }
 }
+function renderActivity(state){
+ const phase=state.phase||'idle',busy=['collecting','importing'].includes(phase),p=state.progress||{};
+ const count=Number(p.count??state.lastResult?.collected)||0,limit=Number(p.limit)||100;
+ const titles={idle:words('جاهز لجمع الشركات','Ready to collect'),collecting:words('بنجمع الشركات دلوقتي','Collecting companies'),importing:words('بنحفظ النتائج في حسابك','Saving results to your account'),complete:words('الدفعة اتجمعت واتحفظت','Batch collected and saved'),stopped:words('تم إيقاف الجمع','Collection stopped'),failed:words('العملية محتاجة مراجعة','Check the collection result')};
+ const stages={scanning:words('قراءة بيانات الشركات الظاهرة','Reading visible company details'),scrolling:words('تحميل شركات إضافية بالسكرول','Scrolling to load more companies'),waiting:words('في انتظار ظهور نتائج جديدة على Maps','Waiting for new results to load'),importing:words('إضافة النتائج ومنع التكرار','Importing results and skipping duplicates')};
+ const activity=$('activity');activity.dataset.state=phase;activity.setAttribute('aria-busy',String(busy));
+ $('activity-title').textContent=titles[phase]||titles.idle;
+ $('activity-icon').textContent=busy?'':phase==='failed'?'!':phase==='stopped'?'■':phase==='complete'?'✓':'↗';
+ $('activity-stage').textContent=busy?(stages[p.stage]||stages.scanning):phase==='complete'?words('عدد النتائج الفعلي، وليس تقديرًا.','Actual collected results, not an estimate.'):words('التقدم يظهر هنا أثناء العمل.','Live progress appears here while collecting.');
+ $('live-count').textContent=String(count);$('live-limit').textContent=String(limit);
+ $('progress-fill').style.width=Math.min(100,count/limit*100)+'%';
+ $('collection-progress').setAttribute('aria-valuemax',String(limit));$('collection-progress').setAttribute('aria-valuenow',String(Math.min(limit,count)));
+ $('collection-progress').setAttribute('aria-label',words('عدد النتائج بالنسبة لحد الدفعة','Collected results toward the batch limit'));
+ const active=phase==='importing'?1:phase==='complete'?2:0;
+ ['step-collect','step-import','step-done'].forEach((id,i)=>{$(id).classList.toggle('is-current',i===active);$(id).classList.toggle('is-done',phase==='complete'||i<active);});
+ const latest=Array.isArray(p.latest)?p.latest:[];
+ $('live-latest').textContent=busy&&latest.length?words('آخر النتائج: ','Latest results: ')+latest.join(' · '):'';
+}
 function render(state){
  account=state.account||null;
  $('account').textContent=account?.email||account?.name||words('الحساب غير مربوط','Account not connected');
  $('source').textContent=state.sourceTitle||words('افتح صفحة نتائج واضغط أيقونة مرسال في شريط المتصفح.','Open a results page and click the Mrsaal toolbar icon.');
+ renderActivity(state);
  const busy=['collecting','importing'].includes(state.phase);
  $('collect').disabled=busy;$('connect').disabled=busy;$('stop').disabled=state.phase!=='collecting';
  if(state.lastError&&state.phase==='failed')setStatus(state.lastError,true);
@@ -29,12 +48,12 @@ function render(state){
  else setStatus(words('جاهز. النتائج تتضاف للحساب بعد الضغط على البدء.','Ready. Results are imported after you press start.'));
  list($('preview'),state.lastRows||[]);
 }
-async function refresh(){render(await send('state'));}
+async function refresh(){const version=++refreshVersion,state=await send('state');if(version===refreshVersion)render(state);}
 function action(id,fn){$(id).addEventListener('click',async()=>{try{await fn();}catch(error){setStatus(error.message,true);}});}
 action('language',async()=>{language=language==='ar'?'en':'ar';await chrome.storage.local.set({language});applyLanguage();await refresh();});
 action('connect',async()=>{const data=await send('connect');account=data.account;await refresh();});
 action('open-app',()=>send('openApp'));
-action('collect',async()=>{setStatus(words('جارٍ البدء…','Starting…'));await send('collect',{limit:Number($('limit').value),autoScroll:$('auto-scroll').checked,selector:$('selector').value.trim(),kind:$('kind').value,query:$('query').value.trim(),country:$('country').value});await refresh();});
+action('collect',async()=>{$('collect').disabled=true;setStatus(words('جارٍ البدء…','Starting…'));try{await send('collect',{limit:Number($('limit').value),autoScroll:$('auto-scroll').checked,selector:$('selector').value.trim(),kind:$('kind').value,query:$('query').value.trim(),country:$('country').value,language});}finally{await refresh();}});
 action('stop',()=>send('stop'));
 action('saved',async()=>{const data=await send('saved');list($('saved-jobs'),data.jobs,true);if(!data.jobs.length)$('saved-jobs').textContent=words('لا توجد فرص محفوظة بعد.','No saved opportunities yet.');});
 const countryNames={EG:'Egypt',SA:'Saudi Arabia',AE:'United Arab Emirates',KW:'Kuwait',QA:'Qatar',BH:'Bahrain',OM:'Oman'};

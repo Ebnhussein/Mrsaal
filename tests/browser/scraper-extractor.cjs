@@ -27,13 +27,25 @@ const server=http.createServer((req,res)=>{
   // Render the real panel and drive its actual buttons with a Chrome transport
   // double. This tests UI safety/layout; it does not install an extension.
   await page.addInitScript(()=>{
-   const state={account:{id:'owner',email:'owner@example.test'},sourceTitle:'Public results page',phase:'complete',lastResult:{companiesAdded:2,jobsAdded:1,duplicates:1},lastRows:[{kind:'company',name:'<img src=x onerror=alert(1)>',phone:'+201000000000',sourceUrl:'https://example.test/'}]};
-   window.chrome={runtime:{sendMessage:async message=>({ok:true,data:message.action==='state'?state:message.action==='saved'?{jobs:[{title:'Developer',company_name:'Employer',job_url:'https://example.test/job'}]}:message.action==='connect'?{account:state.account}:{}})},storage:{local:{get:async()=>({language:'ar'}),set:async()=>{}},onChanged:{addListener(){}}},tabs:{create:async()=>{}}};
+   let changed;const state={account:{id:'owner',email:'owner@example.test'},sourceTitle:'Public results page',phase:'complete',lastResult:{companiesAdded:2,jobsAdded:1,duplicates:1},lastRows:[{kind:'company',name:'<img src=x onerror=alert(1)>',phone:'+201000000000',sourceUrl:'https://example.test/'}]};
+   window.setPanelState=patch=>{Object.assign(state,patch);changed?.({},'session');};
+   window.chrome={runtime:{sendMessage:async message=>({ok:true,data:message.action==='state'?state:message.action==='saved'?{jobs:[{title:'Developer',company_name:'Employer',job_url:'https://example.test/job'}]}:message.action==='connect'?{account:state.account}:{}})},storage:{local:{get:async()=>({language:'ar'}),set:async()=>{}},onChanged:{addListener(fn){changed=fn;}}},tabs:{create:async()=>{}}};
   });
   for(const width of [280,360,480]){
    await page.setViewportSize({width,height:900});await page.goto(base+'/panel.html');await page.waitForFunction(()=>document.getElementById('account').textContent==='owner@example.test');
    assert.equal(await page.locator('#preview img').count(),0);assert((await page.locator('#status').textContent()).includes('2'));
    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Arabic panel overflow ${width}`);
+   assert(await page.locator('#auto-scroll').isChecked());
+   await page.evaluate(()=>window.setPanelState({phase:'collecting',progress:{stage:'waiting',count:12,limit:100,latest:['Company A']}}));
+   await page.waitForFunction(()=>document.getElementById('live-count').textContent==='12');
+   assert.equal(await page.locator('#activity').getAttribute('aria-busy'),'true');
+   assert.equal(await page.locator('#collection-progress').getAttribute('aria-valuenow'),'12');
+   assert.equal(await page.locator('#activity-icon').evaluate(el=>getComputedStyle(el).animationName),'spin');
+   await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await page.locator('#activity-icon').evaluate(el=>getComputedStyle(el).animationName),'none');await page.emulateMedia({reducedMotion:'no-preference'});
+   await page.evaluate(()=>window.setPanelState({phase:'importing',progress:{stage:'importing',count:12,limit:100}}));
+   await page.waitForFunction(()=>document.getElementById('activity').dataset.state==='importing');
+   await page.evaluate(()=>window.setPanelState({phase:'complete',progress:{stage:'complete',count:12,limit:100}}));
+   await page.waitForFunction(()=>document.getElementById('activity').getAttribute('aria-busy')==='false');
    await page.locator('#language').click();await page.waitForFunction(()=>document.documentElement.lang==='en');assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`English panel overflow ${width}`);
    await page.locator('#saved').click();await page.waitForFunction(()=>document.querySelector('#saved-jobs a'));assert.equal(await page.locator('#saved-jobs a').getAttribute('href'),'https://example.test/job');
   }

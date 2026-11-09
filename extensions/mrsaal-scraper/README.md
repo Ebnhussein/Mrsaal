@@ -23,7 +23,7 @@ not a Chrome Web Store release. No remote code or third-party extension is used.
 1. Sign into `https://mrsaal.ebnhussein.co/app` in the same browser profile.
 2. Open a public Maps/company/job result page and click the Mrsaal toolbar icon.
 3. Connect the account in the side panel and verify the displayed email.
-4. Set a batch limit, optionally enable bounded scrolling, and start collecting.
+4. Set a batch limit and start collecting. Automatic loading is enabled by default; disable it for a single-page capture.
 5. Results are added to that user's account. Companies appear in the existing
    Companies screen, unselected. Saved jobs are available in the panel.
 
@@ -45,7 +45,7 @@ A site may need a dedicated adapter; sign-in, cross-origin frames, inaccessible
 content and verification challenges are not bypassed. No application forms
 are filled or submitted by this prototype. No CV ranking is implemented yet.
 
-Collection is user-started, at most 250 rows and 10 scrolls per run. It stops
+Collection is user-started, at most 250 rows, 100 load attempts and two minutes per run. It stops
 on navigation, cancellation, no new data or a detected verification challenge.
 It does not follow arbitrary pagination links or crawl linked websites for email.
 Unknown employers are saved as jobs without inventing a company record.
@@ -76,3 +76,15 @@ server-side deduplication. This is not an unattended server crawler.
 The browser test exercises the real extractor on public-page fixtures and the
 side panel with a mocked Chrome transport. It does not install the extension in
 a user's browser or claim live Google Maps end-to-end validation.
+
+## Version 0.2.0 — Maps loading and live feedback
+
+Maps collection discovers the scrollable ancestor of the actual result cards,
+including a pane outside `role=feed`. It waits for new place IDs through DOM
+changes/polling, retains cards removed by virtualisation, and stops at the batch
+limit, end notice, cancellation or a bounded no-growth timeout. The side panel,
+toolbar badge and temporary page overlay show actual collected counts. Loading
+and saving have distinct states; reduced-motion preferences disable animation.
+
+Run `node tests/browser/maps-autoload.cjs` for delayed/virtualised nested-pane
+regressions, and the existing panel browser test for live/reduced-motion UI.

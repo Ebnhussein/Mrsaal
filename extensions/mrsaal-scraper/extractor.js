@@ -2,8 +2,10 @@
    remote scripts, private APIs or background network requests are read. */
 (() => {
  'use strict';
- if(globalThis.MrsaalExtractor)return;
- let cancelled=false;
+ const VERSION='0.2.0';
+ if(globalThis.MrsaalExtractor?.version===VERSION)return;
+ globalThis.MrsaalExtractor?.cancel();
+ let cancelled=false,wakeWait=null;
  const clean=(value,max=200)=>String(value||'').replace(/\s+/g,' ').trim().slice(0,max);
  const digits=value=>String(value||'').replace(/[٠-٩]/g,n=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(n))).replace(/[۰-۹]/g,n=>String('۰۱۲۳۴۵۶۷۸۹'.indexOf(n)));
  function safeUrl(value,base){if(typeof value!=='string'||!value.trim())return '';try{const u=new URL(value,base);return /^https?:$/.test(u.protocol)&&!u.username&&!u.password?u.href:'';}catch{return '';}}
@@ -24,7 +26,7 @@
   for(const link of links){
    let card=link.parentElement;
    for(let n=0;n<7&&card?.parentElement;n++){
-    if(card.parentElement.querySelectorAll('a[href*="/maps/place/"]').length>1)break;
+    if(card.parentElement.matches('[role="feed"]')||scrollable(card.parentElement)||card.parentElement.querySelectorAll('a[href*="/maps/place/"]').length>1)break;
     card=card.parentElement;
    }
    if(!card)continue;
@@ -90,28 +92,105 @@
   return {adapter:'table',rows:tables(doc,base)};
  }
  function blocked(doc){return /^(?:Just a moment|Access Denied|Verify you are human|Attention Required)/i.test(doc.title)||[...doc.querySelectorAll('input[name="captcha"],iframe[src*="hcaptcha.com/captcha"],iframe[title*="challenge"]')].some(visible);}
- async function run(options={}){
-  cancelled=false;const source=location.href,unique=new Map();let adapter='',unchanged=0,warning='';
-  const limit=Math.min(250,Math.max(1,Number(options.limit)||100));
-  const rounds=options.autoScroll?10:1;
-  for(let pass=0;pass<rounds;pass++){
-   if(cancelled){warning='تم إيقاف الجمع.';break;}
-   if(location.href!==source){warning='الصفحة تغيّرت؛ توقف الجمع.';break;}
-   if(blocked(document)){warning='الموقع طلب تحققًا؛ توقف الجمع.';break;}
-   const result=extract(document,source,options);adapter=result.adapter;
-   const before=unique.size;
-   for(const row of result.rows){const key=row.kind==='job'?row.jobUrl:row.sourceUrl!==source?row.sourceUrl:row.name+'|'+row.email+'|'+row.phone;if(unique.size<limit)unique.set(key,row);}
-   if(unique.size>=limit||pass===rounds-1)break;
-   if(unique.size===before)unchanged++;else unchanged=0;
-   if(unchanged>=2)break;
-   const feed=document.querySelector('[role="feed"]');const scroller=feed||document.scrollingElement;
-   if(!scroller||scroller.scrollHeight<=scroller.clientHeight)break;
-   scroller.scrollBy({top:Math.max(300,scroller.clientHeight*.8),behavior:'instant'});
-   await new Promise(resolve=>setTimeout(resolve,900));
-  }
-  return {rows:[...unique.values()],source:{url:source,adapter:adapter||'custom'},warning,cancelled};
+ function key(row,source){
+  if(row.kind==='job')return row.jobUrl;
+  const place=row.sourceUrl?.match(/!1s([^!/?]+)/)?.[1];
+  if(place)return 'maps:'+place;
+  if(row.sourceUrl&&row.sourceUrl!==source){const url=new URL(row.sourceUrl);return url.origin+url.pathname;}
+  return row.name+'|'+row.email+'|'+row.phone;
  }
- const api={extract,run,cancel(){cancelled=true;}};
+ function scrollable(el){return !!el&&el.clientHeight>60&&el.scrollHeight>el.clientHeight+4&&/(auto|scroll|overlay)/.test(getComputedStyle(el).overflowY);}
+ function findScroller(doc,adapter){
+  if(adapter==='maps'){
+   // Maps scrolls its result pane, which is often outside the role=feed node.
+   // Walk the actual place-card ancestors instead of scrolling the document.
+   for(const link of doc.querySelectorAll('a[href*="/maps/place/"]')){
+    for(let el=link.parentElement;el&&el!==doc.body;el=el.parentElement)if(scrollable(el))return el;
+   }
+   const feed=[...doc.querySelectorAll('[role="feed"]')].find(visible);
+   if(feed){for(let el=feed;el&&el!==doc.body;el=el.parentElement)if(scrollable(el))return el;}
+   return feed||null;
+  }
+  return doc.scrollingElement;
+ }
+ function listEnded(scroller){return /you[’']ve reached the end of the list|reached the end of the results|وصلت (?:إلى|الى) نهاية القائمة|نهاية نتائج البحث/i.test(bodyText(scroller));}
+ function feedback(language){
+  const host=document.createElement('div');host.id='mrsaal-scraper-feedback';
+  const shadow=host.attachShadow({mode:'closed'}),english=language==='en';
+  shadow.innerHTML=`<style>:host{all:initial;position:fixed;top:88px;right:18px;z-index:2147483647;width:244px;font:13px/1.6 system-ui;color:#173c30}*{box-sizing:border-box}.card{background:#fff;border:1px solid #bad8c7;box-shadow:0 10px 36px #173c3028;border-radius:16px;padding:14px}.top{display:flex;align-items:center;gap:8px;font-weight:750}.dot{width:10px;height:10px;border-radius:50%;background:#1b7955;animation:pulse 1.2s ease-in-out infinite}.count{font-size:30px;font-weight:750;margin:8px 0 0}.stage{font-size:12px;color:#5c7066;min-height:20px}button{margin-top:10px;border:1px solid #cbded3;border-radius:8px;padding:5px 12px;background:#f2f8f4;color:#196c4c;font:inherit;cursor:pointer}@keyframes pulse{50%{box-shadow:0 0 0 7px #1b79551a;opacity:.55}}@media(prefers-reduced-motion:reduce){.dot{animation:none}}</style><div class="card" dir="${english?'ltr':'rtl'}"><div class="top"><i class="dot"></i>Mrsaal Scraper</div><div class="count">0</div><div class="stage"></div><button type="button">${english?'Stop collecting':'إيقاف الجمع'}</button></div>`;
+  shadow.querySelector('button').addEventListener('click',()=>{cancelled=true;wakeWait?.('cancelled');});
+  document.documentElement.append(host);
+  return {update(progress){shadow.querySelector('.count').textContent=String(progress.count);const labels=english?{scanning:'Reading companies…',scrolling:'Loading more results…',waiting:'Waiting for Maps…',complete:'Collection finished',stopped:'Collection stopped'}:{scanning:'بنجمع بيانات الشركات…',scrolling:'بنحمّل نتائج جديدة…',waiting:'مستنيين تحميل النتائج…',complete:'اكتمل الجمع',stopped:'توقف الجمع'};shadow.querySelector('.stage').textContent=labels[progress.stage]||progress.stage;},remove(){host.remove();}};
+ }
+ function waitForResults(source,options,unique,scroller,timeout){
+  return new Promise(resolve=>{
+   let observer,timer,poll,done=false;
+   const finish=reason=>{if(done)return;done=true;observer?.disconnect();clearTimeout(timer);clearInterval(poll);wakeWait=null;resolve(reason);};
+   const check=()=>{
+    if(done)return;
+    if(cancelled)return finish('cancelled');
+    if(location.href!==source)return finish('navigation');
+    if(blocked(document))return finish('blocked');
+    if(extract(document,source,options).rows.some(row=>!unique.has(key(row,source))))return finish('new-results');
+    if(scroller&&listEnded(scroller))return finish('end');
+   };
+   observer=new MutationObserver(check);observer.observe(scroller||document.body,{childList:true,subtree:true});
+   poll=setInterval(check,200);timer=setTimeout(()=>finish('timeout'),timeout);wakeWait=finish;check();
+  });
+ }
+ async function run(options={}){
+  cancelled=false;const source=location.href,unique=new Map(),started=Date.now();let adapter='',reason='',passes=0,stalls=0;
+  const limit=Math.min(250,Math.max(1,Number(options.limit)||100));
+  const automatic=options.autoScroll!==false,maxDuration=120000;
+  const overlay=options.feedback===false?null:feedback(options.language);
+  async function report(stage){
+   const progress={stage,count:unique.size,limit,pass:passes,elapsedMs:Date.now()-started,latest:[...unique.values()].slice(-3).map(row=>row.name||row.title)};
+   overlay?.update(progress);
+   if(typeof options.onProgress==='function')options.onProgress(progress);
+   if(options.runId&&typeof chrome!=='undefined'&&chrome.runtime?.id){try{await chrome.runtime.sendMessage({event:'collection-progress',runId:options.runId,progress});}catch{}}
+  }
+  try{
+   for(let pass=0;pass<100&&Date.now()-started<maxDuration;pass++){
+    passes=pass;
+    if(cancelled){reason='cancelled';break;}
+    if(location.href!==source){reason='navigation';break;}
+    if(blocked(document)){reason='blocked';break;}
+    const result=extract(document,source,options);adapter=result.adapter;
+    for(const row of result.rows){const id=key(row,source);if(unique.has(id)||unique.size<limit)unique.set(id,row);}
+    await report('scanning');
+    if(unique.size>=limit){reason='limit';break;}
+    if(!automatic){reason='single-page';break;}
+    const scroller=findScroller(document,adapter);
+    if(scroller&&listEnded(scroller)){reason='end';break;}
+    if(adapter!=='maps'&&(!scroller||scroller.scrollHeight<=scroller.clientHeight+4)){reason='end';break;}
+    if(!scroller||scroller.scrollHeight<=scroller.clientHeight+4){
+     await report('waiting');
+     const outcome=await waitForResults(source,options,unique,scroller,Math.min(4000,maxDuration-(Date.now()-started)));
+     if(outcome==='new-results'){stalls=0;continue;}
+     if(['cancelled','navigation','blocked'].includes(outcome)){reason=outcome;break;}
+     if(++stalls>=3){reason='no-scroll-container';break;}
+     continue;
+    }
+    const before=scroller.scrollTop;
+    await report('scrolling');
+    scroller.scrollBy({top:Math.max(240,scroller.clientHeight*.85),behavior:'instant'});
+    await report('waiting');
+    const outcome=await waitForResults(source,options,unique,scroller,Math.min(5000,maxDuration-(Date.now()-started)));
+    if(outcome==='new-results'){stalls=0;continue;}
+    if(['cancelled','navigation','blocked'].includes(outcome)){reason=outcome;break;}
+    if(outcome==='end')continue; // Capture the final render before stopping.
+    const atBottom=scroller.scrollTop+scroller.clientHeight>=scroller.scrollHeight-8;
+    stalls=(atBottom||scroller.scrollTop===before)?stalls+1:0;
+    if(stalls>=3){reason='no-new-results';break;}
+   }
+   reason=reason||'time-limit';
+   const warnings={navigation:'الصفحة تغيّرت؛ توقف الجمع.',blocked:'الموقع طلب تحققًا؛ توقف الجمع.', 'no-scroll-container':'افتح قائمة نتائج البحث على Maps؛ لم نجد قائمة قابلة لتحميل نتائج إضافية.', 'no-new-results':'لم تظهر نتائج جديدة بعد عدة محاولات تحميل؛ حفظنا الشركات التي جُمعت.', 'time-limit':'انتهى وقت الدفعة؛ يمكنك بدء دفعة جديدة.'};
+   const warning=warnings[reason]||'';
+   await report(cancelled?'stopped':'complete');
+   return {rows:[...unique.values()],source:{url:source,adapter:adapter||'custom'},warning,cancelled,reason,passes};
+  }finally{overlay?.remove();wakeWait?.('finished');}
+ }
+ const api={version:VERSION,extract,run,findScroller,cancel(){cancelled=true;wakeWait?.('cancelled');}};
  if(typeof module==='object'&&module.exports)module.exports=api;
  else globalThis.MrsaalExtractor=api;
 })();

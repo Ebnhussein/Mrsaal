@@ -15,11 +15,16 @@
 <p class="hint" data-ar="Maps، جداول الشركات، وصفحات الوظائف ببيانات JobPosting. للصفحات الأخرى حدد كروت النتائج أدناه." data-en="Maps, company tables and JobPosting pages. For other pages, specify the result cards below."></p>
 <details><summary data-ar="تحديد الكروت يدويًا" data-en="Custom result cards"></summary><label for="selector" data-ar="CSS selector للكارت" data-en="Card CSS selector"></label><input id="selector" dir="ltr" maxlength="300" placeholder=".company-card"><label for="kind" data-ar="نوع الكروت" data-en="Card type"></label><select id="kind"><option value="company" data-ar="شركات" data-en="Companies"></option><option value="job" data-ar="وظائف" data-en="Jobs"></option></select></details>
 <label for="limit" data-ar="أقصى عدد في الدفعة" data-en="Maximum per batch"></label><input id="limit" type="number" min="1" max="250" value="100">
-<label class="check"><input id="auto-scroll" type="checkbox"><span data-ar="حمّل نتائج إضافية بالسكرول (حتى 10 مرات)" data-en="Load more results by scrolling (up to 10 times)"></span></label>
+<label class="check"><input id="auto-scroll" type="checkbox" checked><span data-ar="تحميل النتائج تلقائيًا حتى العدد المطلوب أو نهاية القائمة" data-en="Load more results until the limit or end of the list"></span></label>
 <p class="notice" data-ar="البدء يضيف النتائج تلقائيًا للحساب الموضح فوق. الإضافة تجمع وتحفظ فقط؛ الإرسال والتقديم لهما مراجعة مستقلة داخل مرسال." data-en="Starting imports results into the account shown above. This extension only collects and saves; sending and applying have a separate review in Mrsaal."></p>
 <div class="actions"><button id="collect" class="primary" data-ar="ابدأ الجمع والإضافة لحسابي" data-en="Collect and add to my account"></button><button id="stop" class="quiet" data-ar="إيقاف" data-en="Stop"></button></div>
 </section>
-<section aria-live="polite"><div class="eyebrow" data-ar="نتيجة العملية" data-en="RESULT"></div><p id="status" role="status"></p><div id="preview"></div></section>
+<section id="activity" aria-busy="false"><div class="eyebrow" data-ar="نتيجة العملية" data-en="RESULT"></div><div class="activity-head"><span id="activity-icon" class="activity-icon" aria-hidden="true">✓</span><div><strong id="activity-title"></strong><p id="activity-stage" class="hint"></p></div></div>
+<div class="scan-visual" aria-hidden="true"><i></i><span></span><span></span><span></span></div>
+<div class="activity-stats"><div><strong id="live-count">0</strong><span data-ar="نتيجة مجمعة" data-en="results collected"></span></div><div><strong id="live-limit">100</strong><span data-ar="الحد المطلوب" data-en="batch limit"></span></div></div>
+<div class="progress-track" role="progressbar" id="collection-progress" aria-label="Collection toward batch limit" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="progress-fill"></i></div>
+<ol class="activity-steps"><li id="step-collect" data-ar="جمع النتائج" data-en="Collect"></li><li id="step-import" data-ar="حفظ في حسابك" data-en="Save to account"></li><li id="step-done" data-ar="تم" data-en="Done"></li></ol>
+<p id="live-latest" class="hint"></p><p id="status" role="status"></p><div id="preview"></div></section>
 <section><div class="actions"><strong data-ar="الفرص المحفوظة" data-en="Saved opportunities"></strong><button id="saved" class="quiet" data-ar="تحديث" data-en="Refresh"></button></div><div id="saved-jobs"></div></section>
 </main><footer data-ar="العملية تعمل في متصفحك أثناء فتحه. قد تتطلب بعض المواقع معالجة خاصة أو تسجيل الدخول." data-en="Collection runs while your browser is open. Some websites need a dedicated adapter or sign-in."></footer>
 </body></html>
