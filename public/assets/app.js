@@ -78,7 +78,7 @@ function nav(page) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>{const active=n.dataset.page===page;n.classList.toggle('active',active);if(active)n.setAttribute('aria-current','page');else n.removeAttribute('aria-current');});
   document.getElementById('page-'+page).classList.add('active');
-  document.getElementById('workspace-current').textContent={home:'الرئيسية',onboarding:'الإعداد السريع',companies:'الشركات',send:'الإرسال',report:'التقارير',settings:'الإعدادات'}[page];
+  document.getElementById('workspace-current').textContent={home:'الرئيسية',onboarding:'الإعداد السريع',companies:'الشركات',discovery:'اكتشاف الشركات والوظائف',send:'الإرسال',report:'التقارير',settings:'الإعدادات'}[page];
   if(page==='report')loadLog();
   if(page==='companies')renderCompanies();
   if(page==='settings')selectSettings(activeSetting);
