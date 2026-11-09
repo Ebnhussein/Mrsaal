@@ -65,7 +65,7 @@ function refreshWorkspace(){
 }
 
 function hydrateAccount(){const name=currentUser.name||'حسابك',email=currentUser.email||'';document.getElementById('welcome-name').textContent=name.split(' ')[0];document.getElementById('profile-name').textContent=name;document.getElementById('profile-email').textContent=email;document.getElementById('channel-email').textContent=email;for(const id of ['sidebar-avatar','top-avatar','settings-avatar'])document.getElementById(id).textContent=name.charAt(0)||'م';}
-function decideFirstPage(){const prefs=getSetupPreferences();const returning=cvReady||companies.length>0||log.length>0;if(prefs.dismissed||returning){nav('home');}else{nav('onboarding');}}
+function decideFirstPage(){if(location.hash==='#discovery'){nav('discovery');return;}const prefs=getSetupPreferences();const returning=cvReady||companies.length>0||log.length>0;if(prefs.dismissed||returning){nav('home');}else{nav('onboarding');}}
 function skipSetup(key){const prefs=getSetupPreferences();prefs.skipped=[...new Set([...(prefs.skipped||[]),key])];putSetupPreferences(prefs);refreshWorkspace();toast('تقدر ترجع للخطوة دي من الإعدادات في أي وقت','info');}
 function finishOnboarding(skip){const prefs=getSetupPreferences();prefs.dismissed=true;if(skip)prefs.skipped=setupItems.filter(i=>!setupComplete(i.key)).map(i=>i.key);putSetupPreferences(prefs);onboardingEditing=false;nav('home');}
 function startOnboarding(){onboardingEditing=true;nav('onboarding');}
