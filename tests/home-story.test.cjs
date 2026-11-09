@@ -5,13 +5,14 @@ function harness({reduced=false,mobile=false,short=false}={}){
  const listeners={},queries=[],frames=[];let scroll=0;
  const classes=new Set();const root={classList:{add:c=>classes.add(c),contains:c=>classes.has(c),toggle(c,on){on?classes.add(c):classes.delete(c);}}};
  const values=()=>({style:{values:{},setProperty(k,v){this.values[k]=v;}}});
- const stage={...values(),getBoundingClientRect:()=>({bottom:400})};
- const steps=Array.from({length:6},(_,i)=>({getBoundingClientRect:()=>({top:200+i*500-scroll,height:500}),classList:{toggle(){}}}));
+ root.style=values().style;
+ const stage={...values(),getBoundingClientRect:()=>({top:100,bottom:400,height:300}),cloneNode:()=>({...values(),classList:{add(){}},querySelectorAll:()=>[],querySelector:()=>null,removeAttribute(){}})};
+ const steps=Array.from({length:6},(_,i)=>({getBoundingClientRect:()=>({top:200+i*500-scroll,height:500}),querySelector:()=>null,prepend(){},classList:{toggle(){}}}));
  const scenes=Array.from({length:6},values),counter={},button={dataset:{static:'Static',animate:'Animate'},setAttribute(){},addEventListener(e,cb){listeners.button=cb;}};
- root.querySelector=s=>s==='.hs-stage'?stage:s==='[data-story-count]'?counter:button;
+ root.querySelector=s=>s==='.hs-stage'?stage:s==='[data-story-count]'?counter:s==='[data-story-motion]'?button:null;
  root.querySelectorAll=s=>s==='[data-step]'?steps:scenes;
- const document={hidden:false,querySelector:()=>root,addEventListener(e,cb){listeners[e]=cb;}};
- const window={innerHeight:900,matchMedia:s=>{const q={matches:s.includes('reduced')?reduced:s.includes('width')?mobile:short,addEventListener(e,cb){q.change=cb;}};queries.push(q);return q;},requestAnimationFrame(cb){frames.push(cb);return frames.length;},cancelAnimationFrame(){frames.length=0;},addEventListener(e,cb){listeners[e]=cb;}};
+ const document={hidden:false,querySelector:s=>s==='.hs-home'?root:null,addEventListener(e,cb){listeners[e]=cb;}};
+ const window={innerHeight:short?480:900,matchMedia:s=>{const q={matches:s.includes('reduced')?reduced:s.includes('width')?mobile:short,addEventListener(e,cb){q.change=cb;}};queries.push(q);return q;},requestAnimationFrame(cb){frames.push(cb);return frames.length;},cancelAnimationFrame(){frames.length=0;},addEventListener(e,cb){listeners[e]=cb;}};
  vm.runInNewContext(fs.readFileSync(require.resolve('../public/assets/home-story.js'),'utf8'),{document,window,Math,String});
  const flush=()=>{while(frames.length)frames.shift()();};flush();
  return {classes,scenes,counter,button,queries,stage,scroll(n){scroll=n;listeners.scroll();flush();},toggle(){listeners.button();flush();},flush};
@@ -36,8 +37,12 @@ test('the same scroll position restores the same shot after forward and backward
  h.scroll(2300);assert.notEqual(h.counter.textContent,label);h.scroll(1000);
  assert.deepEqual(h.scenes.map(s=>[s.style.opacity,s.style.transform]),shot);assert.equal(h.counter.textContent,label);
 });
-test('reduced motion and short viewports use static readable steps; motion can be disabled manually',()=>{
- for(const opts of [{reduced:true},{short:true}]){const h=harness(opts);assert(!h.classes.has('hs-motion'));assert(h.button.hidden);h.scroll(2000);assert.equal(h.counter.textContent,'01 / 06');}
+test('reduced motion and short mobile viewports show matching inline cards; motion can be disabled manually',()=>{
+ for(const opts of [{reduced:true},{short:true,mobile:true}]){const h=harness(opts);assert(!h.classes.has('hs-motion'));assert(h.classes.has('hs-inline'));assert.equal(h.button.hidden,!!opts.reduced);h.scroll(2000);assert.equal(h.counter.textContent,'01 / 06');}
  const h=harness({mobile:true});h.scroll(1000);assert.notEqual(h.counter.textContent,'01 / 06');h.toggle();assert(!h.classes.has('hs-motion'));assert.equal(h.button.textContent,'Animate');h.toggle();assert(h.classes.has('hs-motion'));
  h.queries[0].matches=true;h.queries[0].change();h.flush();assert(!h.classes.has('hs-motion'));
+});
+
+test('short desktop viewports keep reversible scene changes instead of freezing the card',()=>{
+ const h=harness({short:true});assert(h.classes.has('hs-motion'));h.scroll(1500);assert.notEqual(h.counter.textContent,'01 / 06');
 });
