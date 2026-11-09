@@ -77,6 +77,7 @@ function loadServices() {
       launch: require('./routes/launch'),
       campaigns: require('./routes/campaigns'),
       companies: require('./routes/companies'),
+      discovery: require('./routes/discovery'),
       cv: require('./routes/cv'),
       writing: require('./routes/writing'),
       support: require('./routes/support'),
@@ -143,6 +144,7 @@ async function lazyInit() {
     app.use('/api/launch', routes.launch);
     app.use('/api/campaigns', routes.campaigns);
     app.use('/api/companies', routes.companies);
+    app.use('/api/discovery', routes.discovery);
     app.use('/api/cv', routes.cv);
 
     // إعدادات أسلوب الكتابة والتحليل والمعاينة

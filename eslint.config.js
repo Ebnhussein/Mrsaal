@@ -10,6 +10,9 @@ module.exports=[
   'no-unused-vars':['warn',{args:'none',caughtErrors:'none'}],
   'no-control-regex':'off','no-useless-escape':'off','preserve-caught-error':'off','no-ex-assign':'warn'
  }},
+ {files:['extensions/**/*.js'],languageOptions:{sourceType:'script',globals:{...globals.browser,...globals.webextensions}}},
+ {files:['ops/scraper-trial/trial.js'],languageOptions:{sourceType:'script',globals:{...globals.browser}}},
  {files:['public/**/*.js'],languageOptions:{sourceType:'script',globals:{...globals.browser}},rules:{'no-undef':'off'}},
+ {files:['tests/browser/**'],languageOptions:{globals:{...globals.browser}}},
  {files:['tests/**'],rules:{'no-unused-vars':'off','no-dupe-keys':'off'}}
 ];

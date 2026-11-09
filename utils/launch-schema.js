@@ -29,6 +29,19 @@ async function ensureLaunchSchema(){await run(`
  ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_started_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
  CREATE TABLE IF NOT EXISTS usage_reservations(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,kind TEXT NOT NULL,day DATE NOT NULL DEFAULT CURRENT_DATE,period_start TIMESTAMPTZ NOT NULL,status TEXT NOT NULL DEFAULT 'reserved',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
  CREATE INDEX IF NOT EXISTS usage_reservations_user ON usage_reservations(user_id,kind,period_start,status);
+ CREATE TABLE IF NOT EXISTS discovery_imports(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,request_key TEXT NOT NULL,payload_hash TEXT NOT NULL,result JSONB NOT NULL,source JSONB NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),UNIQUE(user_id,request_key));
+ CREATE INDEX IF NOT EXISTS discovery_imports_user ON discovery_imports(user_id,created_at DESC);
+ ALTER TABLE companies ADD COLUMN IF NOT EXISTS discovery_meta JSONB NOT NULL DEFAULT '{}'::jsonb;
+ CREATE TABLE IF NOT EXISTS discovered_jobs(
+  id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  company_id TEXT REFERENCES companies(id) ON DELETE SET NULL,company_name TEXT NOT NULL DEFAULT '',
+  title TEXT NOT NULL,description TEXT NOT NULL DEFAULT '',job_url TEXT NOT NULL,source_url TEXT NOT NULL,
+  location TEXT NOT NULL DEFAULT '',country TEXT NOT NULL DEFAULT '',work_mode TEXT NOT NULL DEFAULT '',
+  employment_type TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'saved',
+  source_meta JSONB NOT NULL DEFAULT '{}'::jsonb,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id,job_url)
+ );
+ CREATE INDEX IF NOT EXISTS discovered_jobs_user ON discovered_jobs(user_id,created_at DESC,id);
  ALTER TABLE companies ADD COLUMN IF NOT EXISTS list_name TEXT NOT NULL DEFAULT '';
  ALTER TABLE companies ADD COLUMN IF NOT EXISTS followup_status TEXT NOT NULL DEFAULT 'not_started';
  ALTER TABLE companies ADD COLUMN IF NOT EXISTS notes TEXT NOT NULL DEFAULT '';

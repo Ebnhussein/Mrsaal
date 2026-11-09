@@ -12,7 +12,10 @@
     "check": "node scripts/check-project.js",
     "test": "node --test tests/*.test.*",
     "prestart": "npm run check",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "trial:scraper": "node ops/scraper-trial/server.cjs",
+    "build:scraper": "node scripts/build-scraper-extension.cjs",
+    "build:scraper:official": "node scripts/build-scraper-extension.cjs --origin https://mrsaal.ebnhussein.co --out .mrsaal-trial/official-extension"
   },
   "dependencies": {
     "@google/genai": "^2.30.0",
