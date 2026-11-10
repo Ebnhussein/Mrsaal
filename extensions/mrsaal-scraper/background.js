@@ -1,6 +1,6 @@
 'use strict';
 const APP='https://mrsaal.ebnhussein.co';
-let running=null;
+let running=null,launching=false;
 function source(tab){return tab?.url?.startsWith('http')&&new URL(tab.url).origin!==APP;}
 async function selectSource(tab){if(!running&&source(tab))await chrome.storage.session.set({sourceTabId:tab.id,sourceTitle:tab.title||tab.url,sourceUrl:tab.url});}
 chrome.action.onClicked.addListener(tab=>{chrome.sidePanel.open({windowId:tab.windowId}).catch(console.error);selectSource(tab).catch(console.error);});
@@ -9,10 +9,11 @@ chrome.tabs.onUpdated?.addListener((id,change,tab)=>{
  if(tab.active)selectSource(tab).catch(()=>{});
  if(change.status==='complete')resumeSearch(id).catch(error=>chrome.storage.session.set({phase:'failed',lastError:error.message}));
 });
-async function appCall(path,method='GET',body=null){
+async function appCall(path,method='GET',body=null,preferredTabId=null){
  const tabs=await chrome.tabs.query({url:APP+'/*'});
  if(!tabs.length){await chrome.tabs.create({url:APP+'/app'});throw new Error('افتح تبويب مرسال واربط الحساب أولًا.');}
- const saved=await chrome.storage.session.get('appTabId'),tab=tabs.find(t=>t.id===saved.appTabId)||tabs[0];
+ const saved=await chrome.storage.session.get('appTabId'),tab=preferredTabId?tabs.find(t=>t.id===preferredTabId):tabs.find(t=>t.id===saved.appTabId)||tabs[0];
+ if(!tab)throw new Error('تبويب مرسال تغيّر. ارجع للموقع وابدأ مرة أخرى.');
  const [result]=await chrome.scripting.executeScript({target:{tabId:tab.id},func:async(origin,path,method,body)=>{
   if(location.origin!==origin)throw new Error('تبويب مرسال تغيّر.');
   const response=await fetch(origin+path,{method,credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json','X-Mrsaal-Request':'1'},...(body?{body:JSON.stringify(body)}:{})});
@@ -93,12 +94,12 @@ async function dispatch(message){
   try{return await persist(pendingImport);}catch(error){await chrome.storage.session.set({phase:'save-pending',lastError:error.message});throw error;}finally{running=null;}
  }
  if(message.action==='search'){
-  const url=new URL(message.url);if(url.origin!=='https://www.google.com'||url.pathname!=='/search')throw new Error('رابط بحث غير صحيح.');
+  const url=new URL(message.url);if(url.origin!=='https://www.google.com'||!(url.pathname==='/search'||url.pathname.startsWith('/maps/search/')))throw new Error('رابط بحث غير صحيح.');
   const {account}=await chrome.storage.session.get('account');if(!account)throw new Error('اربط حسابك قبل البحث والجمع التلقائي.');
-  if(running)throw new Error('انتظر الدفعة الحالية.');
+  if(running||(await chrome.storage.session.get('pendingSearch')).pendingSearch)throw new Error('انتظر الدفعة الحالية.');
   const {pendingImport}=await chrome.storage.local.get('pendingImport');if(pendingImport)throw new Error('أكّد حفظ الدفعة المعلقة أولًا.');
   const tab=await chrome.tabs.create({url:url.href});
-  await chrome.storage.session.set({sourceTabId:tab.id,sourceTitle:'نتائج البحث عن وظائف',sourceUrl:url.href,phase:'opening',pendingSearch:{tabId:tab.id,accountId:account.id,options:message.options||{}}});
+  await chrome.storage.session.set({sourceTabId:tab.id,sourceTitle:url.pathname.startsWith('/maps/')?'نتائج الشركات على Maps':'نتائج البحث عن وظائف',sourceUrl:url.href,phase:'opening',searchOptions:{...message.options,id:crypto.randomUUID()},pendingSearch:{tabId:tab.id,accountId:account.id,options:message.options||{}}});
   if((await chrome.tabs.get(tab.id)).status==='complete')await resumeSearch(tab.id);
   return {opening:true};
  }
@@ -135,7 +136,48 @@ async function dispatch(message){
   await chrome.storage.session.set({phase:hasPending?'save-pending':'failed',lastError:text});await chrome.action.setBadgeText?.({text:'!'});throw new Error(text);
  }finally{running=null;}
 }
+function appSender(sender){
+ try{const u=new URL(sender.url);return sender.id===chrome.runtime.id&&sender.frameId===0&&sender.tab?.id&&u.origin===APP&&u.pathname==='/app';}catch{return false;}
+}
+function launchOptions(input){
+ const countries={EG:'Egypt',SA:'Saudi Arabia',AE:'United Arab Emirates',KW:'Kuwait',QA:'Qatar',BH:'Bahrain',OM:'Oman'};
+ if(!input||!['maps','jobs'].includes(input.mode)||!countries[input.country]||!['','remote','hybrid','onsite'].includes(input.workMode||''))throw new Error('راجع إعدادات البحث.');
+ if(typeof input.query!=='string'||!input.query.trim()||input.query.length>200||typeof input.expectedAccountId!=='string'||input.expectedAccountId.length>200)throw new Error('راجع إعدادات البحث والحساب.');
+ const city=typeof input.city==='string'?input.city.trim().slice(0,100):'',query=input.query.trim();
+ const options={query,country:input.country,city,workMode:input.workMode||'',limit:Math.min(250,Math.max(1,Math.floor(Number(input.limit)||100))),autoScroll:input.autoScroll!==false,language:input.language==='en'?'en':'ar'};
+ const terms=[query,countries[input.country],city,...(input.mode==='jobs'?['jobs',options.workMode]:[])].filter(Boolean).join(' ');
+ return {options,url:input.mode==='maps'?'https://www.google.com/maps/search/'+encodeURIComponent(terms):'https://www.google.com/search?q='+encodeURIComponent(terms),expectedAccountId:input.expectedAccountId};
+}
+async function launchFromApp(input,tabId,permission,panel){
+ try{
+  if(!await permission)throw new Error('السماح بقراءة Google مطلوب لبدء الجمع التلقائي.');
+  if((await chrome.storage.local.get('pendingImport')).pendingImport)throw new Error('أكّد حفظ الدفعة المعلقة أولًا من الإضافة.');
+  if(running||(await chrome.storage.session.get('pendingSearch')).pendingSearch)throw new Error('انتظر الدفعة الحالية.');
+  const {user}=await appCall('/api/discovery/session','GET',null,tabId);
+  if(user?.id!==input.expectedAccountId)throw new Error('الحساب تغيّر. حدّث صفحة مرسال قبل البدء.');
+  await chrome.storage.session.set({account:user,appTabId:tabId});
+  const result=await dispatch({action:'search',url:input.url,options:input.options});
+  return {...result,panelOpened:await panel};
+ }finally{launching=false;}
+}
 chrome.runtime.onMessage.addListener((message,sender,sendResponse)=>{
+ if(message.action==='appState'||message.action==='launchFromApp'){
+  if(!appSender(sender))return false;
+  if(message.action==='appState'){
+   chrome.storage.session.get(null).then(state=>{
+    const same=state.account?.id===message.expectedAccountId;
+    sendResponse({ok:true,data:{version:chrome.runtime.getManifest().version,phase:same?state.phase:'idle',count:same?state.progress?.count||0:0,limit:same?state.progress?.limit||100:100,error:same?state.lastError||'':''}});
+   },()=>sendResponse({ok:false}));return true;
+  }
+  let input;try{input=launchOptions(message);if(launching||running)throw new Error('انتظر الدفعة الحالية.');}catch(error){sendResponse({ok:false,error:error.message});return false;}
+  launching=true;
+  // Both gesture-gated calls start synchronously in the trusted content-click message.
+  let panel,permission;
+  try{panel=chrome.sidePanel.open({windowId:sender.tab.windowId}).then(()=>true,()=>false);}catch{panel=Promise.resolve(false);}
+  try{permission=chrome.permissions.request({origins:['https://www.google.com/*']});}catch(error){launching=false;sendResponse({ok:false,error:error.message});return false;}
+  launchFromApp(input,sender.tab.id,permission,panel).then(data=>sendResponse({ok:true,data}),error=>sendResponse({ok:false,error:error.message}));return true;
+ }
+
  if(message.event==='collection-progress'){
   if(!running||sender.id!==chrome.runtime.id||sender.tab?.id!==running.tabId||message.runId!==running.id)return false;
   const p=message.progress;if(!p||!['scanning','scrolling','waiting','complete','stopped'].includes(p.stage)||!Number.isInteger(p.count)||p.count<running.count||p.count>running.limit)return false;

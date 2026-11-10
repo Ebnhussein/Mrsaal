@@ -34,6 +34,7 @@ function renderActivity(state){
  $('live-latest').textContent=busy&&latest.length?words('آخر النتائج: ','Latest results: ')+latest.join(' · '):'';
 }
 function render(state){
+ if(state.searchOptions?.id&&state.searchOptions.id!==sourceState.searchOptions?.id){const o=state.searchOptions;for(const id of ['query','country','city','limit'])if(o[id]!==undefined)$(id).value=o[id];if(o.workMode!==undefined)$('work-mode').value=o.workMode;$('auto-scroll').checked=o.autoScroll!==false;}
  sourceState=state;account=state.account||null;
  $('account').textContent=account?.email||account?.name||words('الحساب غير مربوط','Account not connected');
  $('source').textContent=state.sourceTitle||words('افتح صفحة نتائج واضغط أيقونة مرسال في شريط المتصفح.','Open a results page and click the Mrsaal toolbar icon.');
@@ -84,9 +85,7 @@ async function search(maps){
  if(maps){url.pathname+=encodeURIComponent([query,city,country].filter(Boolean).join(' '));}
  else url.searchParams.set('q',[query,'jobs',country,city,work,domain?'site:'+domain:''].filter(Boolean).join(' '));
  await allowOrigin(url.origin);
- if(!maps){await send('search',{url:url.href,options:options()});await refresh();return;}
- await chrome.tabs.create({url:url.href});
- setStatus(words('اختار صفحة النتائج واضغط أيقونة مرسال عليها، ثم ابدأ الجمع.','Choose a results page, click the Mrsaal toolbar icon there, then start collecting.'));
+ await send('search',{url:url.href,options:options()});await refresh();
 }
 action('search-jobs',()=>search(false));action('search-maps',()=>search(true));
 chrome.storage.onChanged.addListener((changes,area)=>{if(area==='session'||area==='local'&&changes.pendingImport)refresh().catch(error=>setStatus(error.message,true));});

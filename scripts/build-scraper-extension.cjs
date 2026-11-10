@@ -12,7 +12,7 @@ function zip(entries){const files=[],directory=[];let offset=0;
 }
 function build({appOrigin='http://localhost:4174',out=path.resolve('.mrsaal-trial/extension')}={}){
  const app=origin(appOrigin),source=path.resolve(__dirname,'../extensions/mrsaal-scraper');
- const manifest=JSON.parse(fs.readFileSync(path.join(source,'manifest.json'),'utf8'));manifest.name='Mrsaal Scraper';manifest.host_permissions=[app+'/*'];
+ const manifest=JSON.parse(fs.readFileSync(path.join(source,'manifest.json'),'utf8'));manifest.name='Mrsaal Scraper';manifest.host_permissions=[app+'/*'];manifest.content_scripts[0].matches=[app+'/app*'];
  const entries=[];fs.mkdirSync(out,{recursive:true});
  for(const name of fs.readdirSync(source)){
   if(name==='README.md')continue;

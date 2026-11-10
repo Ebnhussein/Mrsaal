@@ -5,11 +5,11 @@ const port=()=>new Promise(resolve=>{const server=net.createServer();server.list
 test('trial bundle binds the worker and permissions to its test origin and creates a readable ZIP',()=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'mrsaal-bundle-'));try{
   const bundle=build({appOrigin:'http://localhost:4174',out:path.join(dir,'extension')});
-  const manifest=JSON.parse(fs.readFileSync(path.join(bundle.directory,'manifest.json'),'utf8'));assert.deepEqual(manifest.host_permissions,['http://localhost:4174/*']);assert.equal(manifest.name,'Mrsaal Scraper');
+  const manifest=JSON.parse(fs.readFileSync(path.join(bundle.directory,'manifest.json'),'utf8'));assert.deepEqual(manifest.host_permissions,['http://localhost:4174/*']);assert.deepEqual(manifest.content_scripts[0].matches,['http://localhost:4174/app*']);assert.equal(manifest.name,'Mrsaal Scraper');
   const worker=fs.readFileSync(path.join(bundle.directory,'background.js'),'utf8');assert(worker.includes('const APP="http://localhost:4174";'));assert(!worker.includes('https://mrsaal.ebnhussein.co'));
   const zip=fs.readFileSync(bundle.zip);let offset=0,found=0;
   while(zip.readUInt32LE(offset)===0x04034b50){const size=zip.readUInt32LE(offset+18),nameSize=zip.readUInt16LE(offset+26),extra=zip.readUInt16LE(offset+28),name=zip.subarray(offset+30,offset+30+nameSize).toString(),start=offset+30+nameSize+extra;assert.deepEqual(zlib.inflateRawSync(zip.subarray(start,start+size)),fs.readFileSync(path.join(bundle.directory,name)));found++;offset=start+size;}
-  assert.equal(found,12);assert.equal(zip.readUInt32LE(offset),0x02014b50);
+  assert.equal(found,13);assert.equal(zip.readUInt32LE(offset),0x02014b50);
   for(const bad of ['http://mrsaal.ebnhussein.co','https://example.test/app','https://user:pass@example.test','javascript:alert(1)'])assert.throws(()=>origin(bad));
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
