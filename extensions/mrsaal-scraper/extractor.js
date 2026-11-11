@@ -2,7 +2,7 @@
    remote scripts, private APIs or background network requests are read. */
 (() => {
  'use strict';
- const VERSION='0.3.0';
+ const VERSION='0.6.0';
  if(globalThis.MrsaalExtractor?.version===VERSION)return;
  globalThis.MrsaalExtractor?.cancel();
  let cancelled=false,wakeWait=null;
@@ -19,21 +19,27 @@
   const email=mail?mail.getAttribute('href').slice(7).split('?')[0]:(raw.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)||[''])[0];
   const phone=tel?tel.getAttribute('href').slice(4):(raw.match(/(?:\+\d{1,3}[\s-]*|0)(?:\d[\s()-]*){7,14}\d/)||[''])[0];
   const website=links.map(a=>safeUrl(a.href,base)).find(url=>{try{return !/(^|\.)google\.[a-z.]+$/.test(new URL(url).hostname)&&new URL(url).origin!==new URL(base).origin;}catch{return false;}})||'';
-  return {email:clean(email,254),phone:clean(phone,40).replace(/[\s()-]/g,''),website};
+  const normalEmail=clean(email,254),normalPhone=clean(phone,40).replace(/[\s()-]/g,'');
+  return {email:/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalEmail)?normalEmail:'',phone:/^\+?\d{6,20}$/.test(normalPhone)?normalPhone:'',website};
  }
  function maps(doc,base){
   const links=[...doc.querySelectorAll('a[href*="/maps/place/"]')].filter(visible),rows=[];
   for(const link of links){
-   let card=link.parentElement;
-   for(let n=0;n<7&&card?.parentElement;n++){
-    if(card.parentElement.matches('[role="feed"]')||scrollable(card.parentElement)||card.parentElement.querySelectorAll('a[href*="/maps/place/"]').length>1)break;
-    card=card.parentElement;
-   }
+   let card=link.closest('article,[role="article"],.Nv2PK');
+   if(!card){card=link.parentElement;for(let n=0;n<7&&card?.parentElement;n++){if(card.parentElement.matches('[role="feed"]')||scrollable(card.parentElement)||card.parentElement.querySelectorAll('a[href*="/maps/place/"]').length>1)break;card=card.parentElement;}}
    if(!card)continue;
-   const name=clean(link.getAttribute('aria-label')||bodyText(link)||card.querySelector('h2,h3')?.textContent);
-   if(!name)continue;
-   const lines=bodyText(card).split('\n').map(s=>clean(s)).filter(s=>s&&s!==name&&!/^(?:[\d.]+\s*(?:\(|stars)|\(?\d+\)?$|Website|Directions|Open|Closed|Closes|Opens|No reviews|موقع|الاتجاهات|مفتوح|مغلق)/i.test(s));
-   rows.push({kind:'company',name,...contacts(card,base),field:lines[0]||'',location:clean(lines.slice(1).filter(line=>!/["“”👍⭐]|reviews?|خدمة|ممتاز|مشاكل|سهولة|جودة|الموقع الإلكتروني|الموقع|الاتجاهات|حجز|مواعيد|دائمًا|عرض المزيد|Website|Directions|online|appointment/iu.test(line)&&!/(?:\+|0)[\d ()-]{7,}/.test(digits(line))).slice(0,2).join(', ')),sourceUrl:safeUrl(link.href,base)});
+   const name=clean(link.getAttribute('aria-label')||bodyText(link)||card.querySelector('h2,h3')?.textContent);if(!name)continue;
+   const contact=contacts(card,base),rawLines=bodyText(card).split('\n').map(l=>clean(l)).filter(Boolean);
+   const excluded=/reviews?|stars?|Website|Directions|Open|Closed|Closes|Opens|No reviews|مراجعات|تقييم|نجوم|الموقع|الاتجاهات|مفتوح|مغلق|يغلق|حجز|مواعيد|خدمات|service options|online|appointment|عرض المزيد|more results/iu;
+   const useful=rawLines.filter(l=>l!==name&&!excluded.test(l)&&!/["“”👍⭐]/u.test(l)&&!/^\(?[\d.,\s()]+\)?$/.test(l)&&!/(?:\+|0)[\d ()-]{7,}/.test(digits(l)));
+   const field=clean(card.querySelector('[data-category]')?.getAttribute('data-category')||useful[0]||'');
+   const explicitAddress=card.querySelector('[data-item-id="address"],[itemprop="streetAddress"],[data-address]');
+   const address=explicitAddress?.getAttribute('data-address')||bodyText(explicitAddress);
+   // Only take a short address-like line, never an arbitrary review paragraph.
+   const location=clean(address||useful.slice(1).find(l=>l.length<=150&&/Cairo|Giza|Riyadh|Jeddah|Dubai|Kuwait|Doha|Manama|Muscat|street|road|شارع|طريق|حي |مدينة|القاهرة|الجيزة|الرياض|جدة|دبي|الكويت|الدوحة|المنامة|مسقط|[,،]|\d/iu.test(l)&&!/[!؟?]/u.test(l))||'');
+   const prefix=contact.phone.startsWith('+')?contact.phone.match(/^\+(20|966|971|965|974|973|968)/)?.[1]:'';
+   const country=({'20':'EG','966':'SA','971':'AE','965':'KW','974':'QA','973':'BH','968':'OM'})[prefix]||'';
+   rows.push({kind:'company',name,...contact,field,location,country,sourceUrl:safeUrl(link.href,base)});
   }
   return rows;
  }
@@ -117,10 +123,14 @@
   const table=tables(doc,base);if(table.length)return {adapter:'table',rows:table};
   return {adapter:'job-cards',rows:jobLinks(doc,base)};
  }
+ function sourceFailed(doc){return [...doc.querySelectorAll('[role="alert"],[role="status"]')].filter(visible).some(el=>/حدث خطأ.*(?:إعادة|اعادة) تحميل|حدث خطأ.*(?:إعادة|اعادة) التحميل|something went wrong.*reload/iu.test(clean(bodyText(el),1500)));}
  function blocked(doc){return /^(?:Just a moment|Access Denied|Verify you are human|Attention Required)/i.test(doc.title)||[...doc.querySelectorAll('input[name="captcha"],iframe[src*="hcaptcha.com/captcha"],iframe[title*="challenge"]')].some(visible);}
+ function sourceIdentity(value){
+  try{const u=new URL(value);if(/(^|\.)google\.[a-z.]+$/.test(u.hostname)&&u.pathname.startsWith('/maps/search/'))return u.origin+'/maps/search/'+decodeURIComponent(u.pathname.slice(13).split('/@')[0]).replace(/\+/g,' ').trim();if(u.pathname==='/search')return u.origin+'/search?q='+u.searchParams.get('q');u.hash='';return u.href;}catch{return value;}
+ }
  function key(row,source){
   if(row.kind==='job')return row.jobUrl;
-  const place=row.sourceUrl?.match(/!1s([^!/?]+)/)?.[1];
+  const place=row.sourceUrl?.match(/!1s([^!/?]+)/)?.[1]||(()=>{try{const u=new URL(row.sourceUrl);return u.searchParams.get('query_place_id')||u.searchParams.get('cid')||u.searchParams.get('ftid');}catch{return '';}})();
   if(place)return 'maps:'+place;
   if(row.sourceUrl&&row.sourceUrl!==source){const url=new URL(row.sourceUrl);return url.origin+url.pathname;}
   return row.name+'|'+row.email+'|'+row.phone;
@@ -155,7 +165,8 @@
    const check=()=>{
     if(done)return;
     if(cancelled)return finish('cancelled');
-    if(location.href!==source)return finish('navigation');
+    if(sourceIdentity(location.href)!==sourceIdentity(source))return finish('navigation');
+    if(sourceFailed(document))return finish('source-error');
     if(blocked(document))return finish('blocked');
     if(extract(document,source,options).rows.some(row=>!unique.has(key(row,source))))return finish('new-results');
     if(scroller&&listEnded(scroller))return finish('end');
@@ -165,10 +176,10 @@
   });
  }
  async function run(options={}){
-  cancelled=false;const source=location.href,unique=new Map(),started=Date.now();let adapter='',reason='',passes=0,stalls=0;
+  cancelled=false;const source=location.href,unique=new Map(),seen=new Set(),started=Date.now();let adapter='',reason='',passes=0,stalls=0;
   const limit=Math.min(250,Math.max(1,Number(options.limit)||100));
   const automatic=options.autoScroll!==false,maxDuration=120000;
-  const overlay=options.feedback===false?null:feedback(options.language);
+  const overlay=options.feedback===false?null:(location.pathname.startsWith('/maps')&&globalThis.MrsaalMapStage?globalThis.MrsaalMapStage.mount(options.language):feedback(options.language));
   async function report(stage){
    const progress={stage,count:unique.size,limit,pass:passes,elapsedMs:Date.now()-started,latest:[...unique.values()].slice(-3).map(row=>row.name||row.title)};
    overlay?.update(progress);
@@ -179,10 +190,11 @@
    for(let pass=0;pass<100&&Date.now()-started<maxDuration;pass++){
     passes=pass;
     if(cancelled){reason='cancelled';break;}
-    if(location.href!==source){reason='navigation';break;}
+    if(sourceIdentity(location.href)!==sourceIdentity(source)){reason='navigation';break;}
+    if(sourceFailed(document)){reason='source-error';break;}
     if(blocked(document)){reason='blocked';break;}
     const result=extract(document,source,options);adapter=result.adapter;
-    for(const row of result.rows){const id=key(row,source);if(unique.has(id)||unique.size<limit)unique.set(id,row);}
+    for(const row of result.rows){const id=key(row,source);seen.add(id);if(adapter==='maps'&&options.country&&row.country&&row.country!==options.country)continue;if(unique.has(id)||unique.size<limit)unique.set(id,row);}
     await report('scanning');
     if(unique.size>=limit){reason='limit';break;}
     if(!automatic){reason='single-page';break;}
@@ -191,9 +203,9 @@
     if(adapter!=='maps'&&result.rows.length&&(!scroller||scroller.scrollHeight<=scroller.clientHeight+4)){reason='end';break;}
     if(!scroller||scroller.scrollHeight<=scroller.clientHeight+4){
      await report('waiting');
-     const outcome=await waitForResults(source,options,unique,scroller,Math.min(4000,maxDuration-(Date.now()-started)));
+     const outcome=await waitForResults(source,options,seen,scroller,Math.min(4000,maxDuration-(Date.now()-started)));
      if(outcome==='new-results'){stalls=0;continue;}
-     if(['cancelled','navigation','blocked'].includes(outcome)){reason=outcome;break;}
+     if(['cancelled','navigation','blocked','source-error'].includes(outcome)){reason=outcome;break;}
      if(++stalls>=3){reason='no-scroll-container';break;}
      continue;
     }
@@ -201,22 +213,22 @@
     await report('scrolling');
     scroller.scrollBy({top:Math.max(240,scroller.clientHeight*.85),behavior:'instant'});
     await report('waiting');
-    const outcome=await waitForResults(source,options,unique,scroller,Math.min(5000,maxDuration-(Date.now()-started)));
+    const outcome=await waitForResults(source,options,seen,scroller,Math.min(5000,maxDuration-(Date.now()-started)));
     if(outcome==='new-results'){stalls=0;continue;}
-    if(['cancelled','navigation','blocked'].includes(outcome)){reason=outcome;break;}
+    if(['cancelled','navigation','blocked','source-error'].includes(outcome)){reason=outcome;break;}
     if(outcome==='end')continue; // Capture the final render before stopping.
     const atBottom=scroller.scrollTop+scroller.clientHeight>=scroller.scrollHeight-8;
     stalls=(atBottom||scroller.scrollTop===before)?stalls+1:0;
     if(stalls>=3){reason='no-new-results';break;}
    }
    reason=reason||'time-limit';
-   const warnings={navigation:'الصفحة تغيّرت؛ توقف الجمع.',blocked:'الموقع طلب تحققًا؛ توقف الجمع.', 'no-scroll-container':'افتح قائمة نتائج البحث على Maps؛ لم نجد قائمة قابلة لتحميل نتائج إضافية.', 'no-new-results':'لم تظهر نتائج جديدة بعد عدة محاولات تحميل؛ حفظنا الشركات التي جُمعت.', 'time-limit':'انتهى وقت الدفعة؛ يمكنك بدء دفعة جديدة.'};
+   const warnings={'source-error':'Maps عرض خطأ داخليًا وطلب إعادة تحميل الصفحة. حدّث تبويب Maps وابدأ بنفس الإعدادات؛ لم نعتبره اكتمالًا للبحث.',navigation:'الصفحة تغيّرت؛ توقف الجمع.',blocked:'الموقع طلب تحققًا؛ توقف الجمع.', 'no-scroll-container':'افتح قائمة نتائج البحث على Maps؛ لم نجد قائمة قابلة لتحميل نتائج إضافية.', 'no-new-results':'لم تظهر نتائج جديدة بعد عدة محاولات تحميل؛ حفظنا الشركات التي جُمعت.', 'time-limit':'انتهى وقت الدفعة؛ يمكنك بدء دفعة جديدة.'};
    const warning=warnings[reason]||'';
    await report(cancelled?'stopped':'complete');
    return {rows:[...unique.values()],source:{url:source,adapter:adapter||'custom'},warning,cancelled,reason,passes};
   }finally{overlay?.remove();wakeWait?.('finished');}
  }
- const api={version:VERSION,extract,run,findScroller,blocked,cancel(){cancelled=true;wakeWait?.('cancelled');}};
+ const api={version:VERSION,extract,run,findScroller,blocked,sourceIdentity,cancel(){cancelled=true;wakeWait?.('cancelled');}};
  if(typeof module==='object'&&module.exports)module.exports=api;
  else globalThis.MrsaalExtractor=api;
 })();

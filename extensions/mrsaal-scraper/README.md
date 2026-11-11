@@ -114,3 +114,22 @@ Load `.mrsaal-trial/official-extension` unpacked; the panel marks it OFFICIAL PI
 The server must first deploy the discovery changes. Only configured `ADMIN_EMAILS`
 and `SCRAPER_TRIAL_EMAILS` can connect. See
 `docs/changes/scraper-official-pilot-20261109.md` for the live acceptance steps.
+
+## One-click workspace launch — v0.5.0
+
+After updating/reloading this extension, reload the Mrsaal app tab. Its Maps and
+job search buttons now pass the configured options to the extension, open the
+sidebar and automatically collect after search loads. Chrome may request Google
+site access on the first click. The sidebar's own Maps search also auto-collects.
+The new content bridge runs only on the configured Mrsaal app origin; trial builds
+rewrite that match. See `docs/changes/scraper-one-click-20261110.md`.
+
+## Workflow update — v0.6.0
+
+The panel automatically reads the active Mrsaal account and previously entered
+search settings. Maps mode is explicit and searches reuse the selected Maps tab.
+A large optional waiting-game area occupies the map region while results collect.
+The workspace includes illustrated installation and owned batch tables.
+Chrome/Edge/Brave/Opera/Vivaldi/Chromium desktop builds are intended; Firefox/Safari
+are not supported. Native install/site prompts remain user-controlled.
+See `docs/changes/scraper-workflow-060-20261111.md` for scope and acceptance.

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Mrsaal Scraper",
   "description": "Collect companies and job listings from a page you choose and save them to your Mrsaal account.",
-  "version": "0.4.0",
+  "version": "0.6.0",
   "minimum_chrome_version": "116",
   "permissions": [
     "activeTab",
@@ -38,5 +38,17 @@
     "32": "icon-32.png",
     "48": "icon-48.png",
     "128": "icon-128.png"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://mrsaal.ebnhussein.co/app*"
+      ],
+      "js": [
+        "app-bridge.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
 }
