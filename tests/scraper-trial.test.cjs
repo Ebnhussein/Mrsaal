@@ -9,7 +9,7 @@ test('trial bundle binds the worker and permissions to its test origin and creat
   const worker=fs.readFileSync(path.join(bundle.directory,'background.js'),'utf8');assert(worker.includes('const APP="http://localhost:4174";'));assert(!worker.includes('https://mrsaal.ebnhussein.co'));
   const zip=fs.readFileSync(bundle.zip);let offset=0,found=0;
   while(zip.readUInt32LE(offset)===0x04034b50){const size=zip.readUInt32LE(offset+18),nameSize=zip.readUInt16LE(offset+26),extra=zip.readUInt16LE(offset+28),name=zip.subarray(offset+30,offset+30+nameSize).toString(),start=offset+30+nameSize+extra;assert.deepEqual(zlib.inflateRawSync(zip.subarray(start,start+size)),fs.readFileSync(path.join(bundle.directory,name)));found++;offset=start+size;}
-  assert.equal(found,13);assert.equal(zip.readUInt32LE(offset),0x02014b50);
+  assert.equal(found,14);assert.equal(zip.readUInt32LE(offset),0x02014b50);
   for(const bad of ['http://mrsaal.ebnhussein.co','https://example.test/app','https://user:pass@example.test','javascript:alert(1)'])assert.throws(()=>origin(bad));
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });

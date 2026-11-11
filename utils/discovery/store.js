@@ -19,7 +19,8 @@ async function importRows(userId,{rows,source,requestKey=''}){
   for(const row of rows){
    // An unknown employer is not fabricated from the job title.
    const name=row.kind==='company'?row.name:row.companyName;
-   const mapsId=source.adapter==='maps'&&row.sourceUrl.includes('/maps/place/')?row.sourceUrl.match(/!1s([^!/?]+)/)?.[1]:'';
+   let mapsId='';
+   if(source.adapter==='maps')try{const url=new URL(row.sourceUrl);if(/(^|\.)google\.[a-z.]+$/.test(url.hostname)&&url.pathname.startsWith('/maps'))mapsId=row.sourceUrl.match(/!1s([^!/?]+)/)?.[1]||url.searchParams.get('query_place_id')||url.searchParams.get('cid')||url.searchParams.get('ftid')||'';}catch{}
    const sourceKey=mapsId?'maps:'+mapsId:'';
    let company=null,existingJob=null;
    if(row.kind==='job'){

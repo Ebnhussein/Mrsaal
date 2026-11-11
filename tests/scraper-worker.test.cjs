@@ -1,22 +1,22 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-function harness({changed=false,cancelled=false,defer=false,verifyFails=false,autoSearch=false,details=false,permissionGranted=true,panelFails=false}={}){
- const state={sourceTabId:4,account:{id:'owner',email:'owner@example.test'}},calls=[],badges=[],requests=[],opened=[],panelCalls=[];let handler,releaseExtraction,stopped=false;const paused=new Promise(resolve=>{releaseExtraction=resolve;});
+function harness({changed=false,cancelled=false,defer=false,verifyFails=false,autoSearch=false,details=false,permissionGranted=true,panelFails=false,mapsTab=false,setup=false,catalog=false}={}){
+ const state={sourceTabId:4,account:{id:'owner',email:'owner@example.test'}},calls=[],badges=[],requests=[],opened=[],panelCalls=[],updates=[];let detailReads=0;let handler,releaseExtraction,stopped=false;const paused=new Promise(resolve=>{releaseExtraction=resolve;});
  const local={};let rejectProof=verifyFails;
  const row={kind:'company',name:'Public Company',phone:'+201000000000'};
- const chrome={runtime:{id:'extension-id',getManifest:()=>({version:'0.5.0'}),getURL:p=>'chrome-extension://extension-id/'+p,onMessage:{addListener(fn){handler=fn;}}},action:{onClicked:{addListener(){}},setBadgeText:async data=>badges.push(data.text),setBadgeBackgroundColor:async()=>{}},permissions:{contains:async()=>true,request:async p=>{requests.push(p);return permissionGranted;}},sidePanel:{open:async p=>{panelCalls.push(p);if(panelFails)throw new Error('gesture not available');}},tabs:{query:async()=>[{id:8}],get:async id=>({id,url:details?'https://careers.example/jobs/1':autoSearch&&id===14?'https://www.google.com/search?q=jobs':'https://maps.example.test/results',status:'complete',active:false}),create:async data=>{opened.push(data);return {id:14,url:data.url,status:'complete',active:data.active!==false};},remove:async()=>{}},storage:{local:{get:async key=>({[key]:local[key]}),set:async data=>Object.assign(local,data),remove:async key=>{delete local[key];}},session:{get:async keys=>typeof keys==='string'?{[keys]:state[keys]}:{...state},set:async data=>Object.assign(state,data)}},scripting:{executeScript:async options=>{
+ const chrome={runtime:{id:'extension-id',getManifest:()=>({version:'0.6.0'}),getURL:p=>'chrome-extension://extension-id/'+p,onMessage:{addListener(fn){handler=fn;}}},action:{onClicked:{addListener(){}},setBadgeText:async data=>badges.push(data.text),setBadgeBackgroundColor:async()=>{}},permissions:{contains:async()=>true,request:async p=>{requests.push(p);return permissionGranted;}},sidePanel:{open:async p=>{panelCalls.push(p);if(panelFails)throw new Error('gesture not available');}},tabs:{query:async()=>[{id:8}],get:async id=>({id,url:details?(opened.at(-1)?.url||'https://careers.example/jobs/1'):mapsTab?'https://www.google.com/maps/search/Media%20Buyer%20Kuwait%20Kuwait%20City/@30,31,12z':autoSearch&&id===14?'https://www.google.com/search?q=jobs':'https://maps.example.test/results',status:'complete',active:false}),create:async data=>{opened.push(data);return {id:14,url:data.url,status:'complete',active:data.active!==false};},update:async(id,data)=>{updates.push({id,...data});return {id,url:data.url||'https://www.google.com/maps/search/Media%20Buyer%20Kuwait%20Kuwait%20City/@30,31,12z',status:'complete'};},remove:async()=>{}},storage:{local:{get:async key=>({[key]:local[key]}),set:async data=>Object.assign(local,data),remove:async key=>{delete local[key];}},session:{get:async keys=>typeof keys==='string'?{[keys]:state[keys]}:{...state},set:async data=>Object.assign(state,data)}},scripting:{executeScript:async options=>{
   calls.push(options);
   if(options.files)return [{}];
   if(options.args?.[1]==='/api/discovery/import')return [{result:{ok:!changed,data:changed?{error:'Account changed'}:{companiesAdded:1,jobsAdded:0,duplicates:0,receiptId:'receipt-1',confirmed:true}}}];
   if(options.args?.[1]?.startsWith('/api/discovery/imports/'))return [{result:{ok:!rejectProof,data:rejectProof?{error:'Network interrupted'}:{verified:true,receipt:{id:'receipt-1',result:{companiesAdded:1,jobsAdded:0,duplicates:0,receiptId:'receipt-1',confirmed:true}}}}}];
   if(options.args?.[1]==='/api/discovery/session')return [{result:{ok:true,data:{user:{id:'owner',email:'owner@example.test'}}}}];
   if(options.args?.[0]?.runId&&defer)await paused;
-  if(!options.args){if(details&&String(options.func).includes('.blocked(document)'))return [{result:{rows:[{kind:'job',title:'Developer',jobUrl:'https://careers.example/jobs/1',description:'Real posting content',entryType:'details'}]}}];stopped=true;return [{}];}
+  if(!options.args){if(setup&&String(options.func).includes("discovery-'+id"))return [{result:{query:'Media Buyer',country:'KW',city:'Kuwait City',workMode:'remote',limit:17,autoScroll:true,mode:'maps'}}];if(catalog&&String(options.func).includes('.blocked(document)')&&detailReads++===0)return [{result:{rows:[{kind:'job',title:'Real Developer',jobUrl:'https://careers.example/jobs/2',entryType:'link_only'}]}}];if(details&&String(options.func).includes('.blocked(document)'))return [{result:{rows:[{kind:'job',title:'Developer',jobUrl:'https://careers.example/jobs/1',description:'Real posting content',entryType:'details'}]}}];stopped=true;return [{}];}
   return [{result:{rows:cancelled?[]:[row],source:{url:'https://maps.example.test/results',adapter:'maps'},cancelled:cancelled||stopped}}];
  }}};
  const box={chrome,console,URL,crypto:require('node:crypto').webcrypto};vm.runInNewContext(fs.readFileSync(require.resolve('../extensions/mrsaal-scraper/background.js'),'utf8'),box);
  const send=(message,sender={id:'extension-id',url:'chrome-extension://extension-id/panel.html'})=>new Promise(resolve=>{const result=handler(message,sender,resolve);if(result===false)resolve(null);});
- return {send,state,calls,badges,local,requests,opened,panelCalls,allowProof(){rejectProof=false;},release:releaseExtraction};
+ return {send,state,calls,badges,local,requests,opened,panelCalls,updates,allowProof(){rejectProof=false;},release:releaseExtraction};
 }
 test('worker only accepts its panel, imports to the connected session and stores a resumable result',async()=>{
  const h=harness();assert.equal(await h.send({action:'collect'},{id:'extension-id',url:'https://attacker.test/'}),null);assert.equal(h.calls.length,0);
@@ -88,6 +88,24 @@ test('website launch rejects frames, other origins, account changes, invalid inp
 });
 test('panel-open failure still permits confirmed collection and tells the website; status hides other-account progress',async()=>{
  const h=harness({panelFails:true});const r=await h.send(launch,appSender);assert(r.ok);assert.equal(r.data.panelOpened,false);assert(h.state.lastResult.confirmed);
- const same=await h.send({action:'appState',expectedAccountId:'owner'},appSender);assert.equal(same.data.phase,'complete');assert.equal(same.data.version,'0.5.0');
+ const same=await h.send({action:'appState',expectedAccountId:'owner'},appSender);assert.equal(same.data.phase,'complete');assert.equal(same.data.version,'0.6.0');
  const other=await h.send({action:'appState',expectedAccountId:'other'},appSender);assert.equal(other.data.phase,'idle');assert.equal(other.data.count,0);assert(!other.data.account);assert(!other.data.lastRows);
+});
+
+test('opening the panel auto-connects and copies the existing website setup',async()=>{
+ const h=harness({setup:true,mapsTab:true});delete h.state.account;
+ const r=await h.send({action:'bootstrap'});assert(r.ok,JSON.stringify(r));assert.equal(r.data.account.id,'owner');assert.equal(r.data.searchOptions.query,'Media Buyer');assert.equal(r.data.searchOptions.limit,17);assert.equal(r.data.searchOptions.mode,'maps');
+});
+test('Maps launch reuses the selected Maps tab and keeps the same loaded search without navigation',async()=>{
+ const h=harness({mapsTab:true});const r=await h.send(launch,appSender);assert(r.ok,JSON.stringify(r));assert.equal(h.opened.length,0);assert.equal(h.updates.length,1);assert.equal(h.updates[0].id,4);assert.equal(h.updates[0].url,undefined);assert(h.state.lastResult.confirmed);assert.equal(h.state.searchOptions.mode,'maps');
+});
+test('job detail collection follows same-origin listing cards within the existing permission and visit bounds',async()=>{
+ const h=harness({details:true,catalog:true});h.state.lastRows=[{kind:'job',title:'Jobs listing',jobUrl:'https://careers.example/jobs/1',entryType:'link_only'}];h.state.lastSource={url:'https://www.google.com/search?q=jobs',adapter:'search',country:'EG'};
+ const r=await h.send({action:'details'});assert(r.ok,JSON.stringify(r));assert.equal(h.opened.length,2);assert.equal(h.opened[1].url,'https://careers.example/jobs/2');assert(h.state.lastResult.confirmed);
+});
+
+test('extension management only opens from the owned top-level app bridge; pending batches cannot silently switch accounts',async()=>{
+ const h=harness();assert.equal(await h.send({action:'openExtensions'},{...appSender,url:'https://attacker.test/app'}),null);assert.equal(h.opened.length,0);
+ assert((await h.send({action:'openExtensions'},appSender)).ok);assert.equal(h.opened[0].url,'chrome://extensions/');
+ const pending=harness({setup:true});pending.local.pendingImport={expectedUserId:'other',requestKey:'saved'};assert.equal((await pending.send({action:'bootstrap'})).ok,false);assert(pending.local.pendingImport);
 });

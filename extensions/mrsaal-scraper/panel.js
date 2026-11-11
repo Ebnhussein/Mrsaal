@@ -34,7 +34,10 @@ function renderActivity(state){
  $('live-latest').textContent=busy&&latest.length?words('آخر النتائج: ','Latest results: ')+latest.join(' · '):'';
 }
 function render(state){
- if(state.searchOptions?.id&&state.searchOptions.id!==sourceState.searchOptions?.id){const o=state.searchOptions;for(const id of ['query','country','city','limit'])if(o[id]!==undefined)$(id).value=o[id];if(o.workMode!==undefined)$('work-mode').value=o.workMode;$('auto-scroll').checked=o.autoScroll!==false;}
+ const maps=state.searchOptions?.mode==='maps'||(!state.searchOptions?.mode&&/\/maps(?:\/|$)/.test(state.sourceUrl||''));for(const [id,selected] of [['search-maps',maps],['search-jobs',!maps]]){$(id).classList.toggle('primary',selected);$(id).setAttribute('aria-pressed',String(selected));}
+ $('search-mode').textContent=maps?words('الوضع الحالي: شركات على Maps','Current mode: Maps companies'):words('الوضع الحالي: وظائف','Current mode: jobs');
+ if($('domain').previousElementSibling)$('domain').previousElementSibling.hidden=maps;$('domain').hidden=maps;
+ if(state.searchOptions?.id&&state.searchOptions.id!==sourceState.searchOptions?.id){const o=state.searchOptions;if(['ar','en'].includes(o.language)){language=o.language;applyLanguage();}for(const id of ['query','country','city','limit'])if(o[id]!==undefined)$(id).value=o[id];if(o.workMode!==undefined)$('work-mode').value=o.workMode;$('auto-scroll').checked=o.autoScroll!==false;}
  sourceState=state;account=state.account||null;
  $('account').textContent=account?.email||account?.name||words('الحساب غير مربوط','Account not connected');
  $('source').textContent=state.sourceTitle||words('افتح صفحة نتائج واضغط أيقونة مرسال في شريط المتصفح.','Open a results page and click the Mrsaal toolbar icon.');
@@ -69,7 +72,7 @@ async function prepareSource(grantedOrigin){
  if(!url||!/^https?:/.test(url))throw new Error(words('اختار صفحة النتائج من أيقونة الإضافة.','Choose the results page using the toolbar icon.'));
  if(new URL(url).origin!==grantedOrigin)throw new Error(words('الموقع اتغيّر؛ اختاره من أيقونة الإضافة مرة واحدة.','The site changed; select it once using the toolbar icon.'));return id;
 }
-function options(){return {limit:Number($('limit').value),autoScroll:$('auto-scroll').checked,selector:$('selector').value.trim(),kind:$('kind').value,query:$('query').value.trim(),country:$('country').value,language};}
+function options(){return {limit:Number($('limit').value),autoScroll:$('auto-scroll').checked,selector:$('selector').value.trim(),kind:$('kind').value,query:$('query').value.trim(),country:$('country').value,city:$('city').value.trim(),workMode:$('work-mode').value,language};}
 action('collect',async()=>{$('collect').disabled=true;try{const url=sourceState.sourceUrl;if(!url)throw new Error(words('اختار المصدر من أيقونة الإضافة مرة واحدة.','Select the source using the toolbar icon once.'));const origin=new URL(url).origin;await allowOrigin(origin);const sourceTabId=await prepareSource(origin);await send('collect',{...options(),sourceTabId});}finally{await refresh();}});
 action('retry-save',async()=>{try{await send('retryImport');}finally{await refresh();}});
 action('stop',()=>send('stop'));
@@ -79,14 +82,14 @@ const countryNames={EG:'Egypt',SA:'Saudi Arabia',AE:'United Arab Emirates',KW:'K
 async function search(maps){
  const query=$('query').value.trim();if(!query)throw new Error(words('اكتب المجال أو المسمى الوظيفي.','Enter an industry or job title.'));
  const country=countryNames[$('country').value],city=$('city').value.trim();
- let domain=$('domain').value.trim();if(domain&&!/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(domain))throw new Error(words('اكتب دومين فقط، مثل wuzzuf.net.','Enter a domain only, such as wuzzuf.net.'));
+ let domain=$('domain').value.trim();if(!maps&&domain&&!/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(domain))throw new Error(words('اكتب دومين فقط، مثل wuzzuf.net.','Enter a domain only, such as wuzzuf.net.'));
  const work={remote:'remote',hybrid:'hybrid',onsite:'on-site'}[$('work-mode').value]||'';
  const url=new URL(maps?'https://www.google.com/maps/search/':'https://www.google.com/search');
  if(maps){url.pathname+=encodeURIComponent([query,city,country].filter(Boolean).join(' '));}
  else url.searchParams.set('q',[query,'jobs',country,city,work,domain?'site:'+domain:''].filter(Boolean).join(' '));
  await allowOrigin(url.origin);
- await send('search',{url:url.href,options:options()});await refresh();
+ await send('search',{url:url.href,options:{...options(),mode:maps?'maps':'jobs'}});await refresh();
 }
 action('search-jobs',()=>search(false));action('search-maps',()=>search(true));
 chrome.storage.onChanged.addListener((changes,area)=>{if(area==='session'||area==='local'&&changes.pendingImport)refresh().catch(error=>setStatus(error.message,true));});
-(async()=>{const prefs=await chrome.storage.local.get('language');language=prefs.language==='en'?'en':'ar';applyLanguage();await refresh();})().catch(error=>setStatus(error.message,true));
+(async()=>{const prefs=await chrome.storage.local.get('language');language=prefs.language==='en'?'en':'ar';applyLanguage();try{render(await send('bootstrap'));}catch(error){await refresh();setStatus(error.message,true);}})().catch(error=>setStatus(error.message,true));

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Mrsaal Scraper",
   "description": "Collect companies and job listings from a page you choose and save them to your Mrsaal account.",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "minimum_chrome_version": "116",
   "permissions": [
     "activeTab",

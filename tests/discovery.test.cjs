@@ -25,6 +25,10 @@ test('imports isolate accounts, deduplicate repeat jobs/companies, keep sources 
   const unknown=await store.importRows('owner',validate.batch({rows:[{...job,companyName:'',jobUrl:'https://careers.example.test/jobs/2'}],source}));assert.equal(unknown.companiesAdded,0);assert.equal(unknown.jobsAdded,1);
   assert.equal((await db.get("SELECT company_id FROM discovered_jobs WHERE job_url LIKE '%/2'")).company_id,null);
   assert.equal((await db.get('SELECT COUNT(*) AS n FROM email_log')).n,0);assert.equal((await db.get('SELECT COUNT(*) AS n FROM campaigns')).n,0);
+  const placeA={...company,name:'Maps alias A',email:'',phone:'',location:'',sourceUrl:'https://www.google.com/maps/search/?query_place_id=ChIJstable'};
+  const placeB={...placeA,name:'Maps alias B',sourceUrl:'https://www.google.com/maps/place/renamed/data=!1sChIJstable'};
+  assert.equal((await store.importRows('other',validate.batch({rows:[placeA],source}))).companiesAdded,1);
+  assert.equal((await store.importRows('other',validate.batch({rows:[placeB],source}))).duplicates,1);
   // Resource limits roll back the entire batch, including earlier inserts.
   await pg.exec("UPDATE users SET company_limit=2 WHERE id='owner'");
   await assert.rejects(store.importRows('owner',validate.batch({rows:[{...company,name:'New A',phone:'',email:''},{...company,name:'New B',phone:'',email:''}],source})),e=>e.code==='RESOURCE_LIMIT');
