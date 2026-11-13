@@ -16,8 +16,8 @@ test('Gmail and WhatsApp attachment preview use actual saved PDF metadata',async
  const source=fs.readFileSync(path.join(__dirname,'../public/assets/app.js'),'utf8');const start=source.indexOf('async function refreshPreviewAttachment'),end=source.indexOf('async function previewChangeChannel',start);let label='',children=[];
  const el={hidden:false,set textContent(x){label=x;},get textContent(){return label;},replaceChildren(){children=[];},append(...x){children.push(...x);}};
  let pdf=true;
- const ctx={previewChannel:'whatsapp',prevCompanyId:'company',document:{getElementById:()=>el,createTextNode:x=>x,createElement:()=>({})},api:async()=>pdf?{has_attachment:true,filename:'cv.pdf'}:{has_attachment:false}};
- vm.runInNewContext(source.slice(start,end),ctx);await ctx.refreshPreviewAttachment('whatsapp','company');assert.equal(el.hidden,false);assert(children[0].includes('cv.pdf'));assert.equal(children[1].href,'/api/cv/pdf');pdf=false;await ctx.refreshPreviewAttachment('whatsapp','company');assert(label.includes('بدون مرفق'));
+ const ctx={previewChannel:'whatsapp',prevCompanyId:'company',document:{getElementById:()=>el,createTextNode:x=>x,createElement:()=>({})},api:async()=>pdf?{id:'cv',has_attachment:true,filename:'cv.pdf'}:{has_attachment:false}};
+ vm.runInNewContext(source.slice(start,end),ctx);await ctx.refreshPreviewAttachment('whatsapp','company');assert.equal(el.hidden,false);assert(children[0].includes('cv.pdf'));assert.equal(children[1].href,'/api/cv/attachment?cvId=cv');pdf=false;await ctx.refreshPreviewAttachment('whatsapp','company');assert(label.includes('بدون مرفق'));
 });
 test('preview generation enables sending after draft loads without referencing an undefined channel',async()=>{
  const source=fs.readFileSync(path.join(__dirname,'../public/assets/app.js'),'utf8');const start=source.indexOf('async function genPreview('),end=source.indexOf('function closePrev',start);const nodes=new Map();const node=id=>{if(!nodes.has(id))nodes.set(id,{style:{},dataset:{}});return nodes.get(id);};
