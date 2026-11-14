@@ -29,7 +29,7 @@ function createGateway(settings,fetcher=globalThis.fetch){
   async pair(id,phone){if(!/^[1-9]\d{7,14}$/.test(phone||''))throw fail('MRSAALWA_PHONE',400);const p=await request(path(id)+'/pairing-code','POST',{phoneNumber:phone});if(!/^[A-Z0-9-]{8,12}$/i.test(p.pairingCode||''))throw fail('MRSAALWA_RESPONSE');return p.pairingCode;},
   async send(id,number,content){
    const document=!!content.document;
-   try{const r=await request(path(id)+'/messages/send-'+(document?'document':'text'),'POST',document?{chatId:number+'@c.us',base64:content.document.toString('base64'),mimetype:'application/pdf',filename:content.fileName,caption:content.caption}:{chatId:number+'@c.us',text:content.text,linkPreview:false});
+   try{const r=await request(path(id)+'/messages/send-'+(document?'document':'text'),'POST',document?{chatId:number+'@c.us',base64:content.document.toString('base64'),mimetype:content.mimetype,filename:content.fileName,caption:content.caption}:{chatId:number+'@c.us',text:content.text,linkPreview:false});
     if(typeof r.messageId!=='string'||!r.messageId)throw fail('MRSAALWA_RESPONSE');
     return {messageId:r.messageId,threadId:r.messageId.match(/^(?:true|false)_(.+)_([^_]+)$/)?.[1]||number+'@c.us'};
    }catch{throw Object.assign(new Error('WA_SEND_UNCERTAIN'),{code:'WA_SEND_UNCERTAIN',status:502,deliveryUncertain:true});}

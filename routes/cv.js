@@ -9,6 +9,10 @@ const { get,all,run,pool } = require('../utils/db');
 const { replaceLatest } = require('../utils/user-records');
 const upload = multer({storage:multer.memoryStorage(),limits:{fileSize:20*1024*1024}});
 router.use(requireAuth);
+router.post('/builder/preview',asyncHandler(async(req,res)=>{const b=require('../utils/cv/builder'),d=b.normalize(req.body.profile);res.json({content:b.content(d),fingerprint:b.fingerprint(d),report:b.report(d,req.body.jobDescription||'')});}));
+router.post('/builder',asyncHandler(async(req,res)=>{const b=require('../utils/cv/builder'),d=b.normalize(req.body.profile);if(req.body.reviewed!==true||req.body.fingerprint!==b.fingerprint(d))return res.status(409).json({error:'راجع المعاينة بعد آخر تعديل قبل الحفظ.'});const id=await require('../utils/cv/store').save(req.session.userId,{content:b.content(d),filename:d.kind==='portfolio'?'Portfolio':'CV.docx',name:d.name+' · '+(d.kind==='portfolio'?'Portfolio':'CV'),kind:d.kind==='portfolio'?'portfolio':'builder',document_json:JSON.stringify(d)});res.json({ok:true,id});}));
+router.get('/builder/:id',asyncHandler(async(req,res)=>{const cv=await require('../utils/cv/store').active(req.session.userId,req.params.id);if(!cv?.document_json)return res.status(404).json({error:'الملف غير موجود'});res.set('Cache-Control','no-store');res.json({profile:JSON.parse(cv.document_json)});}));
+router.get('/attachment',asyncHandler(async(req,res)=>{const cv=await require('../utils/cv/store').active(req.session.userId,req.query.cvId||null),a=await require('../utils/cv/builder').attachment(cv);if(!a)return res.status(404).json({error:'لا يوجد مرفق لهذه النسخة'});res.set({'Content-Type':a.mimeType,'Content-Disposition':'attachment; filename="'+(cv.kind==='builder'?'CV.docx':'CV.pdf')+'"','Cache-Control':'no-store'});res.send(a.data);}));
 router.get('/summary',asyncHandler(async(req,res)=>{
  const cv=await require('../utils/cv/store').active(req.session.userId,req.query.cvId||null);if(!cv)return res.status(404).json({error:'السيرة غير موجودة'});
  const summary=require('../utils/cv/summary');const saved=summary.approved(cv);
@@ -22,7 +26,7 @@ router.post('/summary',asyncHandler(async(req,res)=>{
  if(!result.rowCount)return res.status(409).json({error:'السيرة تغيرت. افتح الملخص من جديد.'});res.json({ok:true});
 }));
 router.post('/summary/reset',asyncHandler(async(req,res)=>{await run("UPDATE cv_profiles SET ai_summary='',ai_summary_source_hash=NULL,ai_summary_approved_at=NULL WHERE id=$1 AND user_id=$2",[req.body.cvId,req.session.userId]);res.json({ok:true});}));
-router.get('/list',asyncHandler(async(req,res)=>res.json(await all('SELECT id,name,filename,created_at,(pdf_data IS NOT NULL) AS has_attachment,(id=COALESCE((SELECT active_cv_id FROM users WHERE id=$1),$2)) AS active FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC',[req.session.userId,'']))));
+router.get('/list',asyncHandler(async(req,res)=>res.json(await all('SELECT id,name,filename,created_at,kind,(kind=$$builder$$ OR pdf_data IS NOT NULL) AS has_attachment,(id=COALESCE((SELECT active_cv_id FROM users WHERE id=$1),$2)) AS active FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC',[req.session.userId,'']))));
 router.post('/select',asyncHandler(async(req,res)=>{if(!await get('SELECT id FROM cv_profiles WHERE user_id=$1 AND id=$2',[req.session.userId,req.body.id]))return res.status(404).json({error:'السيرة غير موجودة'});await run('UPDATE users SET active_cv_id=$1 WHERE id=$2',[req.body.id,req.session.userId]);res.json({ok:true});}));
 router.delete('/:id',asyncHandler(async(req,res)=>{
  const client=await pool.connect();
@@ -46,7 +50,7 @@ router.get('/pdf',asyncHandler(async(req,res)=>{
  res.send(cv.pdf_data);
 }));
 router.get('/', asyncHandler(async(req,res)=>{
- const cv=await require('../utils/cv/store').active(req.session.userId);res.json(cv?{id:cv.id,content:cv.content,filename:cv.filename,name:cv.name,created_at:cv.created_at,has_attachment:!!cv.pdf_data}:null);
+ const cv=await require('../utils/cv/store').active(req.session.userId);res.json(cv?{id:cv.id,content:cv.content,filename:cv.filename,name:cv.name,created_at:cv.created_at,has_attachment:cv.kind==='builder'||!!cv.pdf_data,kind:cv.kind}:null);
 }));
 router.post('/upload',upload.single('cv'),asyncHandler(async(req,res)=>{
  if(!req.file)return res.status(400).json({error:'لا يوجد ملف'});

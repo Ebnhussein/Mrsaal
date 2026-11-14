@@ -15,9 +15,9 @@ function buildWhatsAppContent(body,attachment){
  const text=formatWhatsAppText(body);
  if(!attachment)return {text};
  if(!Buffer.isBuffer(attachment.data)||!attachment.data.length)throw new Error('ملف السيرة الذاتية غير صالح. أعد رفع PDF.');
- if(attachment.mimeType&&attachment.mimeType!=='application/pdf')throw new Error('مرفق السيرة الذاتية يجب أن يكون PDF.');
+ if(attachment.mimeType&&!['application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(attachment.mimeType))throw new Error('مرفق السيرة الذاتية يجب أن يكون PDF.');
  let filename=String(attachment.filename||'CV.pdf').replace(/[\r\n\x00-\x1f/\\]/g,'').slice(0,150)||'CV.pdf';
- if(!/\.pdf$/i.test(filename))filename+='.pdf';
- return {document:attachment.data,mimetype:'application/pdf',fileName:filename,caption:text};
+ const mime=attachment.mimeType||'application/pdf',ext=mime==='application/pdf'?'.pdf':'.docx';if(!filename.toLowerCase().endsWith(ext))filename+=ext;
+ return {document:attachment.data,mimetype:mime,fileName:filename,caption:text};
 }
 module.exports={formatWhatsAppText,buildWhatsAppContent};

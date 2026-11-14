@@ -1427,5 +1427,12 @@
   "سيب مرسال مفتوح وسجّل دخولك. افتح الإضافة؛ الحساب والإعدادات بيتقروا تلقائيًا من مرسال. تأكد من الإيميل الظاهر.": "Keep Mrsaal open and signed in. The extension reads your account and settings automatically. Check the displayed email.",
   "حدّث الإضافة إلى 0.6.0 أو أحدث، ثم حدّث صفحة مرسال.": "Update the extension to 0.6.0 or later, then refresh Mrsaal.",
   "البريد الإلكتروني": "Email",
-  "اختار متصفحك من الأزرار بالأسفل لتثبيت الإضافة على الكمبيوتر. تقدر تراجع النتائج من الموبايل.": "Choose your browser below to install the desktop extension. Review results on mobile too."
+  "اختار متصفحك من الأزرار بالأسفل لتثبيت الإضافة على الكمبيوتر. تقدر تراجع النتائج من الموبايل.": "Choose your browser below to install the desktop extension. Review results on mobile too.",
+  "CV أو برتفوليو": "CV or portfolio",
+  "جهّز CV خطوة بخطوة أو اختار أعمالك للتقديم كفريلانسر.": "Build a CV step by step or choose your work to apply as a freelancer.",
+  "جهّز ملف التقديم": "Set up your application profile",
+  "عندك CV جاهز؟ ارفعه هنا": "Already have a CV? Upload it here",
+  "كتابة السيرة كنص يدويًا": "Enter your CV as plain text",
+  "جهّز CV أو برتفوليو الأول عشان نكتب رسالة تعبّر عنك": "Create a CV or portfolio profile first so we can write a message that represents you.",
+  "ملف التقديم": "Application profile"
 }

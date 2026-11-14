@@ -81,8 +81,9 @@ function buildMimeMessage({ from, to, subject, body, trackingPixelUrl, attachmen
   if(attachment){
     const bytes=attachment.data;
     if(!Buffer.isBuffer(bytes)||!bytes.length)throw new Error('ملف السيرة الذاتية غير صالح. أعد رفع PDF.');
+    const mime=attachment.mimeType||'application/pdf';if(!['application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(mime))throw new Error('نوع المرفق غير مدعوم.');
     const filename=String(attachment.filename||'CV.pdf').replace(/[\r\n\x00-\x1f]/g,'').slice(0,150);
-    message.push(`--${mixed}`,`Content-Type: application/pdf; name="=?UTF-8?B?${Buffer.from(filename).toString('base64')}?="`,'Content-Disposition: attachment;',` filename*=UTF-8\'\'${encodeURIComponent(filename).replace(/['()*]/g,c=>'%'+c.charCodeAt(0).toString(16))}`,'Content-Transfer-Encoding: base64','',fold(bytes),'');
+    message.push(`--${mixed}`,`Content-Type: ${mime}; name="=?UTF-8?B?${Buffer.from(filename).toString('base64')}?="`,'Content-Disposition: attachment;',` filename*=UTF-8\'\'${encodeURIComponent(filename).replace(/['()*]/g,c=>'%'+c.charCodeAt(0).toString(16))}`,'Content-Transfer-Encoding: base64','',fold(bytes),'');
   }
   message.push(`--${mixed}--`,'');
   return Buffer.from(message.join('\r\n')).toString('base64url');
