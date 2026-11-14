@@ -1,6 +1,6 @@
 /* Shared bilingual guide for tours, help search and the product assistant. */
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.MrsaalGuide=factory();})(typeof window!=='undefined'?window:globalThis,function(){return {
-  "version": "2026-10-19-product-copy",
+  "version": "2026-11-14-profile-builder",
   "tours": {
     "home": [
       {
@@ -240,32 +240,32 @@
     ],
     "settings-cv": [
       {
-        "id": "cv-zone",
-        "title": "ارفع ملفًا قابلًا للقراءة",
-        "body": "PDF أو TXT حتى 20 MB. على الموبايل استخدم تطبيق الملفات ونزّل الملف من Drive أو واتساب أولًا. لو لا يظهر في الاختيار استخدم اختيار كل الملفات.",
-        "title_en": "Upload a readable document",
-        "body_en": "Upload a PDF or TXT up to 20 MB. On mobile, download the file first and use Files or Browse all files if it is not visible."
+        "id": "pb-mode-picker",
+        "title": "اختار طريقة التقديم",
+        "body": "ابنِ CV للوظائف، أو اختار التقديم بالبرتفوليو للفريلانسرز. لكل وضع مسودته المستقلة.",
+        "title_en": "Choose how you apply",
+        "body_en": "Build a CV for jobs, or choose portfolio applications for freelance work. Each mode keeps its own draft."
       },
       {
-        "id": "cv-status",
-        "title": "استنى نتيجة الرفع",
-        "body": "رسالة النجاح معناها إن النص اتقرأ واتحفظ. لو الملف تالف أو مصوّر بدون نص، هتظهر رسالة خطأ، وتظل السيرة السابقة محفوظة. جرّب استخراج النص أو ملفًا آخر.",
-        "title_en": "Wait for upload confirmation",
-        "body_en": "Success means readable text was saved. A corrupted or scanned PDF with no text shows an error and keeps your previous CV."
+        "id": "pb-step-navigation",
+        "title": "جهّز ملفك خطوة بخطوة",
+        "body": "اكتب بياناتك الحقيقية. هتظهر ملاحظات الحقول في مكانها، وتقدر ترجع لأي خطوة سابقة قبل الحفظ.",
+        "title_en": "Build your profile step by step",
+        "body_en": "Enter your actual details. Field errors appear in place, and you can return to earlier steps before saving."
       },
       {
-        "id": "cv-text",
-        "title": "راجع النص قبل الكتابة",
-        "body": "تأكد إن اسمك وخبراتك والأرقام واضحة. مرسال يستخدم النص ده في AI؛ استخراج PDF قد يغيّر ترتيب السطور، فراجع النتيجة بنفسك.",
-        "title_en": "Review extracted text",
-        "body_en": "Check your name, experience and numbers. PDF extraction may reorder lines, so review the text before using it for AI writing."
+        "id": "pb-actions",
+        "title": "راجع قبل الحفظ",
+        "body": "المعاينة وفحص ATS إرشاديان؛ لا يضمنان القبول. بعد الحفظ، الـCV بيتنزل Word والبرتفوليو بيستخدم روابط الأعمال بدون مرفق CV.",
+        "title_en": "Review before saving",
+        "body_en": "Preview and ATS checks are advisory, not an acceptance guarantee. Save to download a Word CV, or use project links with no CV attachment in portfolio mode."
       },
       {
-        "id": "cv-text",
-        "title": "الحفظ اليدوي يحافظ على المرفق",
-        "body": "رفع PDF يحفظ النص والمرفق. تعديل النص وحفظه يحافظ على PDF الأصلي ويُرفق بالإيميل أو واتساب؛ تعديل النص لا يغيّر محتوى ملف PDF نفسه. لو السيرة نص فقط ارفع PDF لإرفاقه. ملفات PDF المصوّرة تحتاج OCR خارج مرسال حاليًا.",
-        "title_en": "Text edits keep your PDF",
-        "body_en": "Saving edited text keeps the original PDF attachment. It does not change the PDF contents. Upload a PDF if your CV is text-only. Scanned PDFs need OCR outside Mrsaal."
+        "id": "cv-versions",
+        "title": "اختار النسخة المستخدمة",
+        "body": "اختيار نسخة محفوظة يحدد طريقة التقديم. النسخ القديمة محفوظة؛ تعديل نسخة يبني نسخة جديدة بعد المراجعة.",
+        "title_en": "Select the active version",
+        "body_en": "A saved version determines your application mode. Older versions remain available; editing a copy creates a new version after review."
       }
     ],
     "settings-channels": [
@@ -465,13 +465,13 @@
     },
     {
       "id": "cv",
-      "title": "رفع السيرة من الموبايل",
-      "keywords": "pdf سيرة cv موبايل ملف ملخص تلخيص بطء اسرع مساحة ملفات حد تخزين",
-      "answer": "1. ارفع ملفًا قابلًا للقراءة: PDF أو TXT حتى 20 MB. على الموبايل استخدم تطبيق الملفات ونزّل الملف من Drive أو واتساب أولًا. لو لا يظهر في الاختيار استخدم اختيار كل الملفات.\n\n2. استنى نتيجة الرفع: رسالة النجاح معناها إن النص اتقرأ واتحفظ. لو الملف تالف أو مصوّر بدون نص، هتظهر رسالة خطأ، وتظل السيرة السابقة محفوظة. جرّب استخراج النص أو ملفًا آخر.\n\n3. راجع النص قبل الكتابة: تأكد إن اسمك وخبراتك والأرقام واضحة. مرسال يستخدم النص ده في AI؛ استخراج PDF قد يغيّر ترتيب السطور، فراجع النتيجة بنفسك.\n\n4. الحفظ اليدوي يحافظ على المرفق: رفع PDF يحفظ النص والمرفق. تعديل النص وحفظه يحافظ على PDF الأصلي ويُرفق بالإيميل أو واتساب؛ تعديل النص لا يغيّر محتوى ملف PDF نفسه. لو السيرة نص فقط ارفع PDF لإرفاقه. ملفات PDF المصوّرة تحتاج OCR خارج مرسال حاليًا.\n\nملخص السيرة: في الإعدادات → السيرة الذاتية هتلاقي «ملخص السيرة للكتابة الأسرع». الاقتراح مقتبس من نص السيرة وليس تحليل AI؛ راجعه وأضف أي خبرة ناقصة، ثم أكد صحته واضغط اعتمد الملخص. مرسال AI المحلي يستخدم الملخص المعتمد بدل النص الطويل؛ PDF الأصلي يظل للمرفقات. لكل نسخة ملخص منفصل. «استخدم النص الكامل» يلغي اعتماد الملخص.\n\nمساحة ملفات الحساب تظهر بجانب ملخص السيرة. الافتراضي 100 MB للملفات والنصوص مجتمعة، وحد النسخ حسب الباقة؛ تجاوز الحد لا يمسح نسخًا موجودة. احذف نسخة قديمة أو تواصل مع الدعم لزيادة الحد.",
+      "title": "إنشاء CV أو التقديم بالبرتفوليو",
+      "keywords": "pdf سيرة cv موبايل ملف ملخص تلخيص بطء اسرع مساحة ملفات حد تخزين برتفوليو فريلانسر بورتفوليو word إنشاء رفع السي في",
+      "answer": "من CV / Portfolio، اختار إنشاء CV للوظائف أو التقديم بالبرتفوليو للفريلانسرز. لكل وضع مسودته المستقلة. اكتب البيانات والخبرات أو روابط الأعمال الحقيقية، ثم راجع المعاينة واحفظ نسخة لاستخدامها في التقديم. إنشاء المسودة لا يغير النسخة المستخدمة إلا بعد الحفظ. الـCV الجديد بيتنزل Word، والبرتفوليو بيضيف روابط الأعمال للرسالة بدون مرفق CV. فحص ATS ومقارنة كلمات وصف الوظيفة إرشاديان، وليسا ضمان قبول. تقدر تبدّل النسخة المستخدمة من النسخ المحفوظة، أو تعدّل نسخة وتحتفظ بالقديمة.\n\nعندك ملف جاهز؟ افتح «عندك CV جاهز؟ ارفعه هنا». PDF أو TXT حتى 20 MB. نزّل الملف من Drive أو واتساب على الجهاز أولًا. ملفات PDF المصوّرة تحتاج OCR خارجي. راجع النص المستخرج؛ فشل القراءة يحافظ على النسخة السابقة. تعديل نص PDF يحافظ على الملف الأصلي ولا يغيّر محتواه. استخدم تعديل نسخة لملفات Word والبرتفوليو علشان التصدير والرسالة يفضلوا متطابقين.\n\nملخص السيرة للكتابة الأسرع: راجع الحقائق ثم أكد صحتها واضغط اعتمد الملخص. الحد 1800 حرف، ولكل نسخة ملخص منفصل. مرسال AI المحلي يستخدم الملخص المعتمد للملفات الطويلة. اعتماد الملخص لا يغير ملف Word أو PDF الأصلي ولا يضيف مرفقًا للبرتفوليو.",
       "action": "cv",
-      "title_en": "Upload a CV from mobile",
-      "answer_en": "In Settings → CV & documents, upload a PDF or TXT up to 20 MB. Download files from Drive or WhatsApp to your device first and use Browse all files if needed. A readable PDF saves both text and the attachment. Scanned PDFs require external OCR. Review extracted text. Saving text edits keeps the original PDF but does not change its contents. If your CV is text-only, upload a PDF to include an attachment. Failed parsing preserves the previous CV. In Settings → CV, review CV summary for faster writing. This candidate is extracted text, not AI analysis. Add missing facts, confirm accuracy and approve. Local Mrsaal AI then uses the approved summary while the original PDF remains the attachment. Each version has its own summary. Use full CV text resets approval. Storage usage appears beside the CV summary. The default account quota is 100 MB for saved files and text combined, with version counts based on plan. Limits never remove existing versions. Delete an older version or contact support to increase the quota.",
-      "keywords_en": "pdf cv resume mobile upload attachment document summary summarise slow faster storage quota space"
+      "title_en": "Build a CV or apply with a portfolio",
+      "answer_en": "Open CV / Portfolio. Choose Build a CV for jobs or Apply with a portfolio for freelance work. Each mode keeps its own draft. Enter real details and experience or project links, review the preview, then save a new version to select it for applications. Drafts do not change the active version. Generated CVs download as Word documents; portfolio applications include project links without a CV attachment. ATS checks and job-description word comparison are advisory, not acceptance guarantees. Select an existing saved version to switch modes, or edit a copy while keeping the old version.\n\nAlready have a file? Expand Already have a CV? Upload it here. PDF and TXT files up to 20 MB are supported. Download files from Drive or WhatsApp first. Scanned PDFs require external OCR. Review extracted text; failed parsing preserves your previous version. Text edits preserve the original uploaded PDF rather than modifying its contents. Use Edit a copy for generated Word CVs and portfolios to keep exports and message facts consistent.\n\nFor faster local AI writing, review the factual summary and confirm it, then choose Approve summary. The limit is 1800 characters and each version has a separate summary. Approving a summary does not change the original Word or PDF file or add a CV attachment in portfolio mode.",
+      "keywords_en": "pdf cv resume mobile upload attachment document summary summarise slow faster storage quota space portfolio freelance word docx builder"
     },
     {
       "id": "companies",

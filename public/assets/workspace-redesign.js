@@ -16,7 +16,7 @@
    b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
   });
   if(page==='settings'){
-   const label={template:'الرسائل',cv:'السيرة الذاتية',channels:'قنوات التواصل',ai:'منصات الذكاء الاصطناعي',account:'الإعدادات'}[activeSetting];
+   const label={template:'الرسائل',cv:'ملف التقديم',channels:'قنوات التواصل',ai:'منصات الذكاء الاصطناعي',account:'الإعدادات'}[activeSetting];
    const heading=document.querySelector('#page-settings .ph h1');if(label){heading.textContent=t(label);document.getElementById('workspace-current').textContent=t(label);}
   }
   const channelReady=waState==='connected'||(typeof gmailAccounts!=='undefined'&&gmailAccounts.some(a=>a.connected));

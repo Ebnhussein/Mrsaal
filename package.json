@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "trial:scraper": "node ops/scraper-trial/server.cjs",
     "build:scraper": "node scripts/build-scraper-extension.cjs",
-    "build:scraper:official": "node scripts/build-scraper-extension.cjs --origin https://mrsaal.ebnhussein.co --out .mrsaal-trial/official-extension"
+    "build:scraper:official": "node scripts/build-scraper-extension.cjs --origin https://mrsaal.ebnhussein.co --out .mrsaal-trial/official-extension",
+    "trial:profiles": "node tests/browser/helpers/profile-fixture.cjs"
   },
   "dependencies": {
     "@google/genai": "^2.30.0",

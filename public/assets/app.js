@@ -150,10 +150,10 @@ function renderCVVersions(){
  const host=document.getElementById('cv-versions');if(!host)return;
  host.replaceChildren();host.dataset.userContent='';
  const heading=document.createElement('h3');heading.textContent=cvLabel('نسخك المحفوظة','Your saved versions');host.append(heading);
- const hint=document.createElement('p');hint.className='hint';hint.textContent=cvLabel('النسخة المستخدمة هي اللي بتُرفق عند الإرسال. رفع نسخة جديدة لا يحذف القديمة.','The active version is attached when sending. Uploading a new version keeps older versions.');host.append(hint);
+ const hint=document.createElement('p');hint.className='hint';hint.textContent=cvLabel('النسخة المستخدمة بتحدد بيانات الرسالة والمرفق. البرتفوليو بيستخدم روابط أعمالك بدون مرفق CV.','The active version sets message facts and the attachment. Portfolio mode uses project links without a CV.');host.append(hint);
  if(!cvVersions.length){const empty=document.createElement('p');empty.className='hint';empty.textContent=cvLabel('لسه مفيش نسخ محفوظة.','No saved versions yet.');host.append(empty);return;}
  for(const cv of cvVersions){
-  const active=cv.id===cvCurrentId,row=document.createElement('div');row.className='cv-version-row'+(active?' is-active':'');
+  const active=cv.id===cvCurrentId,row=document.createElement('div');row.className='cv-version-row'+(active?' is-active':'');row.dataset.cvId=cv.id;
   const info=document.createElement('div');info.className='cv-version-info';const name=document.createElement('strong');name.dir='auto';name.textContent=cv.name||cv.filename||cvLabel('سيرة نصية','Text CV');info.append(name);
   const meta=document.createElement('small');const date=new Date(Number(cv.created_at)*1000);meta.textContent=(cv.kind==='portfolio'?'Portfolio':cv.kind==='builder'?'Word CV':cv.has_attachment?'PDF':cvLabel('نص فقط','Text only'))+(Number.isNaN(date.getTime())?'':' · '+date.toLocaleString(document.documentElement.lang==='en'?'en-GB':'ar-EG',{dateStyle:'medium',timeStyle:'short'}));info.append(meta);
   const actions=document.createElement('div');actions.className='cv-version-actions';
@@ -171,7 +171,7 @@ async function loadCV() {
   cvCurrentId=cv?.id||null;
   window.MrsaalCVSummary?.render(cv);
   document.getElementById('cv-status').innerHTML=cv?pill(cv.filename||'نص السيرة',cv.kind==='portfolio'?cvLabel('تقديم بالبرتفوليو — روابط أعمالك بدون مرفق CV','Portfolio applications — project links, no CV attachment'):cv.kind==='builder'?cvLabel('Word CV جاهز ويُرفق عند الإرسال','Word CV ready and attached when sending'):cv.has_attachment?'PDF محفوظ ويُرفق تلقائيًا بالإيميل':'نص فقط — ارفع PDF لإرفاقه بالإيميل'):'';
-  const structured=['builder','portfolio'].includes(cv?.kind);document.getElementById('cv-text').readOnly=structured;const textSave=document.getElementById('save-cv-text');if(textSave)textSave.disabled=structured;
+  const structured=['builder','portfolio'].includes(cv?.kind);document.getElementById('cv-text').readOnly=structured;const manual=document.getElementById('cv-manual-edit');if(manual)manual.hidden=structured;const textSave=document.getElementById('save-cv-text');if(textSave)textSave.disabled=structured;
   cvReady=!!cv?.content?.trim();document.getElementById('cv-text').value=cv?.content||'';refreshWorkspace();
   try{const rows=await api('/api/cv/list');if(revision!==cvLoadRevision)return;cvVersions=rows;renderCVVersions();}catch(e){const host=document.getElementById('cv-versions');if(host){host.replaceChildren();const retry=document.createElement('button');retry.type='button';retry.className='btn btn-secondary';retry.textContent=cvLabel('تعذر تحميل النسخ — إعادة المحاولة','Could not load versions — retry');retry.onclick=()=>loadCV();host.append(retry);}}
  } catch(e){toast(e.message,'error');}
