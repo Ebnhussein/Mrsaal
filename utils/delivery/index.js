@@ -15,10 +15,12 @@ async function deliver(userId,{companyId,channel,subject='',body,senderAccountId
  const user=await get('SELECT * FROM users WHERE id=$1',[userId]);
  const account=channel==='email'?await require('../gmail/accounts').resolveAccount(userId,senderAccountId):null;
  const cv=await require('../cv/store').active(userId,cvId);if(cvId&&!cv)throw new Error('السيرة المحددة لم تعد متاحة');
- const attachment=['builder','portfolio','docx'].includes(cv?.kind)?await require('../cv/builder').attachment(cv):cv?.pdf_data?{data:cv.pdf_data,filename:cv.filename||'CV.pdf',mimeType:'application/pdf'}:null;
+ if(cv?.kind==='tailored')require('../cv/tailor').validate(cv,company);
+ const attachment=['builder','portfolio','docx','tailored'].includes(cv?.kind)?await require('../cv/builder').attachment(cv):cv?.pdf_data?{data:cv.pdf_data,filename:cv.filename||'CV.pdf',mimeType:'application/pdf'}:null;
  const waConnection=channel==='whatsapp'?await require('../whatsapp/service').requireConnected(userId):null;
  const to=channel==='email'?company.email:company.phone;
  await run(`INSERT INTO email_log(id,user_id,company_id,company_name,company_email,subject,body,status,channel,sender_account_id,sender_email) VALUES($1,$2,$3,$4,$5,$6,$7,'processing',$8,$9,$10) ON CONFLICT(id) DO UPDATE SET status='processing',subject=EXCLUDED.subject,body=EXCLUDED.body`,[logId,userId,companyId,company.name,to,subject,body,channel,account?.gmail_account_id||null,account?.email||null]);
+ if(cv?.id)await run('UPDATE email_log SET cv_id=$1 WHERE id=$2 AND user_id=$3',[cv.id,logId,userId]);
  await run('UPDATE delivery_attempts SET log_id=$1 WHERE id=$2',[logId,attempt.id]);
  enteredProvider=true;
  const sent=channel==='email'?await require('../gmail/client').sendEmail({user,account,to,subject,body,attachment,trackingPixelUrl:(process.env.BASE_URL||'https://mrsaal.ebnhussein.co').replace(/\/$/,'')+'/track/open/'+logId+'.gif'}):await require('../whatsapp/service').sendWhatsAppMessage(userId,to,body,attachment,waConnection?.provider);

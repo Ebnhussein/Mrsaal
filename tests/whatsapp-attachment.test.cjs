@@ -12,15 +12,13 @@ test('WhatsApp text-only remains supported; invalid PDF is rejected instead of s
 test('long single-line WhatsApp gains paragraphs without adding or losing words',()=>{
  const original=('This is my professional experience and my real work history. ').repeat(8).trim(),formatted=formatWhatsAppText(original);assert(formatted.includes('\n\n'));assert.equal(formatted.replace(/\s+/g,' '),original);
 });
-test('Gmail and WhatsApp attachment preview use actual saved PDF metadata',async()=>{
- const source=fs.readFileSync(path.join(__dirname,'../public/assets/app.js'),'utf8');const start=source.indexOf('async function refreshPreviewAttachment'),end=source.indexOf('async function previewChangeChannel',start);let label='',children=[];
- const el={hidden:false,set textContent(x){label=x;},get textContent(){return label;},replaceChildren(){children=[];},append(...x){children.push(...x);}};
- let pdf=true;
- const ctx={previewChannel:'whatsapp',prevCompanyId:'company',document:{getElementById:()=>el,createTextNode:x=>x,createElement:()=>({})},api:async()=>pdf?{id:'cv',has_attachment:true,filename:'cv.pdf'}:{has_attachment:false}};
- vm.runInNewContext(source.slice(start,end),ctx);await ctx.refreshPreviewAttachment('whatsapp','company');assert.equal(el.hidden,false);assert(children[0].includes('cv.pdf'));assert.equal(children[1].href,'/api/cv/attachment?cvId=cv');pdf=false;await ctx.refreshPreviewAttachment('whatsapp','company');assert(label.includes('بدون مرفق'));
+test('Gmail and WhatsApp preview prepare and pin the company-specific file',async()=>{
+ const source=fs.readFileSync(path.join(__dirname,'../public/assets/app.js'),'utf8');const start=source.indexOf('async function refreshPreviewAttachment'),end=source.indexOf('async function previewChangeChannel',start);const host={hidden:true},calls=[];
+ const ctx={previewChannel:'whatsapp',prevCompanyId:'company',previewSendKey:'key',crypto:{randomUUID:()=> 'new-key'},window:{MrsaalTailoredCV:{mount:async(el,options)=>{calls.push(options);options.onReady({id:'tailored-cv'});}}},document:{getElementById:()=>host},previewEdited(){},api:async()=>({id:'source-cv'})};
+ vm.runInNewContext(source.slice(start,end),ctx);await ctx.refreshPreviewAttachment('whatsapp','company');assert.equal(host.hidden,false);assert.equal(calls[0].companyId,'company');assert.equal(calls[0].cvId,'source-cv');assert.equal(ctx.previewCVId,'tailored-cv');assert.equal(ctx.previewAttachmentReady,true);calls[0].onReady(null);assert.equal(ctx.previewAttachmentReady,false);
 });
 test('preview generation enables sending after draft loads without referencing an undefined channel',async()=>{
  const source=fs.readFileSync(path.join(__dirname,'../public/assets/app.js'),'utf8');const start=source.indexOf('async function genPreview('),end=source.indexOf('function closePrev',start);const nodes=new Map();const node=id=>{if(!nodes.has(id))nodes.set(id,{style:{},dataset:{}});return nodes.get(id);};
- const ctx={window:{},previewRequest:0,prevCompanyId:'company',previewChannel:'whatsapp',document:{getElementById:node,querySelector:node},api:async()=>({channel:'whatsapp',body:'Draft\n\nThank you'}),previewEdited(){},writingBusy(){},writingReview(){},toast(){}};
+ const ctx={previewAttachmentTask:null,previewAttachmentReady:true,window:{},previewRequest:0,prevCompanyId:'company',previewChannel:'whatsapp',document:{getElementById:node,querySelector:node},api:async()=>({channel:'whatsapp',body:'Draft\n\nThank you'}),previewEdited(){},writingBusy(){},writingReview(){},toast(){}};
  vm.runInNewContext(source.slice(start,end),ctx);await ctx.genPreview('company');assert.equal(node('btn-confirm').disabled,false);assert.equal(node('#preview-overlay .modal').dataset.channel,'whatsapp');assert.equal(node('prev-body').value,'Draft\n\nThank you');
 });

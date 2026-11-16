@@ -2,6 +2,10 @@
 const translations=require('../error-translations.json');
 const reverse=new Map(Object.entries(translations).map(([ar,en])=>[en,ar]));
 const messages={
+ CV_TAILOR_REQUIRED:['جهز وراجع نسخة السيرة المخصصة للشركة قبل الإرسال.','Prepare and review this company’s tailored CV before sending.'],
+ CV_TAILOR_COMPANY:['نسخة السيرة مخصصة لشركة مختلفة. افتح معاينة الشركة من جديد.','This CV belongs to another company. Open the correct company preview again.'],
+ CV_TAILOR_INPUT:['راجع السيرة والمسمى ووصف الوظيفة وإعلان الشركة المختار.','Check the CV, target role, job description and selected company job.'],
+ CV_TAILOR_UNREADABLE:['المرفق غير مقروء بالكامل. ارفع نسخة نصية كاملة قبل تخصيص السيرة.','The attachment is not fully readable. Upload a complete text-based CV before tailoring it.'],
  CAMPAIGN_ALREADY_SENT:['خيار تخطي الرسائل المُرسلة مفعّل، وكل الشركات المختارة أُرسل لها على الوسائل المتاحة. اقفله لو تقصد تجهيز رسائل جديدة.','Skip previously sent messages is enabled, and the selected companies have already been contacted on their available channels. Turn it off to prepare new messages.'],
  CAMPAIGN_SELECTION_STALE:['قائمة الشركات المختارة مش متاحة في الحساب الحالي. حدّث قائمة الشركات وحدّدها من جديد.','The selected companies are unavailable in the current account. Refresh your company list and select them again.'],
  CAMPAIGN_INPUT:['اختار وسيلة إرسال صحيحة ومن 1 إلى 500 شركة، وراجع خيارات الإرسال.','Choose a valid sending channel and 1–500 companies, and check the sending options.'],
