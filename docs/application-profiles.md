@@ -33,7 +33,7 @@ Deploy the feature branch separately for review before rolling it out to users. 
 
 The editor has four guarded steps, inline validation with focus on the first error, an updating text preview, independent drafts for CV and portfolio modes, and undo for removed entries. Empty optional entries are omitted; a portfolio requires a linked work sample. Saving explicitly selects a new version; switching editor modes does not switch the currently selected saved version. Unsaved edits remain in memory when changing steps, modes, language or settings, with a browser warning before leaving. Drafts are not persisted across a page reload.
 
-Existing PDF/TXT uploads and manual text entry are separate expandable sections. Generated documents and portfolios are edited as copies so the saved export and application facts stay consistent.
+Existing PDF/DOCX/TXT uploads and manual text entry are separate expandable sections. Generated documents and portfolios are edited as copies so the saved export and application facts stay consistent.
 
 For an isolated local review with sample data and simulated sending providers:
 
@@ -49,3 +49,19 @@ The integrated browser suite runs the real workspace HTML/scripts and real CV, w
 Preview from the integrated local QA flow (sample data):
 
 ![Application profile editor](screenshots/application-profile-desktop.png)
+
+## ATS checks for every saved CV
+
+A shared `POST /api/cv/ats` endpoint inspects the owner-selected immutable CV version. It works for generated CVs and uploaded PDF, Word DOCX and TXT files. New uploads automatically show the ATS panel; each saved CV also has a Check ATS action that does not select it for sending. Portfolio mode is excluded.
+
+Generated CVs are actually rendered and read back as DOCX; uploaded attachments are parsed from their original bytes, rather than trusting edited saved text. The panel explicitly warns when the saved text differs. PDF layout and uploaded date correctness remain manual-review items. DOCX checks inspect table/column/text-box/image/header/footer markers; those checks do not certify a full visual layout. Job comparison uses normalised literal tokens, including technical terms and Arabic characters, with no vendor ATS score or acceptance guarantee.
+
+The PDF reader uses a copied Uint8Array to avoid Buffer/xref failures in the legacy parser. Parsing is bounded to 20 pages and 200,000 text characters. Partial or textless pages cannot pass the text check; new partial/unreadable uploads retain the previous active version. DOCX XML is bounded while streaming, external entities/macros/embedded binary parts are rejected, and no external document links are fetched. Per-account concurrent ATS requests are limited. Reports are authenticated and marked private/no-store.
+
+New DOCX attachments use additive attachment-data/MIME columns; old PDFs stay in the existing PDF column. Original Word bytes and filenames are retained for downloads and both sending channels, including when saved text is edited. Storage limits count attachment bytes.
+
+`tests/cv-ats.test.cjs` exercises real PDF/DOCX parsing, Arabic/English round trips, scanned/partial/corrupt/oversized input, source mismatch, keyword boundaries, owner isolation, and preserving old data on failure. `tests/browser/cv-ats.cjs` runs PDF upload, generated CV checking, Word reupload, older-version checks, original text review, job comparison, failure/retry and mobile AR/EN flows through the real workspace/router fixture.
+
+ATS panel from the integrated upload flow (sample data):
+
+![Uploaded CV ATS review](screenshots/cv-ats-upload-ar.png)
