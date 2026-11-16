@@ -67,8 +67,13 @@ async function ensureLaunchSchema(){await run(`
  ALTER TABLE cv_profiles ADD COLUMN IF NOT EXISTS document_json TEXT;
  ALTER TABLE cv_profiles ADD COLUMN IF NOT EXISTS attachment_data BYTEA;
  ALTER TABLE cv_profiles ADD COLUMN IF NOT EXISTS attachment_mime TEXT;
+ ALTER TABLE cv_profiles ADD COLUMN IF NOT EXISTS tailoring_json JSONB;
+ CREATE UNIQUE INDEX IF NOT EXISTS cv_tailored_key ON cv_profiles(user_id,(tailoring_json->>'key')) WHERE kind='tailored';
  CREATE TABLE IF NOT EXISTS campaigns(id TEXT PRIMARY KEY,user_id TEXT REFERENCES users(id) ON DELETE CASCADE,status TEXT NOT NULL DEFAULT 'draft',channel TEXT NOT NULL CHECK(channel IN ('email','whatsapp')),sender_account_id TEXT,cv_id TEXT,delay_seconds INTEGER NOT NULL DEFAULT 5,next_at TIMESTAMPTZ DEFAULT NOW(),created_at TIMESTAMPTZ DEFAULT NOW());
  CREATE TABLE IF NOT EXISTS campaign_items(id TEXT PRIMARY KEY,campaign_id TEXT REFERENCES campaigns(id) ON DELETE CASCADE,company_id TEXT,company_name TEXT,recipient TEXT,subject TEXT NOT NULL DEFAULT '',body TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'draft',reason TEXT,message_id TEXT,updated_at TIMESTAMPTZ DEFAULT NOW());
+ ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS tailor_cv BOOLEAN NOT NULL DEFAULT false;
+ ALTER TABLE campaign_items ADD COLUMN IF NOT EXISTS cv_id TEXT;
+ ALTER TABLE email_log ADD COLUMN IF NOT EXISTS cv_id TEXT;
  CREATE INDEX IF NOT EXISTS campaigns_due ON campaigns(status,next_at);
  CREATE INDEX IF NOT EXISTS campaign_items_queue ON campaign_items(campaign_id,status);
  UPDATE delivery_attempts SET status='uncertain' WHERE status='processing' AND started_at<NOW()-INTERVAL '10 minutes';

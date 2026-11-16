@@ -26,7 +26,7 @@ test('browser sends an unambiguous UTC instant for a Cairo datetime-local value'
 test('single-message confirmation does not send or mark a company failed if time passes during autosave',async()=>{
  const source=fs.readFileSync(require.resolve('../public/assets/app.js'),'utf8'),code=source.slice(source.indexOf('async function confirmSend()'),source.indexOf('async function skipCo()'));
  let valid=true,sends=0,flushes=0;const nodes=new Map(['btn-confirm','preview-channel','prev-send-status','prev-body','prev-subject'].map(id=>[id,{disabled:false,value:'text',style:{}}]));
- const context={window:{MrsaalValidation:{check:()=>true}},document:{getElementById:id=>nodes.get(id)},readPreviewSchedule:()=>({valid,scheduledAt:new Date(frozen+60000).toISOString()}),cvLabel:a=>a,previewChannel:'email',previewCompanyId:'co',flushPreviewDraft:async()=>{flushes++;valid=false;},api:async()=>{sends++;},companies:[{id:'co',status:'pending'}],previewBatchActive:false};
+ const context={previewAttachmentReady:true,window:{MrsaalValidation:{check:()=>true}},document:{getElementById:id=>nodes.get(id)},readPreviewSchedule:()=>({valid,scheduledAt:new Date(frozen+60000).toISOString()}),cvLabel:a=>a,previewChannel:'email',previewCompanyId:'co',flushPreviewDraft:async()=>{flushes++;valid=false;},api:async()=>{sends++;},companies:[{id:'co',status:'pending'}],previewBatchActive:false};
  vm.runInNewContext(code,context);await context.confirmSend();assert.equal(flushes,1);assert.equal(sends,0);assert.equal(nodes.get('btn-confirm').disabled,false);assert.equal(context.companies[0].status,'pending');
  await context.confirmSend();assert.equal(flushes,1);assert.equal(sends,0);
 });

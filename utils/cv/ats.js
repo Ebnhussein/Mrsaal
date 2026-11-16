@@ -24,6 +24,6 @@ async function analyze(row,job=''){
  else if(row?.attachment_data)source=await read.docx(Buffer.from(row.attachment_data));
  else if(row?.pdf_data)source=await read.pdf(Buffer.from(row.pdf_data));
  else source={text:String(row?.content||''),format:'text',bytes:Buffer.byteLength(row?.content||''),layout:null};
- const text=source.text;delete source.text;source.filename=row?.filename||'CV';source.attachment=!!(row?.pdf_data||row?.attachment_data||row?.kind==='builder');source.textDiffersFromSaved=source.attachment&&normalize(text).replace(/\s/g,'')!==normalize(row?.content).replace(/\s/g,'');return report(text,source,structured,job);
+ const text=source.text;delete source.text;source.filename=row?.filename||'CV';source.attachment=!!(row?.pdf_data||row?.attachment_data||row?.kind==='builder');source.textDiffersFromSaved=source.attachment&&normalize(text).replace(/\s/g,'')!==normalize(row?.content).replace(/\s/g,'');const result=report(text,source,structured,job);if(row?.kind==='tailored'){const m=require('./tailor').metadata(row);result.keywords=keywords(text.split('\n').filter(line=>line!==m?.targetLine).join('\n'),job);result.keywordScope='source-facts';}return result;
 }
 module.exports={report,analyze,keywords};

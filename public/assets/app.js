@@ -403,17 +403,12 @@ function updateChannelSummary(){
  const label=document.getElementById('send-both-label');if(label)label.style.opacity=mixed?'1':'.55';
  const hint=document.getElementById('send-both-hint');if(hint)hint.textContent=mixed?cvLabel('وسيلة واحدة لو المتاح واحد. تفعيل الاختيار يجهّز رسالتين منفصلتين لو الاتنين موجودين.','One available channel is used. Checking this prepares two separate messages when both are available.'):cvLabel('فعّل «حسب المتاح» لاستخدام الاختيار ده.','Choose “Available channel” to enable this option.');
 }
-let previewCVId=null;
+let previewCVId=null,previewAttachmentReady=false,previewAttachmentTask=null;
 async function refreshPreviewAttachment(channel,id){
-  previewCVId=null;
-  const el=document.getElementById('prev-attachment');el.hidden=false;
-  if(el.hidden)return;el.textContent='جاري التحقق من مرفق السيرة…';
-  try{const cv=await api('/api/cv');if(previewChannel!==channel||prevCompanyId!==id)return;
-    el.replaceChildren();previewCVId=cv?.id||null;
-    if(cv?.kind==='portfolio'){el.textContent=cvLabel('تقديم بالبرتفوليو — راجع روابط الأعمال في الرسالة، بدون مرفق CV.','Portfolio application — review project links in the message; no CV attachment.');return;}
-    if(cv?.has_attachment){el.append(document.createTextNode((['builder','docx'].includes(cv.kind)?'سيُرفق Word CV: ':'سيُرفق PDF: ')+(cv.filename||'CV.pdf')+' · '));const a=document.createElement('a');a.href='/api/cv/attachment?cvId='+encodeURIComponent(cv.id);a.textContent='راجع الملف';a.target='_blank';a.rel='noopener';el.append(a);}
-    else el.textContent='بدون مرفق CV — السيرة محفوظة كنص فقط. ارفع PDF من الإعدادات لإرفاقه بالرسالة.';
-  }catch{if(previewChannel===channel&&prevCompanyId===id)el.textContent='تعذر التحقق من المرفق. راجع ملف السيرة في الإعدادات.';}
+ previewCVId=null;previewAttachmentReady=false;
+ const host=document.getElementById('prev-attachment');host.hidden=false;
+ const cv=await api('/api/cv');if(previewChannel!==channel||prevCompanyId!==id)return;
+ await window.MrsaalTailoredCV.mount(host,{companyId:id,cvId:cv?.id,beforeChange:async()=>!window.MrsaalEdit||await window.MrsaalEdit.begin(),onReady:value=>{if(previewChannel!==channel||prevCompanyId!==id)return;if(value?.id&&value.id!==previewCVId)previewSendKey=crypto.randomUUID();previewCVId=value?.id||null;previewAttachmentReady=!!value;previewEdited(false);}});
 }
 async function previewChangeChannel(channel){await previewOne(prevCompanyId,channel);}
 async function previewOne(id,channel=selectedDeliveryChannel()) {
@@ -451,7 +446,7 @@ async function previewOne(id,channel=selectedDeliveryChannel()) {
   document.getElementById('prev-loading').style.display='none';document.getElementById('prev-form').style.opacity='1';writingBusy(false);
   document.getElementById('btn-confirm').disabled=true;
   document.getElementById('writing-review').textContent='اكتب بنفسك أو اضغط اكتب بالذكاء الاصطناعي. المعاينة لا تولّد رسالة تلقائيًا.';
-  void refreshPreviewAttachment(channel,id);
+  previewAttachmentTask=refreshPreviewAttachment(channel,id).catch(e=>{if(id===prevCompanyId)document.getElementById('prev-attachment').textContent=e.message;});
   try{const draft=await api('/api/writing/draft?companyId='+encodeURIComponent(id)+'&channel='+channel);
     if(requestId!==previewRequest||id!==prevCompanyId)return;
     if(draft){document.getElementById('prev-subject').value=draft.subject||'';document.getElementById('prev-body').value=draft.body||'';document.getElementById('writing-review').textContent='المسودة المحفوظة — تقدر تعدّلها قبل الإرسال.';}
@@ -462,6 +457,7 @@ let previewBatchActive=false, previewFocus=null, previewOverflow='';
 
 let previewRequest = 0;
 async function genPreview(id) {
+  if(previewAttachmentTask)await previewAttachmentTask;if(!previewAttachmentReady){toast(cvLabel('جهز النسخة المخصصة أولًا','Prepare the tailored CV first'),'error');return;}
   if(window.MrsaalEdit&&!await window.MrsaalEdit.begin())return;
   const requestId = ++previewRequest;
   document.getElementById('preview-channel').disabled=true;
@@ -490,7 +486,7 @@ async function genPreview(id) {
   }
 }
 
-function closePrev(cancel=true){const scheduleField=document.getElementById('preview-schedule-field');if(scheduleField)scheduleField.hidden=true;previewRequest++;if(cancel){sendQueue=[];previewBatchActive=false;}document.getElementById('preview-overlay').classList.remove('open');document.body.style.overflow=previewOverflow;if(previewFocus?.isConnected)previewFocus.focus({preventScroll:true});}
+function closePrev(cancel=true){previewAttachmentReady=false;prevCompanyId=null;const scheduleField=document.getElementById('preview-schedule-field');if(scheduleField)scheduleField.hidden=true;previewRequest++;if(cancel){sendQueue=[];previewBatchActive=false;}document.getElementById('preview-overlay').classList.remove('open');document.body.style.overflow=previewOverflow;if(previewFocus?.isConnected)previewFocus.focus({preventScroll:true});}
 
 async function regenerate() {
   if(window.MrsaalEdit&&!await window.MrsaalEdit.begin())return;
@@ -513,6 +509,7 @@ function readPreviewSchedule() {
 
 async function confirmSend() {
   let didSend=false,sendRequested=false;
+  if(!previewAttachmentReady){toast(cvLabel('راجع النسخة المخصصة أولًا','Review the tailored CV first'),'error');return;}
   if(!readPreviewSchedule().valid)return;
   const btn=document.getElementById('btn-confirm');
   if(btn.disabled)return;
@@ -526,7 +523,7 @@ async function confirmSend() {
     const scheduledAt=schedule.scheduledAt;
     sendRequested=true;
     const result=await api('/api/email/send','POST',{
-      companyId:prevCompanyId,channel:previewChannel,cvId:typeof previewCVId==='string'?previewCVId:null,
+      companyId:prevCompanyId,channel:previewChannel,tailor:true,cvId:typeof previewCVId==='string'?previewCVId:null,
       subject:document.getElementById('prev-subject').value,
       body:document.getElementById('prev-body').value,
       scheduledAt,idempotencyKey:previewSendKey
@@ -787,7 +784,7 @@ let previewDraftTimer,previewDraftPending=null,previewDraftSave=Promise.resolve(
 async function flushPreviewDraft(){clearTimeout(previewDraftTimer);const values=previewDraftPending;previewDraftPending=null;if(values)previewDraftSave=previewDraftSave.catch(()=>{}).then(()=>api('/api/writing/draft','POST',values));try{await previewDraftSave;}catch(e){if(values&&!previewDraftPending)previewDraftPending=values;throw e;}}
 function previewEdited(save=true){
  const subject=document.getElementById('prev-subject'),body=document.getElementById('prev-body');
- if(!body)return;document.getElementById('btn-confirm').disabled=!body.value.trim();
+ if(!body)return;document.getElementById('btn-confirm').disabled=!body.value.trim()||!previewAttachmentReady;
  const write=document.getElementById('btn-write');if(write)write.textContent=body.value.trim()?'إعادة الكتابة':'اكتب بالذكاء الاصطناعي';
  if(!save)return;previewSendKey=crypto.randomUUID();clearTimeout(previewDraftTimer);
  const companyId=prevCompanyId,channel=previewChannel,values={companyId,channel,subject:subject.value,body:body.value};

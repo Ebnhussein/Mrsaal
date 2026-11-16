@@ -10,7 +10,18 @@ router.use(requireAuth);
 router.post('/builder/preview',asyncHandler(async(req,res)=>{const b=require('../utils/cv/builder'),d=b.normalize(req.body.profile);res.json({content:b.content(d),fingerprint:b.fingerprint(d),report:d.kind==='portfolio'?null:await require('../utils/cv/ats').analyze({kind:'builder',content:b.content(d),filename:'CV.docx',document_json:JSON.stringify(d)},req.body.jobDescription??'')});}));
 router.post('/builder',asyncHandler(async(req,res)=>{const b=require('../utils/cv/builder'),d=b.normalize(req.body.profile);if(req.body.reviewed!==true||req.body.fingerprint!==b.fingerprint(d))return res.status(409).json({error:'راجع المعاينة بعد آخر تعديل قبل الحفظ.'});const id=await require('../utils/cv/store').save(req.session.userId,{content:b.content(d),filename:d.kind==='portfolio'?'Portfolio':'CV.docx',name:d.name+' · '+(d.kind==='portfolio'?'Portfolio':'CV'),kind:d.kind==='portfolio'?'portfolio':'builder',document_json:JSON.stringify(d)});res.json({ok:true,id});}));
 router.get('/builder/:id',asyncHandler(async(req,res)=>{const cv=await require('../utils/cv/store').active(req.session.userId,req.params.id);if(!cv?.document_json)return res.status(404).json({error:'الملف غير موجود'});res.set('Cache-Control','no-store');res.json({profile:JSON.parse(cv.document_json)});}));
-router.get('/attachment',asyncHandler(async(req,res)=>{const cv=await require('../utils/cv/store').active(req.session.userId,req.query.cvId||null),a=await require('../utils/cv/builder').attachment(cv);if(!a)return res.status(404).json({error:'لا يوجد مرفق لهذه النسخة'});res.set({'Content-Type':a.mimeType,'Content-Disposition':'attachment; filename="'+(cv.kind==='builder'||cv.attachment_data?'CV.docx':'CV.pdf')+'"','Cache-Control':'no-store'});res.send(a.data);}));
+router.get('/attachment',asyncHandler(async(req,res)=>{
+ const cv=await require('../utils/cv/store').active(req.session.userId,req.query.cvId||null),a=await require('../utils/cv/builder').attachment(cv);
+ if(!a)return res.status(404).json({error:'لا يوجد مرفق لهذه النسخة'});
+ const fallback=cv.kind==='builder'||cv.attachment_data?'CV.docx':'CV.pdf',filename=cv.kind==='tailored'?cv.filename:fallback;
+ const encoded=encodeURIComponent(filename).replace(/['()*]/g,c=>'%'+c.charCodeAt(0).toString(16).toUpperCase());
+ res.set({'Content-Type':a.mimeType,'Content-Disposition':`attachment; filename="${fallback}"; filename*=UTF-8''${encoded}`,'Cache-Control':'no-store'});res.send(a.data);
+}));
+router.post('/tailor',asyncHandler(async(req,res)=>{
+ const id=req.session.userId,company=await get('SELECT * FROM companies WHERE id=$1 AND user_id=$2',[req.body.companyId,id]);if(!company)return res.status(404).json({error:'الشركة غير موجودة'});
+ const source=await require('../utils/cv/store').active(id,req.body.cvId||null),tailor=require('../utils/cv/tailor');const row=await tailor.prepare(id,company,source,req.body.options??{});res.set('Cache-Control','private, no-store');res.json(tailor.view(row));
+}));
+router.get('/tailor/jobs',asyncHandler(async(req,res)=>{res.set('Cache-Control','private, no-store');res.json(await all("SELECT id,title,description FROM discovered_jobs WHERE user_id=$1 AND company_id=$2 AND status<>'needs_review' ORDER BY created_at DESC LIMIT 100",[req.session.userId,req.query.companyId]));}));
 const atsRunning=new Set();
 router.post('/ats',asyncHandler(async(req,res)=>{
  const id=req.session.userId,cvId=req.body.cvId;
@@ -32,8 +43,8 @@ router.post('/summary',asyncHandler(async(req,res)=>{
  if(!result.rowCount)return res.status(409).json({error:'السيرة تغيرت. افتح الملخص من جديد.'});res.json({ok:true});
 }));
 router.post('/summary/reset',asyncHandler(async(req,res)=>{await run("UPDATE cv_profiles SET ai_summary='',ai_summary_source_hash=NULL,ai_summary_approved_at=NULL WHERE id=$1 AND user_id=$2",[req.body.cvId,req.session.userId]);res.json({ok:true});}));
-router.get('/list',asyncHandler(async(req,res)=>res.json(await all('SELECT id,name,filename,created_at,kind,(kind=$$builder$$ OR pdf_data IS NOT NULL OR attachment_data IS NOT NULL) AS has_attachment,(id=COALESCE((SELECT active_cv_id FROM users WHERE id=$1),$2)) AS active FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC',[req.session.userId,'']))));
-router.post('/select',asyncHandler(async(req,res)=>{if(!await get('SELECT id FROM cv_profiles WHERE user_id=$1 AND id=$2',[req.session.userId,req.body.id]))return res.status(404).json({error:'السيرة غير موجودة'});await run('UPDATE users SET active_cv_id=$1 WHERE id=$2',[req.body.id,req.session.userId]);res.json({ok:true});}));
+router.get('/list',asyncHandler(async(req,res)=>res.json(await all('SELECT id,name,filename,created_at,kind,(kind=$$builder$$ OR pdf_data IS NOT NULL OR attachment_data IS NOT NULL) AS has_attachment,(id=COALESCE((SELECT active_cv_id FROM users WHERE id=$1),$2)) AS active FROM cv_profiles WHERE user_id=$1 AND kind<>$$tailored$$ ORDER BY created_at DESC',[req.session.userId,'']))));
+router.post('/select',asyncHandler(async(req,res)=>{if(!await get('SELECT id FROM cv_profiles WHERE user_id=$1 AND id=$2 AND kind<>$$tailored$$',[req.session.userId,req.body.id]))return res.status(404).json({error:'السيرة غير موجودة'});await run('UPDATE users SET active_cv_id=$1 WHERE id=$2',[req.body.id,req.session.userId]);res.json({ok:true});}));
 router.delete('/:id',asyncHandler(async(req,res)=>{
  const client=await pool.connect();
  try{
@@ -42,7 +53,9 @@ router.delete('/:id',asyncHandler(async(req,res)=>{
   const values=[req.session.userId,req.params.id];
   const campaigns=await client.query("SELECT id FROM campaigns WHERE user_id=$1 AND cv_id=$2 AND status IN ('running','paused','draft')",values);
   const jobs=await client.query("SELECT id FROM scheduled_jobs WHERE user_id=$1 AND cv_id=$2 AND status IN ('pending','processing','uncertain')",values);
-  if(campaigns.rows.length||jobs.rows.length){await client.query('ROLLBACK');return res.status(409).json({error:'السيرة مستخدمة في حملة أو إرسال مجدول. أنهِ الإرسال أو ألغِ الجدولة أولًا.'});}
+  const derived=await client.query("SELECT v.id FROM cv_profiles v WHERE v.user_id=$1 AND (v.id=$2 OR v.tailoring_json->>'sourceId'=$2) AND (EXISTS(SELECT 1 FROM scheduled_jobs j WHERE j.cv_id=v.id AND j.status IN ('pending','processing','uncertain')) OR EXISTS(SELECT 1 FROM campaign_items i JOIN campaigns c ON c.id=i.campaign_id WHERE i.cv_id=v.id AND c.status IN ('draft','paused','running')))",values);
+  if(campaigns.rows.length||jobs.rows.length||derived.rows.length){await client.query('ROLLBACK');return res.status(409).json({error:'السيرة مستخدمة في حملة أو إرسال مجدول. أنهِ الإرسال أو ألغِ الجدولة أولًا.'});}
+  await client.query("DELETE FROM cv_profiles WHERE user_id=$1 AND tailoring_json->>'sourceId'=$2",values);
   const deleted=await client.query('DELETE FROM cv_profiles WHERE id=$1 AND user_id=$2',[req.params.id,req.session.userId]);
   await client.query('UPDATE users SET active_cv_id=NULL WHERE id=$1 AND active_cv_id=$2',values);
   await client.query('COMMIT');

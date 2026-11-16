@@ -5,7 +5,7 @@ const confirmCode=source.slice(source.indexOf('async function confirmSend()'),so
 function preview({saveError,sendError,english=false}={}){
  const nodes=new Map(['btn-confirm','preview-channel','prev-send-status','prev-body','prev-subject'].map(id=>[id,{disabled:false,value:'Reviewed text',style:{}}]));
  const requests=[],toasts=[];let generated=0,reads=0;
- const context={window:{},document:{getElementById:id=>nodes.get(id)},crypto:{randomUUID:()=>`new-key-${++generated}`},cvLabel:(ar,en)=>english?en:ar,
+ const context={previewAttachmentReady:true,window:{},document:{getElementById:id=>nodes.get(id)},crypto:{randomUUID:()=>`new-key-${++generated}`},cvLabel:(ar,en)=>english?en:ar,
   readPreviewSchedule:()=>({valid:true,scheduledAt:null}),previewChannel:'email',prevCompanyId:'co',previewSendKey:'original-key',previewBatchActive:false,
   companies:[{id:'co',status:'pending'}],flushPreviewDraft:async()=>{if(saveError)throw saveError;},
   api:async(path,method,body)=>{requests.push(body);if(sendError)throw sendError;return {ok:true};},
@@ -56,3 +56,4 @@ test('reports keep existing records, show a localized retry, and remove the warn
   assert.equal(h.nodes.has('log-load-error'),false);assert.equal(h.context.log[0].id,'updated');assert.equal(h.renders,1);
  }
 });
+test('unprepared or changed company CV blocks sending before autosave or provider request',async()=>{const h=preview();h.context.previewAttachmentReady=false;await h.context.confirmSend();assert.equal(h.requests.length,0);assert.equal(h.reads,0);assert.equal(h.context.companies[0].status,'pending');});

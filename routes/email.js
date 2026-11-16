@@ -28,14 +28,15 @@ router.post('/generate', requireAuth, wrap(async (req, res) => {
   const channel=chooseChannel(company,req.body.channel);
   const reason=skipReason(company,channel);
   if(reason){return res.json({skipped:true,status:'skipped',channel,reason});}
-  const cv = await get(`SELECT * FROM cv_profiles WHERE user_id=$1 ${req.body.cvId?'AND id=$2':''} ORDER BY (id=COALESCE((SELECT active_cv_id FROM users WHERE id=$1),'')) DESC,created_at DESC LIMIT 1`,req.body.cvId?[req.session.userId,req.body.cvId]:[req.session.userId]);if(req.body.cvId&&!cv)return res.status(409).json({error:'النسخة المحددة لم تعد متاحة'});
+  let cv = await get(`SELECT * FROM cv_profiles WHERE user_id=$1 ${req.body.cvId?'AND id=$2':"AND kind<>'tailored'"} ORDER BY (id=COALESCE((SELECT active_cv_id FROM users WHERE id=$1),'')) DESC,created_at DESC LIMIT 1`,req.body.cvId?[req.session.userId,req.body.cvId]:[req.session.userId]);if(req.body.cvId&&!cv)return res.status(409).json({error:'النسخة المحددة لم تعد متاحة'});
   if (!cv) return res.status(400).json({ error: 'لا توجد سيرة ذاتية محفوظة' });
+  if(cv.kind==='tailored')require('../utils/cv/tailor').validate(cv,company);
   const tpl = await get('SELECT * FROM templates WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1', [req.session.userId]);
   const userSettings = await get('SELECT gemini_key, gemini_model FROM users WHERE id=$1', [req.session.userId]);
   try {
     if (channel==='email') {
       const email = await generateEmail({
-        userId:req.session.userId, ...(cv.kind==='portfolio'?require('../utils/cv/builder').facts(cv):{cv:cv.content,cvSummary:require('../utils/cv/summary').approved(cv)}), company,
+        userId:req.session.userId, ...require('../utils/cv/builder').facts(cv), company,
         instructions: tpl?.instructions,
         subjectTemplate: tpl?.subject_template,
         apiKey: userSettings?.gemini_key || null,
@@ -45,7 +46,7 @@ router.post('/generate', requireAuth, wrap(async (req, res) => {
     }
     if (channel==='whatsapp') {
       const message = await generateWhatsAppMessage({
-        userId:req.session.userId, ...(cv.kind==='portfolio'?require('../utils/cv/builder').facts(cv):{cv:cv.content,cvSummary:require('../utils/cv/summary').approved(cv)}), company,
+        userId:req.session.userId, ...require('../utils/cv/builder').facts(cv), company,
         instructions: tpl?.instructions,
         apiKey: userSettings?.gemini_key || null,
         modelName: userSettings?.gemini_model || null
@@ -68,10 +69,11 @@ router.post('/send', requireAuth, wrap(async (req, res) => {
   if(reason){await recordSkip(req.session.userId,company,channel,reason);return res.json({ok:true,skipped:true,status:'skipped',channel,reason});}
   const user = await get('SELECT * FROM users WHERE id=$1', [req.session.userId]);
   if (!user) return res.status(401).json({ error: 'المستخدم غير موجود' });
-  const cv = await get(`SELECT * FROM cv_profiles WHERE user_id=$1 ${req.body.cvId?'AND id=$2':''} ORDER BY (id=COALESCE((SELECT active_cv_id FROM users WHERE id=$1),'')) DESC,created_at DESC LIMIT 1`,req.body.cvId?[req.session.userId,req.body.cvId]:[req.session.userId]);if(req.body.cvId&&!cv)return res.status(409).json({error:'النسخة المحددة لم تعد متاحة'});
+  let cv = await get(`SELECT * FROM cv_profiles WHERE user_id=$1 ${req.body.cvId?'AND id=$2':"AND kind<>'tailored'"} ORDER BY (id=COALESCE((SELECT active_cv_id FROM users WHERE id=$1),'')) DESC,created_at DESC LIMIT 1`,req.body.cvId?[req.session.userId,req.body.cvId]:[req.session.userId]);if(req.body.cvId&&!cv)return res.status(409).json({error:'النسخة المحددة لم تعد متاحة'});
 
   if (!hasEmail(company) && !hasPhone(company)) return res.status(400).json({ error: 'لا توجد وسيلة تواصل صالحة' });
   if (typeof body !== 'string' || !body.trim()) return res.status(400).json({ error: 'نص الرسالة مطلوب' });
+  if(req.body.tailor===true){if(!cv)return res.status(409).json({error:'راجع السيرة قبل الإرسال'});if(cv.kind==='tailored')require('../utils/cv/tailor').validate(cv,company);else if(cv.kind!=='portfolio')return res.status(409).json({error:'راجع النسخة المخصصة للشركة قبل الإرسال.',code:'CV_TAILOR_REQUIRED'});}
   // Immediate sends perform readiness checks in delivery and again under the provider lock.
   // Scheduling still checks the connection here before saving a job.
   if (scheduledAt && channel==='whatsapp') await requireConnected(req.session.userId);
