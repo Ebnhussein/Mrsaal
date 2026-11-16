@@ -1434,5 +1434,9 @@
   "عندك CV جاهز؟ ارفعه هنا": "Already have a CV? Upload it here",
   "كتابة السيرة كنص يدويًا": "Enter your CV as plain text",
   "جهّز CV أو برتفوليو الأول عشان نكتب رسالة تعبّر عنك": "Create a CV or portfolio profile first so we can write a message that represents you.",
-  "ملف التقديم": "Application profile"
+  "ملف التقديم": "Application profile",
+  "📄 ارفع سيرتك الذاتية": "📄 Upload your CV",
+  "PDF أو Word DOCX أو TXT حتى 20 MB": "PDF, Word DOCX or TXT, up to 20 MB",
+  "اختيار السيرة الذاتية PDF أو DOCX أو TXT": "Choose a PDF, DOCX or TXT CV",
+  "لو الملف في Drive أو واتساب، نزّله على الجهاز الأول. PDF أو Word DOCX أو TXT حتى 20 MB. ملفات PDF المصوّرة تحتاج استخراج النص أولًا.": "Download files from Drive or WhatsApp first. PDF, Word DOCX or TXT up to 20 MB. Scanned PDFs need text extraction first."
 }

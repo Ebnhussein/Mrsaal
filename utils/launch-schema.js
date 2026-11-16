@@ -65,6 +65,8 @@ async function ensureLaunchSchema(){await run(`
  CREATE TABLE IF NOT EXISTS delivery_attempts(id TEXT PRIMARY KEY,user_id TEXT REFERENCES users(id) ON DELETE CASCADE,request_key TEXT NOT NULL,payload_hash TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'processing',log_id TEXT,result JSONB,started_at TIMESTAMPTZ DEFAULT NOW(),UNIQUE(user_id,request_key));
  ALTER TABLE cv_profiles ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'cv';
  ALTER TABLE cv_profiles ADD COLUMN IF NOT EXISTS document_json TEXT;
+ ALTER TABLE cv_profiles ADD COLUMN IF NOT EXISTS attachment_data BYTEA;
+ ALTER TABLE cv_profiles ADD COLUMN IF NOT EXISTS attachment_mime TEXT;
  CREATE TABLE IF NOT EXISTS campaigns(id TEXT PRIMARY KEY,user_id TEXT REFERENCES users(id) ON DELETE CASCADE,status TEXT NOT NULL DEFAULT 'draft',channel TEXT NOT NULL CHECK(channel IN ('email','whatsapp')),sender_account_id TEXT,cv_id TEXT,delay_seconds INTEGER NOT NULL DEFAULT 5,next_at TIMESTAMPTZ DEFAULT NOW(),created_at TIMESTAMPTZ DEFAULT NOW());
  CREATE TABLE IF NOT EXISTS campaign_items(id TEXT PRIMARY KEY,campaign_id TEXT REFERENCES campaigns(id) ON DELETE CASCADE,company_id TEXT,company_name TEXT,recipient TEXT,subject TEXT NOT NULL DEFAULT '',body TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'draft',reason TEXT,message_id TEXT,updated_at TIMESTAMPTZ DEFAULT NOW());
  CREATE INDEX IF NOT EXISTS campaigns_due ON campaigns(status,next_at);

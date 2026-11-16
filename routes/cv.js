@@ -1,18 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const pdf = require('pdf-parse');
-const {cvKind,textFile}=require('../utils/upload-files');
 const { requireAuth } = require('../middleware/auth');
 const asyncHandler = require('../middleware/async-handler');
 const { get,all,run,pool } = require('../utils/db');
 const { replaceLatest } = require('../utils/user-records');
 const upload = multer({storage:multer.memoryStorage(),limits:{fileSize:20*1024*1024}});
 router.use(requireAuth);
-router.post('/builder/preview',asyncHandler(async(req,res)=>{const b=require('../utils/cv/builder'),d=b.normalize(req.body.profile);res.json({content:b.content(d),fingerprint:b.fingerprint(d),report:b.report(d,req.body.jobDescription||'')});}));
+router.post('/builder/preview',asyncHandler(async(req,res)=>{const b=require('../utils/cv/builder'),d=b.normalize(req.body.profile);res.json({content:b.content(d),fingerprint:b.fingerprint(d),report:d.kind==='portfolio'?null:await require('../utils/cv/ats').analyze({kind:'builder',content:b.content(d),filename:'CV.docx',document_json:JSON.stringify(d)},req.body.jobDescription??'')});}));
 router.post('/builder',asyncHandler(async(req,res)=>{const b=require('../utils/cv/builder'),d=b.normalize(req.body.profile);if(req.body.reviewed!==true||req.body.fingerprint!==b.fingerprint(d))return res.status(409).json({error:'راجع المعاينة بعد آخر تعديل قبل الحفظ.'});const id=await require('../utils/cv/store').save(req.session.userId,{content:b.content(d),filename:d.kind==='portfolio'?'Portfolio':'CV.docx',name:d.name+' · '+(d.kind==='portfolio'?'Portfolio':'CV'),kind:d.kind==='portfolio'?'portfolio':'builder',document_json:JSON.stringify(d)});res.json({ok:true,id});}));
 router.get('/builder/:id',asyncHandler(async(req,res)=>{const cv=await require('../utils/cv/store').active(req.session.userId,req.params.id);if(!cv?.document_json)return res.status(404).json({error:'الملف غير موجود'});res.set('Cache-Control','no-store');res.json({profile:JSON.parse(cv.document_json)});}));
-router.get('/attachment',asyncHandler(async(req,res)=>{const cv=await require('../utils/cv/store').active(req.session.userId,req.query.cvId||null),a=await require('../utils/cv/builder').attachment(cv);if(!a)return res.status(404).json({error:'لا يوجد مرفق لهذه النسخة'});res.set({'Content-Type':a.mimeType,'Content-Disposition':'attachment; filename="'+(cv.kind==='builder'?'CV.docx':'CV.pdf')+'"','Cache-Control':'no-store'});res.send(a.data);}));
+router.get('/attachment',asyncHandler(async(req,res)=>{const cv=await require('../utils/cv/store').active(req.session.userId,req.query.cvId||null),a=await require('../utils/cv/builder').attachment(cv);if(!a)return res.status(404).json({error:'لا يوجد مرفق لهذه النسخة'});res.set({'Content-Type':a.mimeType,'Content-Disposition':'attachment; filename="'+(cv.kind==='builder'||cv.attachment_data?'CV.docx':'CV.pdf')+'"','Cache-Control':'no-store'});res.send(a.data);}));
+const atsRunning=new Set();
+router.post('/ats',asyncHandler(async(req,res)=>{
+ const id=req.session.userId,cvId=req.body.cvId;
+ if(cvId!==undefined&&(typeof cvId!=='string'||!cvId||cvId.length>160))return res.status(400).json({error:'اختار نسخة CV صالحة.',code:'ATS_INPUT'});
+ const cv=await require('../utils/cv/store').active(id,cvId||null);if(!cv)return res.status(404).json({error:'السيرة غير موجودة'});
+ if(atsRunning.has(id))return res.status(429).json({error:'فحص آخر لملفك لسه شغال. انتظر ثم جرّب تاني.',code:'ATS_BUSY'});
+ atsRunning.add(id);try{const report=await require('../utils/cv/ats').analyze(cv,req.body.jobDescription??'');res.set('Cache-Control','private, no-store');res.json({cv:{id:cv.id,name:cv.name,filename:cv.filename,kind:cv.kind},report});}finally{atsRunning.delete(id);}
+}));
 router.get('/summary',asyncHandler(async(req,res)=>{
  const cv=await require('../utils/cv/store').active(req.session.userId,req.query.cvId||null);if(!cv)return res.status(404).json({error:'السيرة غير موجودة'});
  const summary=require('../utils/cv/summary');const saved=summary.approved(cv);
@@ -26,7 +32,7 @@ router.post('/summary',asyncHandler(async(req,res)=>{
  if(!result.rowCount)return res.status(409).json({error:'السيرة تغيرت. افتح الملخص من جديد.'});res.json({ok:true});
 }));
 router.post('/summary/reset',asyncHandler(async(req,res)=>{await run("UPDATE cv_profiles SET ai_summary='',ai_summary_source_hash=NULL,ai_summary_approved_at=NULL WHERE id=$1 AND user_id=$2",[req.body.cvId,req.session.userId]);res.json({ok:true});}));
-router.get('/list',asyncHandler(async(req,res)=>res.json(await all('SELECT id,name,filename,created_at,kind,(kind=$$builder$$ OR pdf_data IS NOT NULL) AS has_attachment,(id=COALESCE((SELECT active_cv_id FROM users WHERE id=$1),$2)) AS active FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC',[req.session.userId,'']))));
+router.get('/list',asyncHandler(async(req,res)=>res.json(await all('SELECT id,name,filename,created_at,kind,(kind=$$builder$$ OR pdf_data IS NOT NULL OR attachment_data IS NOT NULL) AS has_attachment,(id=COALESCE((SELECT active_cv_id FROM users WHERE id=$1),$2)) AS active FROM cv_profiles WHERE user_id=$1 ORDER BY created_at DESC',[req.session.userId,'']))));
 router.post('/select',asyncHandler(async(req,res)=>{if(!await get('SELECT id FROM cv_profiles WHERE user_id=$1 AND id=$2',[req.session.userId,req.body.id]))return res.status(404).json({error:'السيرة غير موجودة'});await run('UPDATE users SET active_cv_id=$1 WHERE id=$2',[req.body.id,req.session.userId]);res.json({ok:true});}));
 router.delete('/:id',asyncHandler(async(req,res)=>{
  const client=await pool.connect();
@@ -50,17 +56,17 @@ router.get('/pdf',asyncHandler(async(req,res)=>{
  res.send(cv.pdf_data);
 }));
 router.get('/', asyncHandler(async(req,res)=>{
- const cv=await require('../utils/cv/store').active(req.session.userId);res.json(cv?{id:cv.id,content:cv.content,filename:cv.filename,name:cv.name,created_at:cv.created_at,has_attachment:cv.kind==='builder'||!!cv.pdf_data,kind:cv.kind}:null);
+ const cv=await require('../utils/cv/store').active(req.session.userId);res.json(cv?{id:cv.id,content:cv.content,filename:cv.filename,name:cv.name,created_at:cv.created_at,has_attachment:cv.kind==='builder'||!!cv.pdf_data||!!cv.attachment_data,attachment_type:cv.kind==='builder'||cv.attachment_data?'docx':cv.pdf_data?'pdf':null,kind:cv.kind}:null);
 }));
 router.post('/upload',upload.single('cv'),asyncHandler(async(req,res)=>{
  if(!req.file)return res.status(400).json({error:'لا يوجد ملف'});
- const isPDF=cvKind(req.file)==='pdf';
- let text;
- try{text=isPDF?(await pdf(req.file.buffer)).text:textFile(req.file.buffer);}
- catch{return res.status(400).json({error:'فشل قراءة ملف PDF. تأكد من سلامة الملف.'});}
- if(!text?.trim())return res.status(400).json({error:'الملف لا يحتوي على نص مقروء. ارفع PDF نصيًا أو أضف النص يدويًا. السيرة السابقة لم تتغير.'});
- const id=await require('../utils/cv/store').save(req.session.userId,{content:text,filename:req.file.originalname,pdf_data:isPDF?req.file.buffer:null});
- res.json({id,content:text,filename:req.file.originalname,has_attachment:isPDF});
+ const parsed=await require('../utils/cv/read-document').upload(req.file);
+ if(!parsed.text?.trim())return res.status(400).json({error:'الملف لا يحتوي على نص مقروء. قد يكون مصوّرًا ويحتاج OCR. السيرة السابقة لم تتغير.',code:'CV_NOT_READABLE'});
+ if(parsed.partial)return res.status(422).json({error:'الملف أكبر من 20 صفحة. اختصر السيرة قبل رفعها علشان نقرأها كاملة.',code:'CV_PARSE_LIMIT'});
+ const values={content:parsed.text,filename:req.file.originalname,pdf_data:parsed.format==='pdf'?req.file.buffer:null};
+ if(parsed.format==='docx'){values.attachment_data=req.file.buffer;values.kind='docx';}
+ const id=await require('../utils/cv/store').save(req.session.userId,values);
+ res.json({id,content:parsed.text,filename:req.file.originalname,has_attachment:parsed.format!=='text',kind:parsed.format==='docx'?'docx':'cv'});
 }));
 router.post('/text',asyncHandler(async(req,res)=>{
  const {content,name}=req.body;
