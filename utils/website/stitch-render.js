@@ -18,7 +18,7 @@ function renderExact(page,legacy,{posts=[],post=null}={},language='ar'){
  }
  if(page==='plans')html=html.replace(/<main\b[\s\S]*?<\/main>/,()=>require('./public-minimal').plansContent(lang));
  if(page==='product')html=html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/,(_,open,content,close)=>open+require('./public-minimal').mobileProduct(lang)+'<div class="sx-desktop-home">'+lazyDesktop(content)+'</div>'+close);
- if(page==='home')html=html.replace(/<main\b[\s\S]*?<\/main>/,()=>require('./home-story').homeStory(lang)).replace('</head>','<link rel="stylesheet" href="/assets/home-story.css?v=20261019-shared-faq"><script defer src="/assets/home-story.js?v=20261016-2"></script></head>');
+ if(page==='home')html=html.replace(/<main\b[\s\S]*?<\/main>/,()=>require('./home-story').homeStory(lang)).replace('</head>','<link rel="stylesheet" href="/assets/home-story.css?v=20261109-responsive-scroll"><script defer src="/assets/home-story.js?v=20261109-responsive-scroll"></script></head>');
  if(['home','plans','help'].includes(page)){
   if(page!=='home')html=require('./public-faq').replaceFAQ(html,lang,page);
   html=html.replace('</head>','<link rel="stylesheet" href="/assets/public-faq.css?v=20261019-shared"><script defer src="/assets/home-faq.js?v=20261019-shared"></script></head>');
