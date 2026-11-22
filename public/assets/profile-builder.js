@@ -77,6 +77,6 @@
   layout.append(editor);if(step===3&&preview)layout.append(report());else{const aside=node('details',null,'pb-live');aside.open=true;aside.append(node('summary',t('معاينة مباشرة','Live preview')));const body=node('div',null,'pb-live-body');aside.append(body,node('p',t('معاينة للنص. الملف النهائي بيتجهّز بعد المراجعة.','Text preview. The final document is prepared after review.'),'pb-disclaimer'));layout.append(aside);}host.append(layout);updateLive();
  }
  async function edit(id){if(busy)return;busy=true;render();try{const r=await api('/api/cv/builder/'+encodeURIComponent(id));data=r.profile;drafts[data.kind]=data;step=0;preview=null;activeId=null;dirtyModes.delete(data.kind);dirty=dirtyModes.size>0;errors.clear();undo=null;busy=false;render();host.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){busy=false;render();error(e.message);}}
- window.MrsaalProfileBuilder={edit,open(){openSettings('cv');host.scrollIntoView({behavior:'smooth',block:'start'});}};
+ window.MrsaalProfileBuilder={edit,open(){openSettings('cv');}};
  window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});document.addEventListener('mrsaal:language',()=>{errors.clear();render();});render();
 })();
