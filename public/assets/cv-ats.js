@@ -82,7 +82,25 @@
   report.append(node('h4',t('تفاصيل فحص الملف','Detailed document checks'),'ats-section-title'));
   const adviceIntro=node('p',t('الأولويات: أصلح مشاكل القراءة والتواصل الأول، وبعدها حسّن الأقسام والمحتوى. علامة المراجعة اليدوية مش معناها إن القسم ناقص.','Priorities: fix parsing and contact details first, then refine sections and content. Manual review does not mean the content is absent.'),'ats-note');
   report.append(adviceIntro);
-  const list=node('ul',null,'ats-checks');for(const c of result.checks){const item=node('li',null,'ats-check ats-'+c.status),title=node('strong',t(...names[c.id]));const label=node('span',c.status==='pass'?t('✓ متحقق','✓ Checked'):c.status==='unknown'?t('○ مراجعة يدوية','○ Manual review'):t('△ يحتاج مراجعة','△ Review needed'),'ats-check-state');item.append(title,label);if(c.status!=='pass')item.append(node('p',t(...(advice[c.id]||['راجع البيانات المستخرجة من السيرة.','Review extracted CV data.']))));list.append(item);}report.append(list);
+  for(const group of [
+   {name:t('قراءة الملف والتوافق التقني','Parsing and technical compatibility'),ids:['text','layout','contact']},
+   {name:t('الأقسام والمحتوى','Sections and content quality'),ids:['summary','skills','evidence','education','dates','achievements','length']}
+  ]){
+   const groupChecks=result.checks.filter(c=>group.ids.includes(c.id));
+   if(!groupChecks.length)continue;
+   const section=node('section',null,'ats-check-group');
+   const groupTitle=node('h4',group.name,'ats-check-group-title');
+   section.append(groupTitle);
+   const list=node('ul',null,'ats-checks');
+   for(const c of groupChecks){
+    const item=node('li',null,'ats-check ats-'+c.status),title=node('strong',t(...(names[c.id]||[c.id,c.id])));
+    const label=node('span',c.status==='pass'?t('✓ متحقق','✓ Checked'):c.status==='unknown'?t('○ مراجعة يدوية','○ Manual review'):t('△ يحتاج مراجعة','△ Review needed'),'ats-check-state');
+    item.append(title,label);
+    if(c.status!=='pass')item.append(node('p',t(...(advice[c.id]||['راجع البيانات المستخرجة من السيرة.','Review extracted CV data.']))));
+    list.append(item);
+   }
+   section.append(list);report.append(section);
+  }
   if(result.keywords){report.append(node('h4',t('نسبة تغطية كلمات الوظيفة: ','Job keyword coverage: ')+result.keywords.matchPercent+'%'),node('p',t('النسبة بتقيس الكلمات الفريدة المشتركة بين الملف والوصف، مش فرصة القبول أو نتيجة ATS فعلية.','Unique-term overlap only; not an acceptance probability or a real employer ATS score.'),'ats-note'));report.append(node('h4',t('تفاصيل الكلمات المتطابقة والناقصة','Matched and missing terms')));for(const [key,ar,en]of [['matched','موجودة في النسخة','Present in this version'],['missing','غير موجودة — أضفها فقط لو حقيقية','Missing — add only if true']]){const block=node('section');block.append(node('h5',t(ar,en)));const chips=node('div',null,'ats-keywords');for(const term of result.keywords[key])chips.append(node('span',term,'ats-chip'));if(!result.keywords[key].length)chips.append(node('span','—'));block.append(chips);report.append(block);}}
   if(['cv','docx','ats-revised'].includes(selected.kind)){
    const editor=node('section',null,'ats-revision'),header=node('div',null,'ats-revision-header');
