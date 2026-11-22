@@ -78,3 +78,8 @@
 @media(max-width:640px){#settings-cv .cv-ats{padding:17px}#settings-cv .ats-heading h3{font-size:19px}#settings-cv .ats-overview{padding:16px}#settings-cv .ats-overview-metrics{gap:7px}#settings-cv .ats-overview-metric{padding:12px 10px}#settings-cv .ats-overview-metric strong{font-size:22px}#settings-cv .ats-checks{grid-template-columns:1fr}#settings-cv .ats-export-actions{flex-wrap:wrap}#settings-cv .ats-export-actions .btn{min-width:140px}}
 @media(max-width:380px){#settings-cv .ats-overview-metrics{grid-template-columns:1fr}#settings-cv .ats-overview-metric{flex-direction:row;align-items:center;justify-content:space-between}}
 @media(prefers-reduced-motion:reduce){#settings-cv .ats-overview-fill{transition:none}}
+
+/* Distinct analyzer stages: first technical parsing, then content quality. */
+#settings-cv .ats-check-group{margin-block:22px}
+#settings-cv .ats-check-group-title{font-size:15px;font-weight:750;margin:0 0 12px;padding-inline-start:12px;border-inline-start:3px solid var(--accent);line-height:1.7}
+#settings-cv .ats-check-group .ats-checks{margin-block:0}
