@@ -83,3 +83,19 @@
 #settings-cv .ats-check-group{margin-block:22px}
 #settings-cv .ats-check-group-title{font-size:15px;font-weight:750;margin:0 0 12px;padding-inline-start:12px;border-inline-start:3px solid var(--accent);line-height:1.7}
 #settings-cv .ats-check-group .ats-checks{margin-block:0}
+
+/* User-approved AI resume review, uses the connected Mrsaal AI providers. */
+#settings-cv .ats-ai-review{margin:23px 0;padding:22px;background:var(--surface2,var(--surface3));border:1px solid var(--border);border-radius:16px;display:grid;gap:13px;min-width:0}
+#settings-cv .ats-ai-review-title{display:grid;gap:4px}
+#settings-cv .ats-ai-review-title strong{font-size:17px;line-height:1.6}
+#settings-cv .ats-ai-review-title small{color:var(--text2);font-size:12px;line-height:1.7}
+#settings-cv .ats-ai-review>.btn{justify-self:start;min-height:43px;white-space:normal}
+#settings-cv .ats-ai-suggestions{display:grid;gap:10px}
+#settings-cv .ats-ai-suggestion{padding:14px 16px;border:1px solid var(--border);border-radius:11px;background:var(--surface);overflow-wrap:anywhere}
+#settings-cv .ats-ai-suggestion strong{font-size:13px;line-height:1.75;display:block}
+#settings-cv .ats-ai-suggestion p{margin:8px 0;color:var(--text2);font-size:12px;line-height:1.85}
+#settings-cv .ats-ai-suggestion small{color:var(--text2);font-size:11px;line-height:1.7}
+#settings-cv .ats-ai-preview{border:1px solid var(--border);border-radius:11px;padding:13px}
+#settings-cv .ats-ai-preview summary{font-size:13px;font-weight:700;cursor:pointer}
+#settings-cv .ats-ai-preview pre{max-height:400px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface);border-radius:9px;padding:16px;line-height:1.9;font-size:12px}
+@media(max-width:600px){#settings-cv .ats-ai-review{padding:16px}#settings-cv .ats-ai-review>.btn{width:100%}}
