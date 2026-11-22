@@ -76,3 +76,13 @@ test('print view escapes arbitrary uploaded text and uses semantic headings',()=
  assert.match(html,/<h2>Professional Summary<\/h2>/);
  assert.match(html,/<h1>Jane/);
 });
+
+
+test('ATS inspection for reviewed version reads the generated Word file',async()=>{
+ const content='Areg Hussein\nareg@example.com\n+201001234567\nProfessional Summary\nFreelance moderation experience\nSkills\nGoogle Sheets\nExperience\nFreelance Moderator\n2023 - 2025';
+ const result=await ats.analyze({kind:'ats-revised',content,filename:'ATS-reviewed-CV.docx'},'Google Sheets moderator');
+ assert.equal(result.source.format,'docx');
+ assert.equal(result.source.attachment,true);
+ assert.match(result.textPreview,/Google Sheets/);
+ assert.equal(result.checks.find(c=>c.id==='skills').status,'pass');
+});
