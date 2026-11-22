@@ -137,7 +137,7 @@
    const preview=node('details',null,'ats-ai-preview');
    preview.append(node('summary',t('معاينة النص المقترح كاملًا','Preview proposed full resume')));
    const pre=node('pre',aiReview.revisedText);pre.dir='auto';preview.append(pre);aiBox.append(preview);
-   if(['cv','docx','ats-revised'].includes(selected.kind)){
+   if(['cv','docx','ats-revised','builder'].includes(selected.kind)){
     const apply=button('نقل الاقتراح للمحرر للمراجعة','Move draft to editor for review',()=>{
      revisionDraft=aiReview.revisedText;editing=true;draw();
      root.querySelector('#ats-revision-text')?.scrollIntoView({behavior:'smooth',block:'center'});
@@ -148,10 +148,10 @@
    }
   }
   report.append(aiBox);
-  if(['cv','docx','ats-revised'].includes(selected.kind)){
+  if(['cv','docx','ats-revised','builder'].includes(selected.kind)){
    const editor=node('section',null,'ats-revision'),header=node('div',null,'ats-revision-header');
    header.append(node('h4',t('جهّز نسخة ATS قابلة للتحميل','Prepare an ATS-ready downloadable copy')));
-   editor.append(header,node('p',t('النص المستخرج من ملفك قابل للتعديل. صحّح التنسيق والعناوين فقط وأضف معلومات حقيقية. الحفظ ينشئ نسخة مستقلة Word قابلة للتحويل لـPDF؛ مش هيغيّر الأصل.','Edit the extracted CV text. Correct formatting and headings, and only add true facts. Saving creates a separate Word/PDF-exportable copy without changing the uploaded original.'),'ats-export-note'));
+   editor.append(header,node('p',t('راجع النص واقتراحات الـAI بنفسك. الحفظ بينشئ نسخة مستقلة قابلة للتحميل كـWord أو PDF ومش بيغيّر الـCV الأصلي أو بيانات الـBuilder.','Review the AI draft yourself. Saving creates a separate Word/PDF-exportable version without changing your original CV or builder data.'),'ats-export-note'));
    const toggle=button('مراجعة وتعديل النسخة','Review and edit copy',async()=>{
     if(editing){editing=false;draw();return;}
     try{const response=await api('/api/cv/ats/text?cvId='+encodeURIComponent(selected.id));revisionDraft=response.content;editing=true;saveError='';draw();}
