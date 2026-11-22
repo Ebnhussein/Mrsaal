@@ -10,6 +10,22 @@ router.use(requireAuth);
 router.post('/builder/preview',asyncHandler(async(req,res)=>{const b=require('../utils/cv/builder'),d=b.normalize(req.body.profile);res.json({content:b.content(d),fingerprint:b.fingerprint(d),report:d.kind==='portfolio'?null:await require('../utils/cv/ats').analyze({kind:'builder',content:b.content(d),filename:'CV.docx',document_json:JSON.stringify(d)},req.body.jobDescription??'')});}));
 router.post('/builder',asyncHandler(async(req,res)=>{const b=require('../utils/cv/builder'),d=b.normalize(req.body.profile);if(req.body.reviewed!==true||req.body.fingerprint!==b.fingerprint(d))return res.status(409).json({error:'راجع المعاينة بعد آخر تعديل قبل الحفظ.'});const id=await require('../utils/cv/store').save(req.session.userId,{content:b.content(d),filename:d.kind==='portfolio'?'Portfolio':'CV.docx',name:d.name+' · '+(d.kind==='portfolio'?'Portfolio':'CV'),kind:d.kind==='portfolio'?'portfolio':'builder',document_json:JSON.stringify(d)});res.json({ok:true,id});}));
 router.get('/builder/:id',asyncHandler(async(req,res)=>{const cv=await require('../utils/cv/store').active(req.session.userId,req.params.id);if(!cv?.document_json)return res.status(404).json({error:'الملف غير موجود'});res.set('Cache-Control','no-store');res.json({profile:JSON.parse(cv.document_json)});}));
+// Printer-friendly, text-based export. Browser's Save as PDF preserves selectable text.
+router.get('/print',asyncHandler(async(req,res)=>{
+ const cv=await require('../utils/cv/store').active(req.session.userId,req.query.cvId||null);
+ if(!cv||cv.kind==='portfolio')return res.status(404).type('text/plain').send('CV not found');
+ const escape=value=>String(value||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const data=cv.document_json?JSON.parse(cv.document_json):null;
+ const lang=data?.language==='ar'||(!data&&/[\u0600-\u06ff]/.test(cv.content||''))?'ar':'en';
+ const text=String(cv.content||'').slice(0,200000);
+ const title=lang==='ar'?'تصدير CV كملف PDF':'Export CV as PDF';
+ const source=escape(text);
+ // All candidate content is escaped, not interpreted as HTML.
+ res.set({'Cache-Control':'private, no-store','X-Robots-Tag':'noindex'});
+ res.type('html').send(`<!doctype html><html lang="${lang}" dir="${lang==='ar'?'rtl':'ltr'}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(title)}</title><style>
+ @page{size:A4;margin:18mm 19mm}*{box-sizing:border-box}body{margin:0;background:#eef2f0;color:#172a25;font:14px/1.65 Arial,Tahoma,sans-serif}.toolbar{max-width:210mm;margin:20px auto;padding:13px 18px;border-radius:10px;background:white;display:flex;align-items:center;justify-content:space-between;gap:12px}.toolbar button{border:0;background:#0f7467;color:#fff;border-radius:8px;padding:10px 18px;font:inherit;cursor:pointer}.paper{width:210mm;min-height:297mm;background:white;margin:0 auto 30px;padding:18mm 19mm;box-shadow:0 6px 25px #0002}.content{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;unicode-bidi:plaintext;font:11pt/1.55 Arial,Tahoma,sans-serif}small{color:#66756e}@media(max-width:800px){.toolbar{margin:8px}.paper{width:100%;min-height:0;padding:22px}}@media print{body{background:#fff}.toolbar{display:none!important}.paper{width:auto;min-height:0;margin:0;padding:0;box-shadow:none}.content{font-size:10.5pt}}
+ </style></head><body><div class="toolbar"><div><strong>${escape(title)}</strong><div><small>${lang==='ar'?'اختار Save as PDF من نافذة الطباعة':'Choose Save as PDF in the print dialog'}</small></div></div><button type="button" onclick="window.print()">${lang==='ar'?'حفظ PDF':'Save PDF'}</button></div><main class="paper"><pre class="content" dir="auto">${source}</pre></main></body></html>`);
+}));
 router.get('/attachment',asyncHandler(async(req,res)=>{
  const cv=await require('../utils/cv/store').active(req.session.userId,req.query.cvId||null),a=await require('../utils/cv/builder').attachment(cv);
  if(!a)return res.status(404).json({error:'لا يوجد مرفق لهذه النسخة'});
