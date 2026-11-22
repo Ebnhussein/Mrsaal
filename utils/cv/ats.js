@@ -111,9 +111,10 @@ async function analyze(row,job=''){
  keywords('',job);if(row?.kind==='portfolio')throw Object.assign(new Error('فحص ATS خاص بالسيرة الذاتية. البرتفوليو يعتمد على روابط أعمالك.'),{status:422,code:'ATS_PORTFOLIO'});
  const read=require('./read-document');let source,structured=null;
  if(row?.kind==='builder'&&row.document_json){structured=JSON.parse(row.document_json);source=await read.docx(await require('./document').render(structured));}
+ else if(row?.kind==='ats-revised'){source=await read.docx(await require('./export').renderText(row.content));}
  else if(row?.attachment_data)source=await read.docx(Buffer.from(row.attachment_data));
  else if(row?.pdf_data)source=await read.pdf(Buffer.from(row.pdf_data));
  else source={text:String(row?.content||''),format:'text',bytes:Buffer.byteLength(row?.content||''),layout:null};
- const text=source.text;delete source.text;source.filename=row?.filename||'CV';source.attachment=!!(row?.pdf_data||row?.attachment_data||row?.kind==='builder');source.textDiffersFromSaved=source.attachment&&normalize(text).replace(/\s/g,'')!==normalize(row?.content).replace(/\s/g,'');const result=report(text,source,structured,job);if(row?.kind==='tailored'){const m=require('./tailor').metadata(row);result.keywords=keywords(text.split('\n').filter(line=>line!==m?.targetLine).join('\n'),job);result.keywordScope='source-facts';}return result;
+ const text=source.text;delete source.text;source.filename=row?.filename||'CV';source.attachment=!!(row?.pdf_data||row?.attachment_data||row?.kind==='builder'||row?.kind==='ats-revised');source.textDiffersFromSaved=source.attachment&&normalize(text).replace(/\s/g,'')!==normalize(row?.content).replace(/\s/g,'');const result=report(text,source,structured,job);if(row?.kind==='tailored'){const m=require('./tailor').metadata(row);result.keywords=keywords(text.split('\n').filter(line=>line!==m?.targetLine).join('\n'),job);result.keywordScope='source-facts';}return result;
 }
 module.exports={report,analyze,keywords};
