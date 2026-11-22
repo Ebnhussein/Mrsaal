@@ -35,7 +35,12 @@
    const exportRow=node('div',null,'ats-actions ats-export-actions');
    const wordLink=node('a',t('تحميل Word','Download Word'),'btn btn-secondary');wordLink.href='/api/cv/export/docx?cvId='+encodeURIComponent(selected.id);
    const pdfLink=node('a',t('حفظ PDF','Save PDF'),'btn btn-secondary');pdfLink.href='/api/cv/print?cvId='+encodeURIComponent(selected.id);pdfLink.target='_blank';pdfLink.rel='noopener noreferrer';
-   exportRow.append(wordLink,pdfLink);report.append(exportRow);
+   exportRow.append(wordLink,pdfLink);
+   if(selected.kind==='builder'&&window.MrsaalProfileBuilder?.edit){
+    const editButton=button('تعديل CV الأصلي','Edit original CV',()=>window.MrsaalProfileBuilder.edit(selected.id));
+    editButton.className='btn btn-secondary';exportRow.append(editButton);
+   }
+   report.append(exportRow);
    report.append(node('p',t('التحميل خاص بالنسخة اللي أنشأها مرسال أو اللي راجعتها وحفظتها هنا. PDF يفتح صفحة جاهزة للطباعة والحفظ.','Downloads use the CV built by Mrsaal or the reviewed version saved here. PDF opens a print-ready page.'),'ats-export-note'));
   }else{
    report.append(node('p',t('دي النسخة الأصلية المرفوعة. علشان تحمّل Word أو PDF محسّن، راجع النص واحفظ نسخة ATS جديدة الأول. الملف الأصلي مش هيتغير.','This is the uploaded original. Review and save a new ATS version before downloading Word or PDF. Your original is unchanged.'),'ats-note'));
