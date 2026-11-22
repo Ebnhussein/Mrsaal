@@ -44,6 +44,37 @@
   if(source.textDiffersFromSaved)report.append(node('p',t('النص المحفوظ مختلف عن المرفق. النتيجة هنا تخص الملف الأصلي اللي هيتبعت، مش النص المعدّل. لو عايز تغيّر الملف، عدّله وارفع نسخة جديدة.','Saved text differs from the attachment. This result checks the original file that will be sent, not edited text. To change the file, edit it and upload a new version.'),'ats-note'));
   if(source.partial||source.pagesWithNoText)report.append(node('p',t('الفحص غير مكتمل أو فيه صفحات بدون نص. راجع النص المقروء أدناه؛ لا تعتمد على النتيجة كفحص شامل.','The scan is partial or includes pages with no text. Review extracted text below; this is not a complete file check.'),'ats-note'));
   if(source.bytes>2.5*1024*1024)report.append(node('p',t('حجم الملف كبير. راجع حد الملفات المسموح في موقع التقديم.','This is a large file. Check the receiving site’s file-size limit.'),'ats-note'));
+  // A human-readable overview, not a simulated employer ATS score.
+  const checks=result.checks||[];
+  const passed=checks.filter(c=>c.status==='pass').length;
+  const review=checks.filter(c=>c.status==='warning').length;
+  const manual=checks.filter(c=>c.status==='unknown').length;
+  const overview=node('section',null,'ats-overview');
+  overview.setAttribute('aria-label',t('ملخص الفحص','Check overview'));
+  const summaryHead=node('div',null,'ats-overview-heading');
+  summaryHead.append(node('div',null,'ats-overview-icon'));
+  summaryHead.firstChild.textContent=review?'!':'✓';
+  const summaryText=node('div',null,'ats-overview-copy');
+  summaryText.append(node('strong',review?t('فيه نقاط محتاجة تحسين','Some items need attention'):t('الفحوص المتاحة مكتملة','Available checks look good')),
+   node('span',t('النتيجة إرشادية وبتعتمد على النص المستخرج من الملف.','Advisory results based on extracted document text.')));
+  summaryHead.append(summaryText);overview.append(summaryHead);
+  const metrics=node('div',null,'ats-overview-metrics');
+  for(const [number,ar,en,kind] of [[passed,'متوافق','Passed','pass'],[review,'يحتاج تحسين','Needs attention','warn'],[manual,'مراجعة يدوية','Manual review','manual']]){
+   const metric=node('div',null,'ats-overview-metric ats-metric-'+kind);
+   metric.append(node('strong',String(number)),node('span',t(ar,en)));metrics.append(metric);
+  }
+  overview.append(metrics);
+  if(result.keywords){
+   const match=node('div',null,'ats-overview-match');
+   const label=node('div',null,'ats-overview-match-label');
+   label.append(node('strong',t('تغطية كلمات الوظيفة','Job description keyword coverage')),node('span',result.keywords.matchPercent+'%'));
+   const track=node('div',null,'ats-overview-track'),fill=node('div',null,'ats-overview-fill');
+   fill.style.width=Math.max(0,Math.min(100,result.keywords.matchPercent||0))+'%';
+   track.append(fill);match.append(label,track,node('small',t('دي مطابقة كلمات فقط، مش نسبة قبول من الشركة.','Keyword overlap only, not an employer acceptance score.')));
+   overview.append(match);
+  }
+  report.append(overview);
+  report.append(node('h4',t('تفاصيل فحص الملف','Detailed document checks'),'ats-section-title'));
   const list=node('ul',null,'ats-checks');for(const c of result.checks){const item=node('li',null,'ats-check ats-'+c.status),title=node('strong',t(...names[c.id]));const label=node('span',c.status==='pass'?t('✓ متحقق','✓ Checked'):c.status==='unknown'?t('○ مراجعة يدوية','○ Manual review'):t('△ يحتاج مراجعة','△ Review needed'),'ats-check-state');item.append(title,label);if(c.status!=='pass')item.append(node('p',t(...advice[c.id])));list.append(item);}report.append(list);
   if(result.keywords){report.append(node('h4',t('نسبة تغطية كلمات الوظيفة: ','Job keyword coverage: ')+result.keywords.matchPercent+'%'),node('p',t('النسبة بتقيس الكلمات الفريدة المشتركة بين الملف والوصف، مش فرصة القبول أو نتيجة ATS فعلية.','Unique-term overlap only; not an acceptance probability or a real employer ATS score.'),'ats-note'));report.append(node('h4',t('تفاصيل الكلمات المتطابقة والناقصة','Matched and missing terms')));for(const [key,ar,en]of [['matched','موجودة في النسخة','Present in this version'],['missing','غير موجودة — أضفها فقط لو حقيقية','Missing — add only if true']]){const block=node('section');block.append(node('h5',t(ar,en)));const chips=node('div',null,'ats-keywords');for(const term of result.keywords[key])chips.append(node('span',term,'ats-chip'));if(!result.keywords[key].length)chips.append(node('span','—'));block.append(chips);report.append(block);}}
   if(['cv','docx','ats-revised'].includes(selected.kind)){
