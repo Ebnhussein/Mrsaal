@@ -71,9 +71,9 @@ router.get('/ats/text',asyncHandler(async(req,res)=>{
  const cvId=req.query.cvId;
  if(typeof cvId!=='string'||!cvId||cvId.length>160)return res.status(400).json({error:'اختار نسخة CV صالحة.'});
  const source=await require('../utils/cv/store').active(req.session.userId,cvId);
- if(!source||!['cv','docx','ats-revised'].includes(source.kind))return res.status(404).json({error:'النسخة غير موجودة'});
+ if(!source||!['cv','docx','ats-revised','builder'].includes(source.kind))return res.status(404).json({error:'النسخة غير موجودة'});
  const read=require('../utils/cv/read-document');
- const parsed=source.attachment_data?await read.docx(Buffer.from(source.attachment_data)):source.pdf_data?await read.pdf(Buffer.from(source.pdf_data)):{text:source.content||''};
+ const parsed=source.kind==='builder'&&source.document_json?await read.docx(await require('../utils/cv/document').render(JSON.parse(source.document_json)):source.attachment_data?await read.docx(Buffer.from(source.attachment_data)):source.pdf_data?await read.pdf(Buffer.from(source.pdf_data)):{text:source.content||''};
  if(parsed.partial||parsed.pagesWithNoText)return res.status(422).json({error:'لا يمكن تعديل ملف لم يتم استخراج نصه بالكامل. ارفع ملفًا نصيًا كاملًا.'});
  res.set('Cache-Control','private, no-store');res.json({content:parsed.text});
 }));
@@ -82,7 +82,7 @@ router.post('/ats/revision',asyncHandler(async(req,res)=>{
  const {cvId,content,confirmed}=req.body||{};
  if(typeof cvId!=='string'||!cvId||cvId.length>160||typeof content!=='string'||content.length>180000||confirmed!==true)return res.status(400).json({error:'راجع النص ووافق على حفظ نسخة منفصلة.',code:'ATS_REVISION_INPUT'});
  const source=await require('../utils/cv/store').active(req.session.userId,cvId);
- if(!source||!['cv','docx','ats-revised'].includes(source.kind))return res.status(422).json({error:'التعديل هنا للـCV المرفوع فقط. استخدم محرر مرسال لتعديل الـCV المنشأ داخله.',code:'ATS_REVISION_SOURCE'});
+ if(!source||!['cv','docx','ats-revised','builder'].includes(source.kind))return res.status(422).json({error:'اختار نسخة CV صالحة قابلة للمراجعة.',code:'ATS_REVISION_SOURCE'});
  const safe=content.trim();
  if(!safe||/\x00/.test(safe)||!require('../utils/cv/ats').report(safe).readable)return res.status(422).json({error:'نص النسخة الجديدة غير مقروء بشكل كافٍ. راجع النص قبل الحفظ.',code:'ATS_REVISION_EMPTY'});
  const id=await require('../utils/cv/store').save(req.session.userId,{content:safe,filename:'ATS-reviewed-CV.docx',name:'ATS reviewed · '+String(source.name||source.filename||'CV').slice(0,100),kind:'ats-revised'});
