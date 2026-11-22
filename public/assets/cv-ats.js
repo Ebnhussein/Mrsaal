@@ -1,7 +1,7 @@
 /* global api,openSettings */
 (()=>{'use strict';
  const root=document.getElementById('cv-ats-panel');if(!root)return;root.dataset.userContent='';
- let active=null,selected=null,result=null,job='',busy=false,error='',revision=0,pending=Promise.resolve(),revisionDraft='',editing=false,saveError='';
+ let active=null,selected=null,result=null,job='',busy=false,error='',revision=0,pending=Promise.resolve(),revisionDraft='',editing=false,saveError='',aiReview=null,aiBusy=false,aiError='';
  const t=(ar,en)=>document.documentElement.lang==='en'?en:ar;
  const node=(tag,text,cls)=>{const e=document.createElement(tag);if(text)e.textContent=text;if(cls)e.className=cls;return e;};
  function cleanATSFormatting(text){
@@ -102,6 +102,52 @@
    section.append(list);report.append(section);
   }
   if(result.keywords){report.append(node('h4',t('نسبة تغطية كلمات الوظيفة: ','Job keyword coverage: ')+result.keywords.matchPercent+'%'),node('p',t('النسبة بتقيس الكلمات الفريدة المشتركة بين الملف والوصف، مش فرصة القبول أو نتيجة ATS فعلية.','Unique-term overlap only; not an acceptance probability or a real employer ATS score.'),'ats-note'));report.append(node('h4',t('تفاصيل الكلمات المتطابقة والناقصة','Matched and missing terms')));for(const [key,ar,en]of [['matched','موجودة في النسخة','Present in this version'],['missing','غير موجودة — أضفها فقط لو حقيقية','Missing — add only if true']]){const block=node('section');block.append(node('h5',t(ar,en)));const chips=node('div',null,'ats-keywords');for(const term of result.keywords[key])chips.append(node('span',term,'ats-chip'));if(!result.keywords[key].length)chips.append(node('span','—'));block.append(chips);report.append(block);}}
+  const aiBox=node('section',null,'ats-ai-review');
+  const aiTitle=node('div',null,'ats-ai-review-title');
+  aiTitle.append(node('strong',t('مساعد تحسين الـCV بالذكاء الاصطناعي','AI resume improvement assistant')),
+    node('small',t('بيستخدم موديلات AI اللي ربطتها في إعدادات مرسال','Uses the AI models connected in your Mrsaal settings')));
+  aiBox.append(aiTitle);
+  const aiBtn=button(aiBusy?'جاري تحليل الـCV…':'تحليل واقتراح تحسينات بالـAI',aiBusy?'Analyzing resume…':'Analyze and suggest AI improvements',async()=>{
+   if(aiBusy||busy)return;
+   aiBusy=true;aiError='';aiReview=null;const forId=selected.id,description=job;draw();
+   try{
+    const response=await api('/api/cv/ats/ai-review','POST',{cvId:forId,jobDescription:description});
+    if(selected?.id!==forId)return;
+    aiReview=response.review;
+   }catch(e){aiError=e.message;}finally{aiBusy=false;draw();}
+  },true);
+  aiBtn.disabled=busy||aiBusy;aiBox.append(aiBtn);
+  aiBox.append(node('p',t('الاقتراحات مش بتتطبق ولا بتتحفظ تلقائيًا. راجع كل تغيير قبل اعتماد نسخة جديدة.','Suggestions are never automatically applied or saved. Review all changes before approving a new version.'),'ats-export-note'));
+  if(aiError){const e=node('p',aiError,'ats-error');e.setAttribute('role','alert');aiBox.append(e);}
+  if(aiReview){
+   const hdr=node('h4',t('التحسينات المقترحة','Suggested improvements'));aiBox.append(hdr);
+   const suggestions=node('div',null,'ats-ai-suggestions');
+   for(const item of aiReview.suggestions){
+    const row=node('article',null,'ats-ai-suggestion');
+    row.append(node('strong',item.suggestion));
+    if(item.reason)row.append(node('p',item.reason));
+    if(item.original)row.append(node('small',t('الأصل: ','Original: ')+item.original));
+    suggestions.append(row);
+   }
+   if(!aiReview.suggestions.length)suggestions.append(node('p',t('مفيش تعديلات آمنة إضافية اقترحها الموديل.','The model proposed no additional safe edits.')));
+   aiBox.append(suggestions);
+   if(aiReview.factWarnings?.requiresReview){
+    aiBox.append(node('p',t('تحذير: الموديل أضاف أرقام أو بيانات تواصل مش موجودة بالنص الأصلي. راجعها واحذف أي معلومة غير صحيحة.','Warning: the model introduced new numbers or contact details. Verify them and remove any unsupported information.'),'ats-error'));
+   }
+   const preview=node('details',null,'ats-ai-preview');
+   preview.append(node('summary',t('معاينة النص المقترح كاملًا','Preview proposed full resume')));
+   const pre=node('pre',aiReview.revisedText);pre.dir='auto';preview.append(pre);aiBox.append(preview);
+   if(['cv','docx','ats-revised'].includes(selected.kind)){
+    const apply=button('نقل الاقتراح للمحرر للمراجعة','Move draft to editor for review',()=>{
+     revisionDraft=aiReview.revisedText;editing=true;draw();
+     root.querySelector('#ats-revision-text')?.scrollIntoView({behavior:'smooth',block:'center'});
+    });aiBox.append(apply);
+   }else{
+    aiBox.append(node('p',t('ده CV معمول على مرسال. علشان تحافظ على البيانات المنظمة، افتح المحرر وعدّل الحقول بمراجعتك بدل استبدال الملف بنص AI.','This resume was built in Mrsaal. Edit its structured fields after reviewing suggestions instead of replacing the file with AI text.'),'ats-note'));
+    const edit=button('فتح محرر الـCV','Open CV editor',()=>window.MrsaalProfileBuilder?.edit(selected.id));aiBox.append(edit);
+   }
+  }
+  report.append(aiBox);
   if(['cv','docx','ats-revised'].includes(selected.kind)){
    const editor=node('section',null,'ats-revision'),header=node('div',null,'ats-revision-header');
    header.append(node('h4',t('جهّز نسخة ATS قابلة للتحميل','Prepare an ATS-ready downloadable copy')));
@@ -136,6 +182,6 @@
   }
   const extracted=node('details',null,'ats-extracted');extracted.append(node('summary',t('راجع النص اللي قدرنا نقرأه','Review the text we could extract')));const pre=node('pre',result.textPreview||t('لم نتمكن من استخراج نص مقروء.','No readable text could be extracted.'));pre.dir='auto';extracted.append(pre);if(result.previewTruncated)extracted.append(node('p',t('المعاينة مختصرة؛ فحص النص شمل النص المقروء كاملًا ضمن حدود القراءة.','Preview is shortened; checks used all text extracted within the reading limits.')));report.append(extracted);root.append(report);
  }
- window.MrsaalATS={render(cv){++revision;active=cv;selected=cv?.kind==='portfolio'?null:cv;result=null;error='';busy=false;revisionDraft='';editing=false;saveError='';draw();if(selected)void run();},open(id,name){++revision;busy=false;selected={id,name};result=null;error='';revisionDraft='';editing=false;saveError='';openSettings('cv');draw();root.scrollIntoView({behavior:'smooth',block:'start'});void run();}};
+ window.MrsaalATS={render(cv){++revision;active=cv;selected=cv?.kind==='portfolio'?null:cv;result=null;error='';busy=false;revisionDraft='';editing=false;saveError='';aiReview=null;aiError='';aiBusy=false;draw();if(selected)void run();},open(id,name){++revision;busy=false;selected={id,name};result=null;error='';revisionDraft='';editing=false;saveError='';aiReview=null;aiError='';aiBusy=false;openSettings('cv');draw();root.scrollIntoView({behavior:'smooth',block:'start'});void run();}};
  document.addEventListener('mrsaal:language',draw);
 })();
