@@ -45,6 +45,28 @@ router.post('/tailor',asyncHandler(async(req,res)=>{
  const source=await require('../utils/cv/store').active(id,req.body.cvId||null),tailor=require('../utils/cv/tailor');const row=await tailor.prepare(id,company,source,req.body.options??{});res.set('Cache-Control','private, no-store');res.json(tailor.view(row));
 }));
 router.get('/tailor/jobs',asyncHandler(async(req,res)=>{res.set('Cache-Control','private, no-store');res.json(await all("SELECT id,title,description FROM discovered_jobs WHERE user_id=$1 AND company_id=$2 AND status<>'needs_review' ORDER BY created_at DESC LIMIT 100",[req.session.userId,req.query.companyId]));}));
+const aiReviewRunning=new Set();
+router.post('/ats/ai-review',asyncHandler(async(req,res)=>{
+ const userId=req.session.userId,{cvId,jobDescription}=req.body||{};
+ if(typeof cvId!=='string'||!cvId||cvId.length>160)return res.status(400).json({error:'اختار CV صالح.'});
+ if(aiReviewRunning.has(userId))return res.status(429).json({error:'في تحليل AI شغال حاليًا، جرّب بعد اكتماله.'});
+ const cv=await require('../utils/cv/store').active(userId,cvId);
+ if(!cv||cv.kind==='portfolio')return res.status(404).json({error:'ملف CV غير موجود.'});
+ const read=require('../utils/cv/read-document');
+ const parsed=cv.kind==='builder'&&cv.document_json?
+  await read.docx(await require('../utils/cv/document').render(JSON.parse(cv.document_json))):
+  cv.attachment_data?await read.docx(Buffer.from(cv.attachment_data)):
+  cv.pdf_data?await read.pdf(Buffer.from(cv.pdf_data)):
+  {text:cv.content,partial:false,pagesWithNoText:0};
+ if(parsed.partial||parsed.pagesWithNoText)return res.status(422).json({error:'مش ممكن نعتمد على استخراج نص ناقص. ارفع ملف نصي كامل الأول.'});
+ aiReviewRunning.add(userId);
+ try{
+  const ai=require('../utils/cv/ai-review');
+  const review=await ai.improve(userId,parsed.text,jobDescription||'');
+  res.set('Cache-Control','private, no-store');
+  res.json({cvId:cv.id,kind:cv.kind,review});
+ }finally{aiReviewRunning.delete(userId);}
+}));
 router.get('/ats/text',asyncHandler(async(req,res)=>{
  const cvId=req.query.cvId;
  if(typeof cvId!=='string'||!cvId||cvId.length>160)return res.status(400).json({error:'اختار نسخة CV صالحة.'});
