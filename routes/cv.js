@@ -13,14 +13,14 @@ router.get('/builder/:id',asyncHandler(async(req,res)=>{const cv=await require('
 // Printer-friendly, text-based export. Browser's Save as PDF preserves selectable text.
 router.get('/export/docx',asyncHandler(async(req,res)=>{
  const cv=await require('../utils/cv/store').active(req.session.userId,req.query.cvId||null);
- if(!cv||cv.kind==='portfolio')return res.status(404).json({error:'السيرة غير موجودة'});
+ if(!cv||!['builder','tailored','ats-revised'].includes(cv.kind))return res.status(404).json({error:'السيرة غير موجودة'});
  const data=cv.attachment_data?Buffer.from(cv.attachment_data):cv.kind==='builder'&&cv.document_json?await require('../utils/cv/document').render(JSON.parse(cv.document_json)):await require('../utils/cv/export').renderText(cv.content);
  res.set({'Content-Type':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','Content-Disposition':'attachment; filename="Mrsaal-CV.docx"','Cache-Control':'private, no-store'});
  res.send(data);
 }));
 router.get('/print',asyncHandler(async(req,res)=>{
  const cv=await require('../utils/cv/store').active(req.session.userId,req.query.cvId||null);
- if(!cv||cv.kind==='portfolio')return res.status(404).type('text/plain').send('CV not found');
+ if(!cv||!['builder','tailored','ats-revised'].includes(cv.kind))return res.status(404).type('text/plain').send('CV not found');
  const escape=value=>String(value||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const data=cv.document_json?JSON.parse(cv.document_json):null;
  const lang=data?.language==='ar'||(!data&&/[\u0600-\u06ff]/.test(cv.content||''))?'ar':'en';
