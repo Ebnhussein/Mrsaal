@@ -4,6 +4,20 @@
  let active=null,selected=null,result=null,job='',busy=false,error='',revision=0,pending=Promise.resolve(),revisionDraft='',editing=false,saveError='';
  const t=(ar,en)=>document.documentElement.lang==='en'?en:ar;
  const node=(tag,text,cls)=>{const e=document.createElement(tag);if(text)e.textContent=text;if(cls)e.className=cls;return e;};
+ function cleanATSFormatting(text){
+  const lines=String(text||'').replace(/\r\n?/g,'\n').split('\n');
+  const headings=new Map([
+   ['professional profile','Professional Summary'],['profile summary','Professional Summary'],['about me','Professional Summary'],
+   ['work history','Experience'],['employment history','Experience'],['professional experience','Experience'],
+   ['key skills','Skills'],['technical skills','Skills'],['core competencies','Skills'],['academic background','Education'],
+   ['النبذة المهنية','الملخص المهني'],['نبذة عني','الملخص المهني'],['الخبرات المهنية','الخبرات العملية'],
+   ['المهارات التقنية','المهارات'],['المؤهلات العلمية','التعليم']
+  ]);
+  return lines.map(line=>{
+   const trimmed=line.trim(),key=trimmed.replace(/[:：]$/,'').toLowerCase();
+   return headings.has(key)?headings.get(key):line.replace(/[ \t]+$/g,'');
+  }).join('\n').replace(/\n{4,}/g,'\n\n\n').trim();
+ }
  const names={text:['قراءة النص من الملف','File text extraction'],contact:['البريد ورقم الهاتف','Email and phone'],summary:['ملخص مهني','Professional summary'],skills:['قسم المهارات','Skills section'],evidence:['الخبرات أو المشروعات','Experience or projects'],education:['التعليم','Education'],dates:['تواريخ الخبرة والتعليم','Experience and education dates'],layout:['بنية المستند','Document structure']};
  const advice={text:['لو الملف مصوّر أو فيه صفحات بدون نص، استخرج النص بـ OCR ثم صدّره من جديد.','For image-only files or pages without text, run OCR and export again.'],contact:['راجع وجود بريد إلكتروني ورقم هاتف مكتوبين كنص، مش صورة.','Check that email and phone are present as real text, not an image.'],summary:['استخدم عنوانًا واضحًا زي «الملخص المهني» أو Professional Summary.','Use a clear heading such as Professional Summary.'],skills:['استخدم عنوانًا واضحًا لقسم المهارات واكتب مهاراتك الحقيقية.','Use a clear Skills heading and list your actual skills.'],evidence:['استخدم عنوان خبرات أو مشروعات، ووضح دورك الحقيقي.','Use Experience or Projects headings and describe your actual contribution.'],education:['ضيف تعليمك لو مناسب، بعنوان واضح. الملاحظة لا تمنع التقديم.','Add relevant education under a clear heading. This warning does not block applying.'],dates:['راجع التواريخ وترتيبها بنفسك. قراءة النص لا تؤكد صحة الفترة أو اكتمالها.','Review dates and their order. Text extraction does not prove dates are correct or complete.'],layout:['راجع الملف بصريًا: عمود واحد، من غير جداول أو مربعات نص، وبيانات التواصل في جسم الصفحة.','Visually review the document: one column, no tables or text boxes, contact details in the page body.']};
  function button(ar,en,fn){const b=node('button',t(ar,en),'btn btn-primary');b.type='button';b.disabled=busy;b.onclick=fn;return b;}
@@ -56,7 +70,10 @@
       await run();
      }catch(e){busy=false;saveError=e.message;draw();}
     },true);
-    editor.append(label,textarea,confirm,saveBtn);
+    const formatBtn=button('ترتيب عناوين ومسافات الـCV','Normalize headings and spacing',()=>{
+     revisionDraft=cleanATSFormatting(textarea.value);textarea.value=revisionDraft;
+    });formatBtn.className='btn btn-secondary';
+    editor.append(label,textarea,formatBtn,confirm,saveBtn);
    }
    if(saveError)editor.append(node('p',saveError,'ats-error'));
    report.append(editor);
