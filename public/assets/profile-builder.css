@@ -17,3 +17,43 @@
 @media(prefers-reduced-motion:reduce){.profile-builder *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}@keyframes pb-appear{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 .pb-existing-cv{border:1px solid var(--border);border-radius:13px;padding:16px;margin-block:20px;background:var(--surface)}.pb-existing-cv>summary{font-size:13px;font-weight:600;color:var(--accent);cursor:pointer}.pb-existing-cv[open]>summary{margin-bottom:18px}
 .pb-activation-note{display:block;font-size:10px;line-height:1.9;color:var(--text2);margin-top:8px;max-width:530px}#settings-cv>.section-heading{display:none}@media(max-width:900px){.profile-builder{scroll-margin-top:88px}.pb-step-heading{scroll-margin-top:100px}}
+
+
+/* 2026-11-22 — Align Application Profile with the Writing Preferences settings page.
+   Visual-only overrides: keep all builder IDs, state, events, uploads and ATS flows intact. */
+#settings-cv{min-width:0}
+#settings-cv>.section-heading{display:block;margin-bottom:20px}
+#settings-cv>.section-heading h2{font-size:20px;line-height:1.6;font-weight:700}
+#settings-cv>.section-heading p{font-size:13px;line-height:1.85;color:var(--text2)}
+#settings-cv>.card:has(>#profile-builder){padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;overflow:visible}
+#settings-cv .profile-builder{margin:0 0 16px;min-width:0;max-width:100%;direction:inherit}
+#settings-cv .pb-header{padding:0 0 12px;gap:12px}
+#settings-cv .pb-header h2{font-size:18px;line-height:1.6}
+#settings-cv .pb-header p{font-size:13px;line-height:1.85;margin-top:4px}
+#settings-cv .pb-draft-state{font-size:11px;border-radius:10px;max-width:100%;white-space:normal}
+#settings-cv .pb-modes{background:var(--surface);border:1px solid transparent;border-radius:18px;gap:12px;padding:22px;margin:0 0 16px}
+#settings-cv .pb-mode{border-radius:12px;background:var(--surface2,var(--surface3));padding:15px;gap:12px;min-height:92px}
+#settings-cv .pb-mode[aria-pressed=true]{background:var(--accent-soft,var(--surface3));border-color:var(--accent)}
+#settings-cv .pb-mode strong{font-size:14px}
+#settings-cv .pb-mode small{font-size:12px;line-height:1.75}
+#settings-cv .pb-steps{background:var(--surface);border-radius:18px;padding:18px 22px;margin:0 0 16px;gap:10px}
+#settings-cv .pb-layout{background:var(--surface);padding:24px 22px;border-radius:18px}
+#settings-cv .pb-section-head{margin-bottom:12px}
+#settings-cv .pb-section-head h3{font-size:16px;font-weight:700}
+#settings-cv .pb-section-copy{font-size:13px;line-height:1.9;margin-bottom:20px!important}
+#settings-cv .pb-grid{gap:18px 16px}
+#settings-cv .pb-field{gap:8px}
+#settings-cv .pb-field label{font-size:12px;font-weight:500;color:var(--text2);line-height:1.65}
+#settings-cv .pb-field :is(input,select,textarea){min-height:46px;font-size:14px;background:var(--surface2,var(--surface3));border:1px solid transparent;border-radius:10px;padding:11px 13px;direction:inherit;text-align:start;transition:border-color .15s,box-shadow .15s}
+#settings-cv .pb-field textarea{min-height:106px}
+#settings-cv .pb-field :is(input,select,textarea):focus{border-color:var(--accent);outline:2px solid color-mix(in srgb,var(--accent) 28%,transparent);outline-offset:1px}
+#settings-cv .pb-collection{margin-top:22px}
+#settings-cv .pb-entry,#settings-cv .pb-job,#settings-cv .pb-existing-cv{background:var(--surface);border:1px solid var(--border);border-radius:16px}
+#settings-cv .pb-live{background:var(--surface);border:1px solid var(--border);border-radius:16px}
+#settings-cv .pb-actions{margin-top:24px;padding-top:18px}
+#settings-cv .pb-preview,#settings-cv .pb-report{border-radius:12px}
+#settings-cv .pb-existing-cv{padding:20px 22px;margin:16px 0}
+#settings-cv .pb-existing-cv>summary{font-size:14px;line-height:1.7;color:var(--text);cursor:pointer}
+#settings-cv .pb-existing-cv[open]>summary{margin-bottom:18px}
+@media(max-width:800px){#settings-cv>.section-heading{margin-bottom:16px}#settings-cv .pb-modes{padding:16px}#settings-cv .pb-steps{padding:16px}#settings-cv .pb-layout{padding:18px}}
+@media(max-width:520px){#settings-cv .pb-modes{grid-template-columns:1fr}#settings-cv .pb-grid{grid-template-columns:1fr}#settings-cv .pb-grid .pb-wide{grid-column:auto}#settings-cv .pb-steps{grid-template-columns:repeat(2,minmax(0,1fr))}#settings-cv .pb-header{flex-wrap:wrap}#settings-cv .pb-existing-cv{padding:16px}}
