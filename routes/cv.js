@@ -45,6 +45,17 @@ router.post('/tailor',asyncHandler(async(req,res)=>{
  const source=await require('../utils/cv/store').active(id,req.body.cvId||null),tailor=require('../utils/cv/tailor');const row=await tailor.prepare(id,company,source,req.body.options??{});res.set('Cache-Control','private, no-store');res.json(tailor.view(row));
 }));
 router.get('/tailor/jobs',asyncHandler(async(req,res)=>{res.set('Cache-Control','private, no-store');res.json(await all("SELECT id,title,description FROM discovered_jobs WHERE user_id=$1 AND company_id=$2 AND status<>'needs_review' ORDER BY created_at DESC LIMIT 100",[req.session.userId,req.query.companyId]));}));
+// A user-reviewed copy of an uploaded CV; the uploaded original is left untouched.
+router.post('/ats/revision',asyncHandler(async(req,res)=>{
+ const {cvId,content,confirmed}=req.body||{};
+ if(typeof cvId!=='string'||!cvId||cvId.length>160||typeof content!=='string'||content.length>180000||confirmed!==true)return res.status(400).json({error:'راجع النص ووافق على حفظ نسخة منفصلة.',code:'ATS_REVISION_INPUT'});
+ const source=await require('../utils/cv/store').active(req.session.userId,cvId);
+ if(!source||!['cv','docx','ats-revised'].includes(source.kind))return res.status(422).json({error:'التعديل هنا للـCV المرفوع فقط. استخدم محرر مرسال لتعديل الـCV المنشأ داخله.',code:'ATS_REVISION_SOURCE'});
+ const safe=content.trim();
+ if(!safe||/\x00/.test(safe)||!require('../utils/cv/ats').report(safe).readable)return res.status(422).json({error:'نص النسخة الجديدة غير مقروء بشكل كافٍ. راجع النص قبل الحفظ.',code:'ATS_REVISION_EMPTY'});
+ const id=await require('../utils/cv/store').save(req.session.userId,{content:safe,filename:'ATS-reviewed-CV.docx',name:'ATS reviewed · '+String(source.name||source.filename||'CV').slice(0,100),kind:'ats-revised'});
+ res.set('Cache-Control','private, no-store');res.json({ok:true,id,name:'ATS reviewed CV',kind:'ats-revised'});
+}));
 const atsRunning=new Set();
 router.post('/ats',asyncHandler(async(req,res)=>{
  const id=req.session.userId,cvId=req.body.cvId;
