@@ -101,8 +101,12 @@
   const reg=await navigator.serviceWorker.getRegistration('/'),sub=await reg?.pushManager.getSubscription();
   if(!sub)return false;return (await request('/device-status','POST',{endpoint:sub.endpoint})).enabled===true;
  }
+ function promptBlocked(){return document.hidden||permissionPrompt?.isConnected||document.querySelector('dialog[open],.overlay.open,#mrsaal-tour:not([hidden])');}
  async function promptNotifications(){
-  if(!owner||await deviceNotificationsEnabled())return;
+  if(promptBlocked())return false;
+  if(!owner||await deviceNotificationsEnabled())return true;
+  // A tour/modal can start while the device-subscription request is in flight.
+  if(promptBlocked())return false;
   const d=el('dialog',undefined,'nt-permission-dialog');permissionPrompt=d;d.dir=en()?'ltr':'rtl';d.dataset.userContent='';d.setAttribute('aria-labelledby','nt-permission-title');d.setAttribute('aria-describedby','nt-permission-description');
   const header=el('div',undefined,'nt-permission-header'),title=el('h2',tr('خليك متابع كل جديد','Stay up to date'));title.id='nt-permission-title';const close=button('×',()=>d.close(),'nt-close');close.setAttribute('aria-label',tr('إغلاق','Close'));header.append(title,close);
   const intro=el('p',tr('فعّل الإشعارات عشان تعرف نتيجة تقديمك من غير ما تفتح التقارير كل شوية.','Enable notifications to follow your applications without repeatedly checking reports.'));intro.id='nt-permission-description';const benefits=el('ul');for(const pair of [['رصد فتح البريد ووصول رد من الشركة','Detected email opens and company replies'],['تسليم وقراءة وردود واتساب لما التأكيد يوصل','WhatsApp delivery, read and reply events when available'],['ردود الدعم والتحديثات الجديدة','Support replies and new product updates']])benefits.append(el('li',tr(...pair)));
@@ -110,9 +114,9 @@
   const status=el('p',undefined,'nt-permission-status');status.setAttribute('role','status');const actions=el('div',undefined,'nt-permission-actions'),enable=button(tr('تفعيل الإشعارات','Enable notifications'),async()=>{status.textContent=tr('جاري التفعيل…','Enabling…');try{await enableBrowser();d.close();}catch(e){status.textContent=e.message;}},'nt-button nt-permission-enable'),later=button(tr('لاحقًا','Later'),()=>d.close(),'nt-button');
   if('Notification' in window&&Notification.permission==='denied')status.textContent=tr('الإذن مقفول في المتصفح. افتح إعدادات الموقع بجوار العنوان واسمح بالإشعارات، ثم اضغط تفعيل.','Notifications are blocked. Allow them in the site settings beside the address bar, then enable.');
   if(!('PushManager' in window)||!('Notification' in window)||!window.isSecureContext)status.textContent=tr('لو بتستخدم iPhone، أضف مرسال للشاشة الرئيسية وافتحه منها. لو الإشعارات غير مدعومة، تقدر تكمل بإشعارات الموقع.','On iPhone, add Mrsaal to your Home Screen and open it there. If push is unsupported, in-app alerts remain available.');
-  actions.append(enable,later);d.append(header,intro,benefits,privacy,status,actions);document.body.append(d);d.addEventListener('close',()=>{d.remove();permissionPrompt=null;},{once:true});d.showModal();enable.focus();
+  actions.append(enable,later);d.append(header,intro,benefits,privacy,status,actions);document.body.append(d);d.addEventListener('close',()=>{d.remove();permissionPrompt=null;},{once:true});d.showModal();enable.focus();return true;
  }
- function scheduleNotificationPrompt(){const wait=setInterval(()=>{if(!started){clearInterval(wait);return;}if(document.hidden||document.querySelector('dialog[open],.overlay.open'))return;clearInterval(wait);promptNotifications().catch(()=>{});},1000);}
+ function scheduleNotificationPrompt(){let pending=false;const wait=setInterval(async()=>{if(!started){clearInterval(wait);return;}if(pending||promptBlocked())return;pending=true;try{if(await promptNotifications())clearInterval(wait);}catch{clearInterval(wait);}finally{pending=false;}},1000);}
  async function start(){if(started)return;const admin=!!document.querySelector('.admin-top');if(!admin&&(!document.querySelector('.app.active')||typeof currentUser==='undefined'||!currentUser?.email))return;started=true;init();await load();if(!admin)scheduleNotificationPrompt();pollTimer=setInterval(()=>{if(!document.hidden)load();},30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});window.addEventListener('online',()=>load());
   const params=new URLSearchParams(location.search);if(params.get('notifications'))await open();if(params.get('ticket')&&window.MrsaalTickets?.openTicket)await MrsaalTickets.openTicket(params.get('ticket'));
   const page=params.get('notificationPage');if(page&&window.nav){nav(page==='settings'?'settings':'report');if(page==='settings')selectSettings(params.get('section')||'channels');else{await loadLog();if(params.get('log')&&log.some(l=>l.id===params.get('log')))viewLogDetail(params.get('log'));}}
