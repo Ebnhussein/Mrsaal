@@ -23,3 +23,58 @@
 #settings-cv .ats-export-actions{padding-top:2px}
 #settings-cv .ats-export-note{color:var(--text2);margin:8px 0}
 @media(max-width:600px){#settings-cv .cv-ats{padding:16px}#settings-cv .ats-checks{grid-template-columns:1fr}#settings-cv .ats-revision{padding:14px}#settings-cv .ats-actions .btn{flex:1}}
+
+/* ATS CHECKER STUDIO — overview-first, task-oriented readability results */
+#settings-cv .cv-ats{border:1px solid var(--border);border-radius:19px;background:var(--surface);padding:25px;margin-top:20px}
+#settings-cv .ats-heading{align-items:flex-start;gap:14px;margin-bottom:9px}
+#settings-cv .ats-heading h3{font-size:21px;letter-spacing:-.02em;line-height:1.5}
+#settings-cv .ats-local{display:inline-flex;align-items:center;padding:7px 10px;border-radius:99px;background:var(--surface2,var(--surface3));color:var(--text2);font-size:11px}
+#settings-cv .ats-version{padding:12px 15px;background:var(--surface2,var(--surface3));border:1px solid var(--border);border-radius:11px;font-size:13px;margin-block:17px;overflow-wrap:anywhere}
+#settings-cv .ats-job{margin:16px 0;border:1px solid var(--border);border-radius:12px;background:var(--surface2,var(--surface3));padding:16px 18px}
+#settings-cv .ats-job summary{font-size:14px;color:var(--text);font-weight:700}
+#settings-cv .ats-job[open] summary{margin-bottom:13px}
+#settings-cv .ats-job textarea{min-height:124px;border-radius:10px;background:var(--surface);border:1px solid var(--border);padding:13px}
+#settings-cv .ats-actions{gap:10px;align-items:center;margin:17px 0}
+#settings-cv .ats-actions .btn{display:inline-flex;justify-content:center;align-items:center;min-height:44px;padding:11px 16px;font-size:13px;font-weight:650;border-radius:10px}
+#settings-cv .ats-export-actions{display:flex;align-items:stretch;gap:11px}
+#settings-cv .ats-export-actions .btn{flex:1}
+#settings-cv .ats-results{display:block}
+#settings-cv .ats-overview{border:1px solid var(--border);background:var(--surface2,var(--surface3));border-radius:17px;padding:22px;margin:22px 0}
+#settings-cv .ats-overview-heading{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+#settings-cv .ats-overview-icon{display:grid;place-items:center;width:47px;height:47px;border-radius:14px;font-weight:800;font-size:22px;flex:none;background:var(--accent-soft,var(--surface3));color:var(--accent)}
+#settings-cv .ats-overview-copy{display:grid;gap:5px;min-width:0}
+#settings-cv .ats-overview-copy strong{color:var(--text);font-size:17px;line-height:1.5}
+#settings-cv .ats-overview-copy span{color:var(--text2);font-size:12px;line-height:1.7}
+#settings-cv .ats-overview-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+#settings-cv .ats-overview-metric{display:flex;flex-direction:column;gap:6px;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:17px 14px}
+#settings-cv .ats-overview-metric strong{font-size:27px;line-height:1.2;font-variant-numeric:tabular-nums}
+#settings-cv .ats-overview-metric span{font-size:11px;line-height:1.6;color:var(--text2)}
+#settings-cv .ats-metric-pass strong{color:var(--accent)}
+#settings-cv .ats-metric-warn strong{color:var(--text)}
+#settings-cv .ats-metric-manual strong{color:var(--text2)}
+#settings-cv .ats-overview-match{padding:16px 0 0;margin-top:18px;border-top:1px solid var(--border)}
+#settings-cv .ats-overview-match-label{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;margin-bottom:11px}
+#settings-cv .ats-overview-match-label span{font-size:20px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+#settings-cv .ats-overview-track{background:var(--surface3);height:9px;border-radius:20px;overflow:hidden}
+#settings-cv .ats-overview-fill{height:100%;background:var(--accent);border-radius:20px;transition:width .2s}
+#settings-cv .ats-overview-match small{display:block;color:var(--text2);line-height:1.8;font-size:11px;margin-top:8px}
+#settings-cv .ats-results h4.ats-section-title{font-size:16px;line-height:1.7;margin:23px 0 13px}
+#settings-cv .ats-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 22px;padding:0}
+#settings-cv .ats-check{position:relative;background:var(--surface2,var(--surface3));border:1px solid var(--border);padding:17px 17px 17px 20px;border-radius:13px;min-height:104px}
+#settings-cv .ats-check strong{font-size:13px;font-weight:750;line-height:1.6}
+#settings-cv .ats-check-state{display:inline-flex;align-items:center;gap:5px;border-radius:8px;padding:5px 8px;background:var(--surface);font-size:11px;margin-top:10px;font-weight:600}
+#settings-cv .ats-check p{font-size:12px;margin-top:11px;line-height:1.8}
+#settings-cv .ats-check.ats-pass{border-inline-start:3px solid var(--accent)}
+#settings-cv .ats-check.ats-warning{border-inline-start:3px solid var(--text2)}
+#settings-cv .ats-check.ats-unknown{border-inline-start:3px solid var(--border)}
+#settings-cv .ats-note{padding:14px 16px;border-radius:10px;margin:14px 0}
+#settings-cv .ats-extracted,#settings-cv .ats-revision{margin-block:18px;border-radius:14px}
+#settings-cv .ats-revision{padding:21px;background:var(--surface2,var(--surface3))}
+#settings-cv .ats-revision-header h4{font-size:16px}
+#settings-cv .ats-revision-input{border:1px solid var(--border);background:var(--surface);padding:16px;border-radius:10px;line-height:1.95;min-height:320px}
+#settings-cv .ats-keywords{gap:8px}
+#settings-cv .ats-chip{padding:7px 10px;border-radius:8px;font-size:12px;background:var(--surface2,var(--surface3))}
+#settings-cv .ats-extracted pre{font-size:13px;line-height:1.95;padding:18px}
+@media(max-width:640px){#settings-cv .cv-ats{padding:17px}#settings-cv .ats-heading h3{font-size:19px}#settings-cv .ats-overview{padding:16px}#settings-cv .ats-overview-metrics{gap:7px}#settings-cv .ats-overview-metric{padding:12px 10px}#settings-cv .ats-overview-metric strong{font-size:22px}#settings-cv .ats-checks{grid-template-columns:1fr}#settings-cv .ats-export-actions{flex-wrap:wrap}#settings-cv .ats-export-actions .btn{min-width:140px}}
+@media(max-width:380px){#settings-cv .ats-overview-metrics{grid-template-columns:1fr}#settings-cv .ats-overview-metric{flex-direction:row;align-items:center;justify-content:space-between}}
+@media(prefers-reduced-motion:reduce){#settings-cv .ats-overview-fill{transition:none}}
