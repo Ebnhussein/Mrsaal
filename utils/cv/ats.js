@@ -13,22 +13,100 @@ function keywords(text,job=''){
  return terms.length?{matched,missing,matchPercent:percent,matchedCount:matched.length,totalCount:terms.length,method:'unique-terms',advisory:true}:null;
 }
 
-function report(text,source={},structured=null,job=''){
- const n=normalize(text),lines=n.split(/\r?\n/).map(s=>s.trim().replace(/[:：]$/,'')).filter(s=>s.length<90);
- const heading=pattern=>lines.some(s=>pattern.test(s)),hasEmail=/[^\s@|]+@[^\s@|]+\.[\p{L}]{2,}/u.test(n),hasPhone=(n.match(/\+?\d[\d ()-]{6,}\d/g)||[]).some(p=>{const d=p.replace(/\D/g,'');return d.length>=8&&d.length<=15&&!/\b(?:19|20)\d{2}\s*[-–]\s*(?:19|20)\d{2}\b/.test(p)&&!/(?:^|\s)(?:0?[1-9]|1[0-2])[-/](?:19|20)\d{2}/.test(p);});
- const readable=(n.match(/[\p{L}\p{N}]/gu)||[]).length>=40,layout=source.layout;
- const check=(id,status)=>({id,status,passed:status==='pass'}),present=v=>v?'pass':'warning';
- const completeDates=structured?[...structured.experience,...structured.education].every(r=>r.start&&(r.current||r.end)):null;
- const wordCount=tokens(text).length;
- const headingOrder=['summary','experience','education','skills','projects'].map(v=>({v,index:lines.findIndex(line=>new RegExp('^(?:'+({summary:'summary|professional summary|الملخص المهني',experience:'experience|work experience|الخبرات العملية',education:'education|التعليم',skills:'skills|المهارات',projects:'projects|المشروعات'}[v])+')$').test(line))})).filter(x=>x.index>=0);
- const warningReasons=[];
- if(!readable)warningReasons.push('No readable text was detected');
- if(source.partial||source.pagesWithNoText)warningReasons.push('Document parsing is incomplete');
- if(layout&&Object.values(layout).some(Boolean))warningReasons.push('Complex layout elements may disrupt extraction');
- if(!hasEmail||!hasPhone)warningReasons.push('Contact information is incomplete');
- const checks=[check('text',present(readable&&!source.partial&&!source.pagesWithNoText)),check('contact',present(hasEmail&&hasPhone)),check('summary',present(structured?!!structured.summary:heading(/^(?:professional summary|summary|profile|about me|objective|personal profile|الملخص(?: المهني)?|ملخص(?: مهني)?|نبذة(?: عني| مهنية)?|النبذة|الهدف(?: الوظيفي)?)$/))),check('skills',present(structured?!!structured.skills:heading(/^(?:(?:technical |core |key )?skills|core competencies|المهارات(?: التقنية| الفنية| الاساسية)?|مهاراتي|المهارات والكفاءات)$/))),check('evidence',present(structured?!!(structured.experience.length||structured.projects.length):heading(/^(?:(?:work |professional |relevant )?experience|work history|employment(?: history)?|projects|selected projects|الخبرات(?: العملية| المهنية)?|الخبرة(?: العملية| المهنية)?|خبرات العمل|المشروعات|المشاريع|الاعمال|اعمالي)$/))),check('education',present(structured?!!structured.education.length:heading(/^(?:education|academic background|qualifications|التعليم|المؤهلات(?: العلمية)?|الدراسة|المؤهل العلمي)$/))),check('dates',structured?present(completeDates):/\b(?:19|20)\d{2}\b/.test(n)?'unknown':'warning'),check('layout',layout?Object.values(layout).some(Boolean)?'warning':'pass':'unknown')];
- return {checks,keywords:keywords(text,job),readability:{status:!readable||source.partial||source.pagesWithNoText?'needs-attention':layout&&Object.values(layout).some(Boolean)?'review':'readable',issues:warningReasons,wordCount,detectedHeadings:headingOrder.map(x=>x.v)},advisory:true,source,readable,textPreview:String(text||'').slice(0,20000),previewTruncated:String(text||'').length>20000,scope:'local-readability',sourceHash:createHash('sha256').update(String(text||'')).digest('hex')};
+const CATEGORY={
+ text:'parsing',contact:'identity',summary:'sections',skills:'sections',
+ evidence:'experience',education:'sections',dates:'experience',layout:'formatting',
+ achievements:'content',length:'content',job:'matching'
+};
+const HEADING_RULES={
+ summary:/^(?:(?:professional|career|personal|executive)\s+(?:summary|profile)|summary|profile|about\s+me|objective|ملخص(?:\s+مهني)?|الملخص(?:\s+المهني)?|نبذة(?:\s+عنّي|\s+عني|\s+مهنية)?|النبذة|الهدف(?:\s+الوظيفي)?)$/iu,
+ skills:/^(?:(?:(?:technical|core|key|professional|relevant)\s+)?skills|core\s+competencies|competencies|technologies|مهارات(?:ي|\s+(?:الاساسية|الأساسية|التقنية|الفنية))?|المهارات(?:\s+(?:الاساسية|الأساسية|التقنية|الفنية))?|المهارات\s+والكفاءات)$/iu,
+ evidence:/^(?:(?:(?:work|professional|relevant|employment)\s+)?experience|work\s+history|employment(?:\s+history)?|projects|selected\s+projects|الخبرات(?:\s+(?:العملية|المهنية))?|الخبرة(?:\s+(?:العملية|المهنية))?|خبرات\s+العمل|المشروعات|المشاريع|الأعمال|اعمالي)$/iu,
+ education:/^(?:education|academic\s+background|qualifications|academic\s+qualifications|التعليم|المؤهلات(?:\s+العلمية)?|الدراسة|المؤهل\s+العلمي)$/iu
+};
+function headingLines(text){
+ const raw=normalize(text).split(/\r?\n/);
+ const lines=[];
+ for(const original of raw){
+  const line=original.trim().replace(/^[•●▪\-–|:：\s]+|[:：\s]+$/g,'').replace(/\s+/g,' ');
+  if(line.length<95)lines.push(line);
+  // PDF parsers occasionally place adjacent sections on one text item.
+  // Detect headings at the start of a text line but never inside arbitrary prose.
+  const prefix=line.match(/^(professional summary|career summary|work experience|professional experience|technical skills|core skills|education|experience|projects|skills|الملخص المهني|الخبرات العملية|المهارات|التعليم)\s*[:：\-–]\s*.+/iu);
+  if(prefix)lines.push(prefix[1]);
+ }
+ return lines;
 }
+function sectionPresent(lines,id){
+ return lines.some(line=>HEADING_RULES[id].test(line));
+}
+function meaningfulEvidence(text){
+ const n=normalize(text);
+ return /(?:increased|reduced|improved|delivered|managed|built|launched|optimized|saved|achieved|حققت|ادرت|طورت|انشات|نفذت|زودت|خفضت|حسنت)/iu.test(n)
+  && /(?:\d+\s*%|\d[\d,.]*\s*(?:users|clients|customers|campaigns|projects|عميل|مشروع|حملة|جنيه|دولار)|\d{2,})/iu.test(n);
+}
+function report(text,source={},structured=null,job=''){
+ const raw=String(text||''),n=normalize(raw),lines=headingLines(raw);
+ const hasEmail=/[^\s@|<>]+@[^\s@|<>]+\.[\p{L}]{2,}/u.test(n);
+ const hasPhone=(n.match(/\+?\d[\d ()-]{6,}\d/g)||[]).some(p=>{
+  const d=p.replace(/\D/g,'');
+  return d.length>=8&&d.length<=15&&!/\b(?:19|20)\d{2}\s*[-–]\s*(?:19|20)\d{2}\b/.test(p)
+   &&!/(?:^|\s)(?:0?[1-9]|1[0-2])[-/](?:19|20)\d{2}/.test(p);
+ });
+ const readable=(n.match(/[\p{L}\p{N}]/gu)||[]).length>=40;
+ const layout=source.layout,partial=!!(source.partial||source.pagesWithNoText),format=source.format||'text';
+ const structuredList=key=>Array.isArray(structured?.[key])?structured[key]:[];
+ const completeness=structured?
+  [...structuredList('experience'),...structuredList('education')].every(item=>item.start&&(item.current||item.end)):null;
+ const years=[...n.matchAll(/\b(?:19|20)\d{2}\b/g)].length;
+ const detectedHeadings=Object.keys(HEADING_RULES).filter(id=>sectionPresent(lines,id));
+ const kws=keywords(raw,job);
+ const check=(id,status,detail,priority='medium')=>({
+  id,status,passed:status==='pass',category:CATEGORY[id],priority,
+  detail,action:id==='text'?'verify-extraction':id==='layout'?'review-layout':id==='job'?'compare-job':'edit-section'
+ });
+ const hasSummary=structured?!!structured.summary?.trim():detectedHeadings.includes('summary');
+ const hasSkills=structured?!!structured.skills?.trim():detectedHeadings.includes('skills');
+ const hasEvidence=structured?!!(structuredList('experience').length||structuredList('projects').length):detectedHeadings.includes('evidence');
+ const hasEducation=structured?!!structuredList('education').length:detectedHeadings.includes('education');
+ // Absence of a heading in a PDF does not prove the section is missing;
+ // the parser may have merged its heading with the body.
+ const pdfUncertain=format==='pdf';
+ const optionalStatus=present=>present?'pass':pdfUncertain?'unknown':'warning';
+ const checks=[
+  check('text',readable&&!partial?'pass':'warning',readable&&!partial?'text-extracted':'missing-or-incomplete-text','high'),
+  check('contact',hasEmail&&hasPhone?'pass':hasEmail||hasPhone?'warning':'warning',hasEmail&&hasPhone?'both-contact-methods':'missing-contact-method','high'),
+  check('summary',optionalStatus(hasSummary),hasSummary?'section-detected':'section-not-confirmed'),
+  check('skills',optionalStatus(hasSkills),hasSkills?'section-detected':'section-not-confirmed'),
+  check('evidence',optionalStatus(hasEvidence),hasEvidence?'section-detected':'section-not-confirmed','high'),
+  check('education',hasEducation?'pass':pdfUncertain?'unknown':'warning',hasEducation?'section-detected':'section-not-confirmed','low'),
+  check('dates',structured?(completeness?'pass':'warning'):years?'unknown':'warning',structured?(completeness?'dates-complete':'dates-incomplete'):'dates-require-manual-review'),
+  check('layout',layout?Object.values(layout).some(Boolean)?'warning':'pass':'unknown',layout?'layout-inspected':'layout-not-inspectable'),
+  check('achievements',meaningfulEvidence(raw)?'pass':'unknown',meaningfulEvidence(raw)?'evidence-found':'verify-achievements','low'),
+  check('length',tokens(raw).length>1600?'warning':'pass',tokens(raw).length>1600?'long-resume':'length-within-guideline','low')
+ ];
+ const warnings=checks.filter(c=>c.status==='warning'),uncertain=checks.filter(c=>c.status==='unknown');
+ const issues=[];
+ if(!readable)issues.push('No readable text was detected');
+ if(partial)issues.push('Document parsing is incomplete');
+ if(layout&&Object.values(layout).some(Boolean))issues.push('Complex layout may disrupt extraction');
+ if(!hasEmail||!hasPhone)issues.push('Contact information needs review');
+ const output={
+  checks,keywords:kws,advisory:true,source,readable,
+  readability:{status:!readable||partial?'needs-attention':layout&&Object.values(layout).some(Boolean)?'review':'readable',
+   issues,wordCount:tokens(raw).length,detectedHeadings},
+  groups:[
+   {id:'parsing',checks:checks.filter(c=>['text','layout'].includes(c.id))},
+   {id:'content',checks:checks.filter(c=>!['text','layout'].includes(c.id))}
+  ],
+  summary:{passed:checks.filter(c=>c.passed).length,needsAttention:warnings.length,manualReview:uncertain.length,
+   critical:warnings.filter(c=>c.priority==='high').length,version:2},
+  textPreview:raw.slice(0,20000),previewTruncated:raw.length>20000,scope:'local-readability',
+  sourceHash:createHash('sha256').update(raw).digest('hex')
+ };
+ return output;
+}
+
 async function analyze(row,job=''){
  keywords('',job);if(row?.kind==='portfolio')throw Object.assign(new Error('فحص ATS خاص بالسيرة الذاتية. البرتفوليو يعتمد على روابط أعمالك.'),{status:422,code:'ATS_PORTFOLIO'});
  const read=require('./read-document');let source,structured=null;
