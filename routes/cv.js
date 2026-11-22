@@ -45,6 +45,16 @@ router.post('/tailor',asyncHandler(async(req,res)=>{
  const source=await require('../utils/cv/store').active(id,req.body.cvId||null),tailor=require('../utils/cv/tailor');const row=await tailor.prepare(id,company,source,req.body.options??{});res.set('Cache-Control','private, no-store');res.json(tailor.view(row));
 }));
 router.get('/tailor/jobs',asyncHandler(async(req,res)=>{res.set('Cache-Control','private, no-store');res.json(await all("SELECT id,title,description FROM discovered_jobs WHERE user_id=$1 AND company_id=$2 AND status<>'needs_review' ORDER BY created_at DESC LIMIT 100",[req.session.userId,req.query.companyId]));}));
+router.get('/ats/text',asyncHandler(async(req,res)=>{
+ const cvId=req.query.cvId;
+ if(typeof cvId!=='string'||!cvId||cvId.length>160)return res.status(400).json({error:'اختار نسخة CV صالحة.'});
+ const source=await require('../utils/cv/store').active(req.session.userId,cvId);
+ if(!source||!['cv','docx','ats-revised'].includes(source.kind))return res.status(404).json({error:'النسخة غير موجودة'});
+ const read=require('../utils/cv/read-document');
+ const parsed=source.attachment_data?await read.docx(Buffer.from(source.attachment_data)):source.pdf_data?await read.pdf(Buffer.from(source.pdf_data)):{text:source.content||''};
+ if(parsed.partial||parsed.pagesWithNoText)return res.status(422).json({error:'لا يمكن تعديل ملف لم يتم استخراج نصه بالكامل. ارفع ملفًا نصيًا كاملًا.'});
+ res.set('Cache-Control','private, no-store');res.json({content:parsed.text});
+}));
 // A user-reviewed copy of an uploaded CV; the uploaded original is left untouched.
 router.post('/ats/revision',asyncHandler(async(req,res)=>{
  const {cvId,content,confirmed}=req.body||{};
