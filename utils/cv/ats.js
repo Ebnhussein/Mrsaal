@@ -5,17 +5,29 @@ function normalize(text){return String(text||'').normalize('NFKC').replace(/[\u0
 function tokens(text){return (normalize(text).match(/[\p{L}\p{N}][\p{L}\p{N}+#.\-]{0,40}/gu)||[]).map(w=>w.replace(/^[.\-]+|[.\-]+$/g,''));}
 function keywords(text,job=''){
  if(typeof job!=='string'||job.length>12000)fail('وصف الوظيفة يجب أن يكون نصًا لا يزيد عن 12000 حرف.');
- const stop=new Set('the and for with that this from have will your you our are job role work team skills experience to of in on as be is at or a an we في من علي على الي الى إلى مع عن ان أن او أو و هذا هذه العمل خبرة سنوات مطلوب شركة'.split(' '));
- const terms=[...new Set(tokens(job))].filter(w=>(w.length>1||['c','r'].includes(w))&&!stop.has(w)&&!/^\d+$/.test(w)).slice(0,80),words=new Set(tokens(text));return terms.length?{matched:terms.filter(w=>words.has(w)),missing:terms.filter(w=>!words.has(w))}:null;
+ const stop=new Set('the and for with that this from have will your you our are job role work team skills experience to of in on as be is at or a an we who what when where highly ability strong good excellent must should preferred plus apply equal opportunity employer company responsibilities requirements qualifications required preferred position successful candidate years year knowledge understanding working etc في من علي على الي الى إلى مع عن ان أن او أو و هذا هذه العمل خبرة سنوات مطلوب شركة المؤهلات الشروط المهام المتطلبات المتقدم المرشح مطلوبه المطلوبة يفضل لديه لدينا'.split(' '));
+ const clean=words=>words.filter(w=>(w.length>1||['c','r'].includes(w))&&!stop.has(w)&&!/^\d+$/.test(w));
+ const terms=[...new Set(clean(tokens(job)))].slice(0,80);
+ const words=new Set(tokens(text)),matched=terms.filter(w=>words.has(w)),missing=terms.filter(w=>!words.has(w));
+ const percent=terms.length?Math.round(matched.length/terms.length*100):null;
+ return terms.length?{matched,missing,matchPercent:percent,matchedCount:matched.length,totalCount:terms.length,method:'unique-terms',advisory:true}:null;
 }
+
 function report(text,source={},structured=null,job=''){
  const n=normalize(text),lines=n.split(/\r?\n/).map(s=>s.trim().replace(/[:：]$/,'')).filter(s=>s.length<90);
  const heading=pattern=>lines.some(s=>pattern.test(s)),hasEmail=/[^\s@|]+@[^\s@|]+\.[\p{L}]{2,}/u.test(n),hasPhone=(n.match(/\+?\d[\d ()-]{6,}\d/g)||[]).some(p=>{const d=p.replace(/\D/g,'');return d.length>=8&&d.length<=15&&!/\b(?:19|20)\d{2}\s*[-–]\s*(?:19|20)\d{2}\b/.test(p)&&!/(?:^|\s)(?:0?[1-9]|1[0-2])[-/](?:19|20)\d{2}/.test(p);});
  const readable=(n.match(/[\p{L}\p{N}]/gu)||[]).length>=40,layout=source.layout;
  const check=(id,status)=>({id,status,passed:status==='pass'}),present=v=>v?'pass':'warning';
  const completeDates=structured?[...structured.experience,...structured.education].every(r=>r.start&&(r.current||r.end)):null;
+ const wordCount=tokens(text).length;
+ const headingOrder=['summary','experience','education','skills','projects'].map(v=>({v,index:lines.findIndex(line=>new RegExp('^(?:'+({summary:'summary|professional summary|الملخص المهني',experience:'experience|work experience|الخبرات العملية',education:'education|التعليم',skills:'skills|المهارات',projects:'projects|المشروعات'}[v])+')$').test(line))})).filter(x=>x.index>=0);
+ const warningReasons=[];
+ if(!readable)warningReasons.push('No readable text was detected');
+ if(source.partial||source.pagesWithNoText)warningReasons.push('Document parsing is incomplete');
+ if(layout&&Object.values(layout).some(Boolean))warningReasons.push('Complex layout elements may disrupt extraction');
+ if(!hasEmail||!hasPhone)warningReasons.push('Contact information is incomplete');
  const checks=[check('text',present(readable&&!source.partial&&!source.pagesWithNoText)),check('contact',present(hasEmail&&hasPhone)),check('summary',present(structured?!!structured.summary:heading(/^(?:professional summary|summary|profile|about me|objective|personal profile|الملخص(?: المهني)?|ملخص(?: مهني)?|نبذة(?: عني| مهنية)?|النبذة|الهدف(?: الوظيفي)?)$/))),check('skills',present(structured?!!structured.skills:heading(/^(?:(?:technical |core |key )?skills|core competencies|المهارات(?: التقنية| الفنية| الاساسية)?|مهاراتي|المهارات والكفاءات)$/))),check('evidence',present(structured?!!(structured.experience.length||structured.projects.length):heading(/^(?:(?:work |professional |relevant )?experience|work history|employment(?: history)?|projects|selected projects|الخبرات(?: العملية| المهنية)?|الخبرة(?: العملية| المهنية)?|خبرات العمل|المشروعات|المشاريع|الاعمال|اعمالي)$/))),check('education',present(structured?!!structured.education.length:heading(/^(?:education|academic background|qualifications|التعليم|المؤهلات(?: العلمية)?|الدراسة|المؤهل العلمي)$/))),check('dates',structured?present(completeDates):/\b(?:19|20)\d{2}\b/.test(n)?'unknown':'warning'),check('layout',layout?Object.values(layout).some(Boolean)?'warning':'pass':'unknown')];
- return {checks,keywords:keywords(text,job),advisory:true,source,readable,textPreview:String(text||'').slice(0,20000),previewTruncated:String(text||'').length>20000,scope:'local-readability',sourceHash:createHash('sha256').update(String(text||'')).digest('hex')};
+ return {checks,keywords:keywords(text,job),readability:{status:!readable||source.partial||source.pagesWithNoText?'needs-attention':layout&&Object.values(layout).some(Boolean)?'review':'readable',issues:warningReasons,wordCount,detectedHeadings:headingOrder.map(x=>x.v)},advisory:true,source,readable,textPreview:String(text||'').slice(0,20000),previewTruncated:String(text||'').length>20000,scope:'local-readability',sourceHash:createHash('sha256').update(String(text||'')).digest('hex')};
 }
 async function analyze(row,job=''){
  keywords('',job);if(row?.kind==='portfolio')throw Object.assign(new Error('فحص ATS خاص بالسيرة الذاتية. البرتفوليو يعتمد على روابط أعمالك.'),{status:422,code:'ATS_PORTFOLIO'});
