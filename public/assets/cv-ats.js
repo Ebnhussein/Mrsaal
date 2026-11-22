@@ -36,10 +36,14 @@
    const editor=node('section',null,'ats-revision'),header=node('div',null,'ats-revision-header');
    header.append(node('h4',t('جهّز نسخة ATS قابلة للتحميل','Prepare an ATS-ready downloadable copy')));
    editor.append(header,node('p',t('النص المستخرج من ملفك قابل للتعديل. صحّح التنسيق والعناوين فقط وأضف معلومات حقيقية. الحفظ ينشئ نسخة مستقلة Word قابلة للتحويل لـPDF؛ مش هيغيّر الأصل.','Edit the extracted CV text. Correct formatting and headings, and only add true facts. Saving creates a separate Word/PDF-exportable copy without changing the uploaded original.'),'ats-export-note'));
-   const toggle=button('مراجعة وتعديل النسخة','Review and edit copy',()=>{editing=!editing;revisionDraft=revisionDraft||result.textPreview||'';draw();});toggle.className='btn btn-secondary';editor.append(toggle);
+   const toggle=button('مراجعة وتعديل النسخة','Review and edit copy',async()=>{
+    if(editing){editing=false;draw();return;}
+    try{const response=await api('/api/cv/ats/text?cvId='+encodeURIComponent(selected.id));revisionDraft=response.content;editing=true;saveError='';draw();}
+    catch(e){saveError=e.message;draw();}
+   });toggle.className='btn btn-secondary';editor.append(toggle);
    if(editing){
     const label=node('label',t('نص النسخة الجديدة','Text of new version'),'ats-revision-label');label.htmlFor='ats-revision-text';
-    const textarea=node('textarea',null,'textarea ats-revision-input');textarea.id='ats-revision-text';textarea.rows=16;textarea.dir='auto';textarea.maxLength=180000;textarea.value=revisionDraft||result.textPreview||'';textarea.disabled=busy;textarea.addEventListener('input',()=>{revisionDraft=textarea.value;});
+    const textarea=node('textarea',null,'textarea ats-revision-input');textarea.id='ats-revision-text';textarea.rows=16;textarea.dir='auto';textarea.maxLength=180000;textarea.value=revisionDraft;textarea.disabled=busy;textarea.addEventListener('input',()=>{revisionDraft=textarea.value;});
     const confirm=node('label',null,'ats-revision-confirm'),checkbox=node('input');checkbox.type='checkbox';checkbox.disabled=busy;
     confirm.append(checkbox,node('span',t('راجعت كل البيانات والتعديلات، ومفيش مهارات أو خبرات غير حقيقية.','I verified the details and changes; no fabricated experience or skills.')));
     const saveBtn=button('حفظ نسخة جديدة وتحميلها','Save new copy for download',async()=>{
