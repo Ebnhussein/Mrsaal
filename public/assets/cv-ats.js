@@ -1,7 +1,7 @@
 /* global api,openSettings */
 (()=>{'use strict';
  const root=document.getElementById('cv-ats-panel');if(!root)return;root.dataset.userContent='';
- let active=null,selected=null,result=null,job='',busy=false,error='',revision=0,pending=Promise.resolve();
+ let active=null,selected=null,result=null,job='',busy=false,error='',revision=0,pending=Promise.resolve(),revisionDraft='',editing=false,saveError='';
  const t=(ar,en)=>document.documentElement.lang==='en'?en:ar;
  const node=(tag,text,cls)=>{const e=document.createElement(tag);if(text)e.textContent=text;if(cls)e.className=cls;return e;};
  const names={text:['قراءة النص من الملف','File text extraction'],contact:['البريد ورقم الهاتف','Email and phone'],summary:['ملخص مهني','Professional summary'],skills:['قسم المهارات','Skills section'],evidence:['الخبرات أو المشروعات','Experience or projects'],education:['التعليم','Education'],dates:['تواريخ الخبرة والتعليم','Experience and education dates'],layout:['بنية المستند','Document structure']};
@@ -15,15 +15,50 @@
   const details=node('details',null,'ats-job');details.open=!!job;details.append(node('summary',t('مقارنة بوصف وظيفة (اختياري)','Compare with a job description (optional)')));const label=node('label',t('وصف الوظيفة','Job description'));label.htmlFor='ats-job-description';const input=node('textarea',null,'textarea');input.id='ats-job-description';input.maxLength=12000;input.rows=4;input.value=job;input.dir='auto';input.disabled=busy;input.oninput=()=>{job=input.value;result=null;const report=root.querySelector('.ats-results');if(report)report.replaceChildren(node('p',t('الوصف اتغير. اضغط إعادة الفحص لتحديث النتيجة.','Description changed. Run the check again to update the result.'),'ats-note'));};details.append(label,input,node('small',t('مطابقة كلمات فقط؛ لا نضيف مهارات ولا نعدّل سيرتك تلقائيًا.','Word overlap only; no skills are added and your CV is not rewritten.')));root.append(details);
   const actions=node('div',null,'ats-actions');actions.append(button(busy?'جاري فحص الملف…':'إعادة فحص ATS',busy?'Checking file…':'Run ATS check again',run));const status=node('span',busy?t('جاري قراءة النسخة المحددة…','Reading the selected version…'):result?t('اكتمل الفحص المحلي','Local check complete'):'');status.setAttribute('role','status');actions.append(status);root.append(actions);
   if(error){const alert=node('p',error,'ats-error');alert.setAttribute('role','alert');root.append(alert);}if(!result)return;
-  const report=node('div',null,'ats-results'),source=result.source;const exportRow=node('div',null,'ats-actions');const wordLink=node('a',t('تصدير Word','Export Word'),'btn btn-secondary');wordLink.href='/api/cv/export/docx?cvId='+encodeURIComponent(selected.id);const pdfLink=node('a',t('تصدير PDF','Export PDF'),'btn btn-secondary');pdfLink.href='/api/cv/print?cvId='+encodeURIComponent(selected.id);pdfLink.target='_blank';pdfLink.rel='noopener noreferrer';exportRow.append(pdfLink);exportRow.append(wordLink);report.append(exportRow);
+  const report=node('div',null,'ats-results'),source=result.source;
+  const downloadable=['builder','tailored','ats-revised'].includes(selected.kind);
+  if(downloadable){
+   const exportRow=node('div',null,'ats-actions ats-export-actions');
+   const wordLink=node('a',t('تحميل Word','Download Word'),'btn btn-secondary');wordLink.href='/api/cv/export/docx?cvId='+encodeURIComponent(selected.id);
+   const pdfLink=node('a',t('حفظ PDF','Save PDF'),'btn btn-secondary');pdfLink.href='/api/cv/print?cvId='+encodeURIComponent(selected.id);pdfLink.target='_blank';pdfLink.rel='noopener noreferrer';
+   exportRow.append(wordLink,pdfLink);report.append(exportRow);
+   report.append(node('p',t('التحميل خاص بالنسخة اللي أنشأها مرسال أو اللي راجعتها وحفظتها هنا. PDF يفتح صفحة جاهزة للطباعة والحفظ.','Downloads use the CV built by Mrsaal or the reviewed version saved here. PDF opens a print-ready page.'),'ats-export-note'));
+  }else{
+   report.append(node('p',t('دي النسخة الأصلية المرفوعة. علشان تحمّل Word أو PDF محسّن، راجع النص واحفظ نسخة ATS جديدة الأول. الملف الأصلي مش هيتغير.','This is the uploaded original. Review and save a new ATS version before downloading Word or PDF. Your original is unchanged.'),'ats-note'));
+  }
   report.append(node('p',(source.attachment?t('مصدر الفحص: المرفق الأصلي','Checked source: original attachment'):t('مصدر الفحص: النص المحفوظ، بدون مرفق','Checked source: saved text, no attachment'))+' · '+source.format.toUpperCase()+(source.pages?' · '+source.scannedPages+'/'+source.pages+' '+t('صفحة','pages'):''),'ats-source'));
   if(source.textDiffersFromSaved)report.append(node('p',t('النص المحفوظ مختلف عن المرفق. النتيجة هنا تخص الملف الأصلي اللي هيتبعت، مش النص المعدّل. لو عايز تغيّر الملف، عدّله وارفع نسخة جديدة.','Saved text differs from the attachment. This result checks the original file that will be sent, not edited text. To change the file, edit it and upload a new version.'),'ats-note'));
   if(source.partial||source.pagesWithNoText)report.append(node('p',t('الفحص غير مكتمل أو فيه صفحات بدون نص. راجع النص المقروء أدناه؛ لا تعتمد على النتيجة كفحص شامل.','The scan is partial or includes pages with no text. Review extracted text below; this is not a complete file check.'),'ats-note'));
   if(source.bytes>2.5*1024*1024)report.append(node('p',t('حجم الملف كبير. راجع حد الملفات المسموح في موقع التقديم.','This is a large file. Check the receiving site’s file-size limit.'),'ats-note'));
   const list=node('ul',null,'ats-checks');for(const c of result.checks){const item=node('li',null,'ats-check ats-'+c.status),title=node('strong',t(...names[c.id]));const label=node('span',c.status==='pass'?t('✓ متحقق','✓ Checked'):c.status==='unknown'?t('○ مراجعة يدوية','○ Manual review'):t('△ يحتاج مراجعة','△ Review needed'),'ats-check-state');item.append(title,label);if(c.status!=='pass')item.append(node('p',t(...advice[c.id])));list.append(item);}report.append(list);
   if(result.keywords){report.append(node('h4',t('نسبة تغطية كلمات الوظيفة: ','Job keyword coverage: ')+result.keywords.matchPercent+'%'),node('p',t('النسبة بتقيس الكلمات الفريدة المشتركة بين الملف والوصف، مش فرصة القبول أو نتيجة ATS فعلية.','Unique-term overlap only; not an acceptance probability or a real employer ATS score.'),'ats-note'));report.append(node('h4',t('تفاصيل الكلمات المتطابقة والناقصة','Matched and missing terms')));for(const [key,ar,en]of [['matched','موجودة في النسخة','Present in this version'],['missing','غير موجودة — أضفها فقط لو حقيقية','Missing — add only if true']]){const block=node('section');block.append(node('h5',t(ar,en)));const chips=node('div',null,'ats-keywords');for(const term of result.keywords[key])chips.append(node('span',term,'ats-chip'));if(!result.keywords[key].length)chips.append(node('span','—'));block.append(chips);report.append(block);}}
+  if(['cv','docx','ats-revised'].includes(selected.kind)){
+   const editor=node('section',null,'ats-revision'),header=node('div',null,'ats-revision-header');
+   header.append(node('h4',t('جهّز نسخة ATS قابلة للتحميل','Prepare an ATS-ready downloadable copy')));
+   editor.append(header,node('p',t('النص المستخرج من ملفك قابل للتعديل. صحّح التنسيق والعناوين فقط وأضف معلومات حقيقية. الحفظ ينشئ نسخة مستقلة Word قابلة للتحويل لـPDF؛ مش هيغيّر الأصل.','Edit the extracted CV text. Correct formatting and headings, and only add true facts. Saving creates a separate Word/PDF-exportable copy without changing the uploaded original.'),'ats-export-note'));
+   const toggle=button('مراجعة وتعديل النسخة','Review and edit copy',()=>{editing=!editing;revisionDraft=revisionDraft||result.textPreview||'';draw();});toggle.className='btn btn-secondary';editor.append(toggle);
+   if(editing){
+    const label=node('label',t('نص النسخة الجديدة','Text of new version'),'ats-revision-label');label.htmlFor='ats-revision-text';
+    const textarea=node('textarea',null,'textarea ats-revision-input');textarea.id='ats-revision-text';textarea.rows=16;textarea.dir='auto';textarea.maxLength=180000;textarea.value=revisionDraft||result.textPreview||'';textarea.disabled=busy;textarea.addEventListener('input',()=>{revisionDraft=textarea.value;});
+    const confirm=node('label',null,'ats-revision-confirm'),checkbox=node('input');checkbox.type='checkbox';checkbox.disabled=busy;
+    confirm.append(checkbox,node('span',t('راجعت كل البيانات والتعديلات، ومفيش مهارات أو خبرات غير حقيقية.','I verified the details and changes; no fabricated experience or skills.')));
+    const saveBtn=button('حفظ نسخة جديدة وتحميلها','Save new copy for download',async()=>{
+     if(!checkbox.checked||busy){saveError=t('لازم تراجع وتوافق على صحة النسخة أولًا.','Review and confirm the copy first.');draw();return;}
+     busy=true;saveError='';saveBtn.disabled=true;
+     try{
+      const saved=await api('/api/cv/ats/revision','POST',{cvId:selected.id,content:revisionDraft,confirmed:true});
+      selected={id:saved.id,name:saved.name,kind:saved.kind};active=selected;revisionDraft='';editing=false;result=null;busy=false;
+      if(typeof window.loadCV==='function')await window.loadCV();
+      await run();
+     }catch(e){busy=false;saveError=e.message;draw();}
+    },true);
+    editor.append(label,textarea,confirm,saveBtn);
+   }
+   if(saveError)editor.append(node('p',saveError,'ats-error'));
+   report.append(editor);
+  }
   const extracted=node('details',null,'ats-extracted');extracted.append(node('summary',t('راجع النص اللي قدرنا نقرأه','Review the text we could extract')));const pre=node('pre',result.textPreview||t('لم نتمكن من استخراج نص مقروء.','No readable text could be extracted.'));pre.dir='auto';extracted.append(pre);if(result.previewTruncated)extracted.append(node('p',t('المعاينة مختصرة؛ فحص النص شمل النص المقروء كاملًا ضمن حدود القراءة.','Preview is shortened; checks used all text extracted within the reading limits.')));report.append(extracted);root.append(report);
  }
- window.MrsaalATS={render(cv){++revision;active=cv;selected=cv?.kind==='portfolio'?null:cv;result=null;error='';busy=false;draw();if(selected)void run();},open(id,name){++revision;busy=false;selected={id,name};result=null;error='';openSettings('cv');draw();root.scrollIntoView({behavior:'smooth',block:'start'});void run();}};
+ window.MrsaalATS={render(cv){++revision;active=cv;selected=cv?.kind==='portfolio'?null:cv;result=null;error='';busy=false;revisionDraft='';editing=false;saveError='';draw();if(selected)void run();},open(id,name){++revision;busy=false;selected={id,name};result=null;error='';revisionDraft='';editing=false;saveError='';openSettings('cv');draw();root.scrollIntoView({behavior:'smooth',block:'start'});void run();}};
  document.addEventListener('mrsaal:language',draw);
 })();
