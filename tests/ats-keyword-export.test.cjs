@@ -35,3 +35,44 @@ test('generated Word export preserves extractable text',async()=>{
  assert.match(parsed.text,/Jane Smith/);
  assert.match(parsed.text,/Python, SQL/);
 });
+
+
+test('recognizes conventional headings after whitespace and punctuation normalization',()=>{
+ const sample=[
+  'Ahmed Hussein','ahmed@example.com | +201001234567','PROFESSIONAL SUMMARY:',
+  'Performance marketer with project experience.','TECHNICAL SKILLS:','Meta Ads, Google Sheets',
+  'WORK EXPERIENCE','Marketing specialist','2023 - 2025','EDUCATION','University studies'
+ ].join('\n');
+ const report=ats.report(sample,{format:'text',layout:null});
+ for(const key of ['summary','skills','evidence','education']){
+  assert.equal(report.checks.find(item=>item.id===key).status,'pass',key);
+ }
+ assert.equal(report.checks.find(item=>item.id==='contact').status,'pass');
+});
+
+test('unknown PDF headings need manual review rather than claiming absence',()=>{
+ const result=ats.report('Ahmed Hussein\nahmed@example.com\n+201001234567\nDigital marketing specialist with experience in paid advertising campaigns',
+ {format:'pdf',pages:1,layout:null});
+ assert.equal(result.checks.find(c=>c.id==='skills').status,'unknown');
+ assert.equal(result.checks.find(c=>c.id==='summary').status,'unknown');
+ assert.equal(result.checks.find(c=>c.id==='layout').status,'unknown');
+});
+
+test('separates semantic content diagnostics and parser reliability',()=>{
+ const result=ats.report('Jane Smith\njane@example.com\n+201001234567\nSummary\nManaged digital projects\nSkills\nSQL\nExperience\n2022 - 2024',
+ {format:'docx',layout:{tables:true,columns:false,textBoxes:false,images:false,headersFooters:false}});
+ assert.equal(result.checks.find(c=>c.id==='layout').status,'warning');
+ assert.equal(result.summary.critical>=0,true);
+ assert.equal(result.groups.length,2);
+ assert.equal(result.groups[0].id,'parsing');
+ assert.equal(result.advisory,true);
+});
+
+test('print view escapes arbitrary uploaded text and uses semantic headings',()=>{
+ const {renderPrintableHTML}=require('../utils/cv/export');
+ const html=renderPrintableHTML('Jane <script>alert(1)</script>\nMarketing Analyst\njane@example.com\n\nProfessional Summary\nExperienced in SQL');
+ assert.match(html,/&lt;script&gt;/);
+ assert.doesNotMatch(html,/<script>/);
+ assert.match(html,/<h2>Professional Summary<\/h2>/);
+ assert.match(html,/<h1>Jane/);
+});
