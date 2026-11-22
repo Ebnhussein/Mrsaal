@@ -73,7 +73,7 @@ router.get('/ats/text',asyncHandler(async(req,res)=>{
  const source=await require('../utils/cv/store').active(req.session.userId,cvId);
  if(!source||!['cv','docx','ats-revised','builder'].includes(source.kind))return res.status(404).json({error:'النسخة غير موجودة'});
  const read=require('../utils/cv/read-document');
- const parsed=source.kind==='builder'&&source.document_json?await read.docx(await require('../utils/cv/document').render(JSON.parse(source.document_json)):source.attachment_data?await read.docx(Buffer.from(source.attachment_data)):source.pdf_data?await read.pdf(Buffer.from(source.pdf_data)):{text:source.content||''};
+ const parsed=source.kind==='builder'&&source.document_json?await read.docx(await require('../utils/cv/document').render(JSON.parse(source.document_json))):source.attachment_data?await read.docx(Buffer.from(source.attachment_data)):source.pdf_data?await read.pdf(Buffer.from(source.pdf_data)):{text:source.content||''};
  if(parsed.partial||parsed.pagesWithNoText)return res.status(422).json({error:'لا يمكن تعديل ملف لم يتم استخراج نصه بالكامل. ارفع ملفًا نصيًا كاملًا.'});
  res.set('Cache-Control','private, no-store');res.json({content:parsed.text});
 }));
